@@ -331,9 +331,13 @@ class BranchAnalyzer:
         
         # Check for stale branches
         if not branch_stats.empty:
-            stale_branches = len(branch_stats[branch_stats.get('days_since_last_commit', 0) > 90])
-            if stale_branches > 3:
-                recommendations.append(f"Consider cleaning up {stale_branches} stale branches to improve repository hygiene")
+            if 'days_since_last_commit' in branch_stats.columns:
+                stale_condition = branch_stats['days_since_last_commit'] > 90
+                stale_branches = len(branch_stats[stale_condition])
+                if stale_branches > 3:
+                    recommendations.append(f"Consider cleaning up {stale_branches} stale branches to improve repository hygiene")
+            else:
+                logger.warning("Column 'days_since_last_commit' not found in branch_stats")
         
         # Check merge frequency
         merge_percentage = merge_analysis.get('merge_percentage', 0)

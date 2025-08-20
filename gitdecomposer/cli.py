@@ -87,10 +87,21 @@ Examples:
         print("Generating repository analysis...")
         summary = metrics.generate_repository_summary()
         
+        if args.verbose:
+            print(f"Summary result type: {type(summary)}, value: {summary}")
+        
         # Check if summary generation failed
-        if 'error' in summary:
-            print(f"Error generating repository summary: {summary['error']}")
-            summary = {}  # Use empty dict to prevent further errors
+        if not summary or 'error' in summary:
+            error_msg = summary.get('error', 'Unknown error') if summary else 'Summary generation returned None or False'
+            print(f"Error generating repository summary: {error_msg}")
+            # Set default values for failed summary
+            summary = {
+                'repository_info': {'path': 'Unknown', 'active_branch': 'Unknown'},
+                'commits': {'total_commits': 0},
+                'contributors': {'total_contributors': 0},
+                'branches': {'total_branches': 0, 'branching_model': 'Unknown'},
+                'files': {},
+            }
         
         # Print basic stats
         print("\n" + "="*50)
@@ -123,29 +134,47 @@ Examples:
             
             try:
                 # Create individual dashboards
-                commit_path = output_dir / "commit_activity.html"
-                metrics.create_commit_activity_dashboard(str(commit_path))
+                print("  Creating commit activity dashboard...")
+                try:
+                    commit_path = output_dir / "commit_activity.html"
+                    metrics.create_commit_activity_dashboard(str(commit_path))
+                    print(f"  ✓ Created: {commit_path}")
+                except Exception as e:
+                    print(f"  ✗ Failed to create commit activity dashboard: {e}")
                 
-                contributor_path = output_dir / "contributor_analysis.html"
-                metrics.create_contributor_analysis_charts(str(contributor_path))
+                print("  Creating contributor analysis charts...")
+                try:
+                    contributor_path = output_dir / "contributor_analysis.html"
+                    metrics.create_contributor_analysis_charts(str(contributor_path))
+                    print(f"  ✓ Created: {contributor_path}")
+                except Exception as e:
+                    print(f"  ✗ Failed to create contributor analysis charts: {e}")
                 
-                file_path = output_dir / "file_analysis.html"
-                metrics.create_file_analysis_visualization(str(file_path))
+                print("  Creating file analysis visualization...")
+                try:
+                    file_path = output_dir / "file_analysis.html"
+                    metrics.create_file_analysis_visualization(str(file_path))
+                    print(f"  ✓ Created: {file_path}")
+                except Exception as e:
+                    print(f"  ✗ Failed to create file analysis visualization: {e}")
                 
-                # Create enhanced file analysis dashboard
-                enhanced_file_path = output_dir / "enhanced_file_analysis.html"
-                metrics.create_enhanced_file_analysis_dashboard(str(enhanced_file_path))
+                print("  Creating enhanced file analysis dashboard...")
+                try:
+                    enhanced_file_path = output_dir / "enhanced_file_analysis.html"
+                    metrics.create_enhanced_file_analysis_dashboard(str(enhanced_file_path))
+                    print(f"  ✓ Created: {enhanced_file_path}")
+                except Exception as e:
+                    print(f"  ✗ Failed to create enhanced file analysis dashboard: {e}")
                 
-                # Create comprehensive report
-                report_path = output_dir / "comprehensive_report.html"
-                metrics.create_comprehensive_report(str(report_path))
+                print("  Creating comprehensive report...")
+                try:
+                    report_path = output_dir / "comprehensive_report.html"
+                    metrics.create_comprehensive_report(str(report_path))
+                    print(f"  ✓ Created: {report_path}")
+                except Exception as e:
+                    print(f"  ✗ Failed to create comprehensive report: {e}")
                 
-                print("Created visualization files:")
-                print(f"  - {commit_path}")
-                print(f"  - {contributor_path}")
-                print(f"  - {file_path}")
-                print(f"  - {enhanced_file_path}")
-                print(f"  - {report_path}")
+                print("All visualization creation attempts completed.")
                 
             except ImportError:
                 print("Warning: Visualization libraries not available. Install with: pip install matplotlib plotly")

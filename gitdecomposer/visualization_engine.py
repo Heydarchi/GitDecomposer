@@ -66,37 +66,33 @@ class VisualizationEngine:
         )
         
         # Commits over time
-        if commits_by_date:
-            dates = list(commits_by_date.keys())
-            counts = list(commits_by_date.values())
+        if not commits_by_date.empty:
             fig.add_trace(
-                go.Scatter(x=dates, y=counts, mode='lines+markers', name='Daily Commits'),
+                go.Scatter(x=commits_by_date['date'], y=commits_by_date['commit_count'], 
+                          mode='lines+markers', name='Daily Commits'),
                 row=1, col=1
             )
         
         # Commits by hour
-        if commits_by_hour:
-            hours = list(commits_by_hour.keys())
-            counts = list(commits_by_hour.values())
+        if not commits_by_hour.empty:
             fig.add_trace(
-                go.Bar(x=hours, y=counts, name='Hourly Distribution'),
+                go.Bar(x=commits_by_hour['hour'], y=commits_by_hour['commit_count'], 
+                      name='Hourly Distribution'),
                 row=1, col=2
             )
         
         # Commits by weekday
-        if commits_by_weekday:
-            weekdays = list(commits_by_weekday.keys())
-            counts = list(commits_by_weekday.values())
+        if not commits_by_weekday.empty:
             fig.add_trace(
-                go.Bar(x=weekdays, y=counts, name='Weekly Distribution'),
+                go.Bar(x=commits_by_weekday['weekday'], y=commits_by_weekday['commit_count'], 
+                      name='Weekly Distribution'),
                 row=2, col=1
             )
         
         # Commit size distribution
-        if commit_sizes:
-            sizes = [size['files_changed'] for size in commit_sizes]
+        if not commit_sizes.empty:
             fig.add_trace(
-                go.Histogram(x=sizes, name='Commit Sizes', nbinsx=20),
+                go.Histogram(x=commit_sizes['files_changed'], name='Size Distribution'),
                 row=2, col=2
             )
         
@@ -135,11 +131,11 @@ class VisualizationEngine:
                    [{"secondary_y": False}, {"secondary_y": False}]]
         )
         
-        if contributors:
-            # Top contributors by commits
-            top_10_commits = contributors[:10]
-            names = [c['name'] for c in top_10_commits]
-            commits = [c['commits'] for c in top_10_commits]
+        if not contributors.empty:
+            # Top contributors by commits - convert DataFrame to dict records
+            top_10_commits = contributors.head(10).to_dict('records')
+            names = [c['author'] for c in top_10_commits]
+            commits = [c['total_commits'] for c in top_10_commits]
             
             fig.add_trace(
                 go.Bar(x=names, y=commits, name='Commits'),
@@ -147,16 +143,17 @@ class VisualizationEngine:
             )
             
             # Top contributors by lines added
-            lines_added = [c['lines_added'] for c in top_10_commits]
+            lines_added = [c['total_insertions'] for c in top_10_commits]
             fig.add_trace(
                 go.Bar(x=names, y=lines_added, name='Lines Added'),
                 row=1, col=2
             )
             
-            # Contributor impact (commits vs lines)
-            commits_all = [c['commits'] for c in contributors]
-            lines_all = [c['lines_added'] for c in contributors]
-            names_all = [c['name'] for c in contributors]
+            # Contributor impact (commits vs lines) - convert full DataFrame to records
+            contributors_all = contributors.to_dict('records')
+            commits_all = [c['total_commits'] for c in contributors_all]
+            lines_all = [c['total_insertions'] for c in contributors_all]
+            names_all = [c['author'] for c in contributors_all]
             
             fig.add_trace(
                 go.Scatter(
@@ -168,14 +165,24 @@ class VisualizationEngine:
             )
         
         # Activity over time
-        if contributor_activity:
-            for contributor, activity in contributor_activity.items():
-                dates = list(activity.keys())
-                commits = list(activity.values())
-                fig.add_trace(
-                    go.Scatter(x=dates, y=commits, mode='lines', name=contributor),
-                    row=2, col=1
-                )
+        if not contributor_activity.empty:
+            # contributor_activity should be a DataFrame, let's handle it properly
+            # For now, create a simple activity chart if we have the data
+            if 'author' in contributor_activity.columns:
+                # Group by author and create simple traces
+                for author in contributor_activity['author'].unique()[:5]:  # Top 5 for readability
+                    author_data = contributor_activity[contributor_activity['author'] == author]
+                    if 'first_commit_date' in author_data.columns and not author_data['first_commit_date'].isna().all():
+                        # Create a simple representation
+                        fig.add_trace(
+                            go.Scatter(
+                                x=[author_data['first_commit_date'].iloc[0], author_data['last_commit_date'].iloc[0]], 
+                                y=[author_data['total_commits'].iloc[0], author_data['total_commits'].iloc[0]], 
+                                mode='lines+markers', 
+                                name=author
+                            ),
+                            row=2, col=1
+                        )
         
         fig.update_layout(
             title='Repository Contributor Analysis',

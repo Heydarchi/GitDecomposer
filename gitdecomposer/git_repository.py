@@ -246,14 +246,26 @@ class GitRepository:
             except Exception as e:
                 logger.warning(f"Could not get head commit: {e}")
             
+            active_branch = "Unknown"
+            try:
+                active_branch = self.active_branch
+            except Exception as e:
+                logger.warning(f"Could not get active branch: {e}")
+            
+            remote_urls = []
+            try:
+                remote_urls = self.remote_urls
+            except Exception as e:
+                logger.warning(f"Could not get remote URLs: {e}")
+            
             stats = {
                 'path': str(self.repo_path),
                 'is_bare': self.is_bare,
-                'active_branch': self.active_branch,
+                'active_branch': active_branch,
                 'total_commits': total_commits,
                 'total_branches': total_branches,
                 'total_tags': total_tags,
-                'remotes': self.remote_urls,
+                'remotes': remote_urls,
                 'head_commit': head_commit
             }
             

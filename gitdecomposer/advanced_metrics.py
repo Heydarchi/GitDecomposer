@@ -68,14 +68,22 @@ class AdvancedMetrics:
                     days_since_commit = (datetime.now() - commit_date).days
                     
                     changed_files = self.git_repo.get_changed_files(commit.hexsha)
+                    commit_stats = commit.stats
                     all_authors.add(commit.author.name)
                     
-                    for file_path, stats in changed_files.items():
+                    for file_path in changed_files.keys():
                         metrics = file_metrics[file_path]
                         
                         # Update basic metrics
                         metrics['commit_count'] += 1
-                        changes = stats.get('additions', 0) + stats.get('deletions', 0)
+                        
+                        # Get changes from commit stats
+                        changes = 0
+                        if file_path in commit_stats.files:
+                            file_stat = commit_stats.files[file_path]
+                            if isinstance(file_stat, dict) and 'insertions' in file_stat and 'deletions' in file_stat:
+                                changes = file_stat['insertions'] + file_stat['deletions']
+                        
                         metrics['total_changes'] += changes
                         
                         # Track unique authors for this file

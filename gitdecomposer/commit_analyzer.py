@@ -133,6 +133,24 @@ class CommitAnalyzer:
         # This method is an alias for get_commit_frequency_by_date for compatibility
         return self.get_commit_frequency_by_date()
     
+    def get_commits_by_hour(self) -> pd.DataFrame:
+        """
+        Get commits grouped by hour (alias for get_commit_frequency_by_hour).
+        
+        Returns:
+            pd.DataFrame: DataFrame with hours and commit counts
+        """
+        return self.get_commit_frequency_by_hour()
+    
+    def get_commits_by_weekday(self) -> pd.DataFrame:
+        """
+        Get commits grouped by weekday (alias for get_commit_frequency_by_weekday).
+        
+        Returns:
+            pd.DataFrame: DataFrame with weekdays and commit counts
+        """
+        return self.get_commit_frequency_by_weekday()
+    
     def get_commit_size_distribution(self) -> pd.DataFrame:
         """
         Get distribution of commit sizes (lines added/deleted).

@@ -615,18 +615,21 @@ class FileAnalyzer:
                     commit_date = commit.committed_date
                     month_key = pd.Timestamp(commit_date, unit='s').strftime('%Y-%m')
                     
-                    changed_files = self.git_repo.get_changed_files(commit.hexsha)
+                    # Get commit statistics properly
+                    commit_stats = commit.stats
                     
-                    for file_path, stats in changed_files.items():
-                        additions = stats.get('additions', 0)
-                        deletions = stats.get('deletions', 0)
-                        
-                        file_changes[file_path]['additions'] += additions
-                        file_changes[file_path]['deletions'] += deletions
-                        file_changes[file_path]['net_changes'] += (additions - deletions)
-                        
-                        monthly_churn[month_key]['lines_changed'] += (additions + deletions)
-                        total_lines_changed += (additions + deletions)
+                    for file_path, file_stat in commit_stats.files.items():
+                        # Ensure file_stat is a dictionary with the expected keys
+                        if isinstance(file_stat, dict) and 'insertions' in file_stat and 'deletions' in file_stat:
+                            additions = file_stat['insertions']
+                            deletions = file_stat['deletions']
+                            
+                            file_changes[file_path]['additions'] += additions
+                            file_changes[file_path]['deletions'] += deletions
+                            file_changes[file_path]['net_changes'] += (additions - deletions)
+                            
+                            monthly_churn[month_key]['lines_changed'] += (additions + deletions)
+                            total_lines_changed += (additions + deletions)
                         
                 except Exception as e:
                     logger.warning(f"Error processing commit {commit.hexsha}: {e}")
@@ -946,11 +949,13 @@ class FileAnalyzer:
                         contributors.add((commit.author.name, commit.author.email))
                         commit_dates.append(datetime.fromtimestamp(commit.committed_date))
                         
-                        # Try to get insertion/deletion counts
-                        file_data = changed_files[file_path]
-                        if isinstance(file_data, dict):
-                            total_insertions += file_data.get('insertions', 0)
-                            total_deletions += file_data.get('deletions', 0)
+                        # Get insertion/deletion counts from commit stats
+                        commit_stats = commit.stats
+                        if file_path in commit_stats.files:
+                            file_data = commit_stats.files[file_path]
+                            if isinstance(file_data, dict) and 'insertions' in file_data and 'deletions' in file_data:
+                                total_insertions += file_data['insertions']
+                                total_deletions += file_data['deletions']
                             
                 except Exception as e:
                     logger.warning(f"Error processing commit {commit.hexsha} for file {file_path}: {e}")
@@ -1009,18 +1014,22 @@ class FileAnalyzer:
                 try:
                     commit_date = datetime.fromtimestamp(commit.committed_date)
                     changed_files = self.git_repo.get_changed_files(commit.hexsha)
+                    commit_stats = commit.stats
                     
-                    for file_path, file_data in changed_files.items():
+                    for file_path in changed_files.keys():
                         file_changes[file_path]['change_count'] += 1
                         file_changes[file_path]['contributors'].add((commit.author.name, commit.author.email))
                         
                         if commit_date >= recent_cutoff:
                             file_changes[file_path]['recent_changes'] += 1
                         
-                        if isinstance(file_data, dict):
-                            insertions = file_data.get('insertions', 0)
-                            deletions = file_data.get('deletions', 0)
-                            file_changes[file_path]['total_changes'] += insertions + deletions
+                        # Get insertions/deletions from commit stats
+                        if file_path in commit_stats.files:
+                            file_data = commit_stats.files[file_path]
+                            if isinstance(file_data, dict) and 'insertions' in file_data and 'deletions' in file_data:
+                                insertions = file_data['insertions']
+                                deletions = file_data['deletions']
+                                file_changes[file_path]['total_changes'] += insertions + deletions
                             
                 except Exception as e:
                     logger.warning(f"Error processing commit {commit.hexsha}: {e}")

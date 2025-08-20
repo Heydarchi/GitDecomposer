@@ -113,6 +113,31 @@ class ContributorAnalyzer:
         logger.info(f"Analyzed statistics for {len(df)} contributors")
         return df
     
+    def get_top_contributors(self, top_n: int = 10) -> pd.DataFrame:
+        """
+        Get top contributors by commit count.
+        
+        Args:
+            top_n (int): Number of top contributors to return
+            
+        Returns:
+            pd.DataFrame: Top contributors statistics
+        """
+        stats = self.get_contributor_statistics()
+        return stats.head(top_n)
+    
+    def get_contributor_activity_over_time(self, top_n: int = 10) -> pd.DataFrame:
+        """
+        Get contributor activity over time (alias for activity timeline).
+        
+        Args:
+            top_n (int): Number of top contributors to include
+            
+        Returns:
+            pd.DataFrame: Contributor activity timeline
+        """
+        return self.get_contributor_activity_timeline(top_n)
+    
     def get_contributor_activity_timeline(self, top_n: int = 10) -> pd.DataFrame:
         """
         Get activity timeline for top contributors.

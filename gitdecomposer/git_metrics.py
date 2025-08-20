@@ -141,8 +141,12 @@ class GitMetrics:
             
         except Exception as e:
             logger.error(f"Error generating enhanced repository summary: {e}")
-            # Fallback to basic summary
-            return self.generate_repository_summary()
+            # Fallback to basic summary with error handling
+            try:
+                return self.generate_repository_summary()
+            except Exception as fallback_error:
+                logger.error(f"Error in fallback basic summary: {fallback_error}")
+                return {'error': f"Enhanced summary failed: {e}, Basic summary failed: {fallback_error}"}
     
     def generate_repository_summary(self) -> Dict[str, Any]:
         """
@@ -153,28 +157,137 @@ class GitMetrics:
         """
         try:
             # Get basic repository stats
-            repo_stats = self.git_repo.get_repository_stats()
+            logger.info("Starting repository summary generation...")
+            try:
+                repo_stats = self.git_repo.get_repository_stats()
+                logger.info(f"✓ Repository stats retrieved: {type(repo_stats)}")
+            except Exception as e:
+                logger.error(f"✗ Error in get_repository_stats: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
+                
+            if not repo_stats:
+                logger.warning("Repository stats is empty, using defaults")
+                repo_stats = {
+                    'path': 'Unknown',
+                    'active_branch': 'Unknown',
+                    'total_commits': 0,
+                    'total_branches': 0,
+                    'total_tags': 0
+                }
             
             # Get contributor statistics
-            contributor_stats = self.contributor_analyzer.get_contributor_statistics()
+            logger.info("Getting contributor statistics...")
+            try:
+                contributor_stats = self.contributor_analyzer.get_contributor_statistics()
+                logger.info(f"✓ Contributor stats retrieved: {type(contributor_stats)}")
+            except Exception as e:
+                logger.error(f"✗ Error in get_contributor_statistics: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
+                
+            if contributor_stats is None:
+                contributor_stats = pd.DataFrame()
             
             # Get file statistics
-            file_extensions = self.file_analyzer.get_file_extensions_distribution()
-            most_changed_files = self.file_analyzer.get_most_changed_files(10)
+            logger.info("Getting file extensions...")
+            try:
+                file_extensions = self.file_analyzer.get_file_extensions_distribution()
+                logger.info(f"✓ File extensions retrieved: {type(file_extensions)}")
+            except Exception as e:
+                logger.error(f"✗ Error in get_file_extensions_distribution: {e}")
+                import traceback
+                traceback.print_exc()
+                file_extensions = None
+            if file_extensions is None:
+                file_extensions = pd.DataFrame()
+                
+            logger.info("Getting most changed files...")
+            try:
+                most_changed_files = self.file_analyzer.get_most_changed_files(10)
+                logger.info(f"✓ Most changed files retrieved: {type(most_changed_files)}")
+            except Exception as e:
+                logger.error(f"✗ Error in get_most_changed_files: {e}")
+                import traceback
+                traceback.print_exc()
+                most_changed_files = None
+            if most_changed_files is None:
+                most_changed_files = pd.DataFrame()
             
             # Get commit analysis
-            commit_messages = self.commit_analyzer.get_commit_messages_analysis()
-            merge_analysis = self.commit_analyzer.get_merge_commit_analysis()
+            logger.info("Getting commit messages analysis...")
+            try:
+                commit_messages = self.commit_analyzer.get_commit_messages_analysis()
+                logger.info(f"✓ Commit messages retrieved: {type(commit_messages)}")
+            except Exception as e:
+                logger.error(f"✗ Error in get_commit_messages_analysis: {e}")
+                import traceback
+                traceback.print_exc()
+                commit_messages = None
+            if not commit_messages:
+                commit_messages = {'total_commits': 0, 'avg_message_length': 0, 'common_words': []}
+                
+            logger.info("Getting merge commit analysis...")
+            try:
+                merge_analysis = self.commit_analyzer.get_merge_commit_analysis()
+                logger.info(f"✓ Merge analysis retrieved: {type(merge_analysis)}")
+            except Exception as e:
+                logger.error(f"✗ Error in get_merge_commit_analysis: {e}")
+                import traceback
+                traceback.print_exc()
+                merge_analysis = None
+            if not merge_analysis:
+                merge_analysis = {'merge_percentage': 0}
             
             # Get branch analysis
-            branch_stats = self.branch_analyzer.get_branch_statistics()
-            branching_insights = self.branch_analyzer.get_branching_strategy_insights()
+            logger.info("Getting branch statistics...")
+            try:
+                branch_stats = self.branch_analyzer.get_branch_statistics()
+                logger.info(f"✓ Branch stats retrieved: {type(branch_stats)}")
+            except Exception as e:
+                logger.error(f"✗ Error in get_branch_statistics: {e}")
+                import traceback
+                traceback.print_exc()
+                branch_stats = None
+            if branch_stats is None:
+                branch_stats = pd.DataFrame()
+                
+            logger.info("Getting branching strategy insights...")
+            try:
+                branching_insights = self.branch_analyzer.get_branching_strategy_insights()
+                logger.info(f"✓ Branching insights retrieved: {type(branching_insights)}")
+            except Exception as e:
+                logger.error(f"✗ Error in get_branching_strategy_insights: {e}")
+                import traceback
+                traceback.print_exc()
+                branching_insights = None
+            if not branching_insights:
+                branching_insights = {
+                    'branching_model': 'Unknown',
+                    'avg_branch_lifetime_days': 0,
+                    'recommendations': []
+                }
+            
+            logger.info("Building summary dictionary...")
+            
+            # Safely extract top contributors
+            top_contributors = []
+            try:
+                if not contributor_stats.empty:
+                    logger.info(f"Contributor stats columns: {list(contributor_stats.columns)}")
+                    logger.info(f"Contributor stats shape: {contributor_stats.shape}")
+                    top_contributors = contributor_stats.head(5)[['author', 'total_commits', 'total_insertions', 'total_deletions']].to_dict('records')
+            except Exception as contrib_error:
+                logger.error(f"Error extracting top contributors: {contrib_error}")
+                logger.error(f"Contributor stats columns: {list(contributor_stats.columns) if hasattr(contributor_stats, 'columns') else 'No columns'}")
             
             summary = {
                 'repository_info': repo_stats,
                 'contributors': {
                     'total_contributors': len(contributor_stats),
-                    'top_contributors': contributor_stats.head(5)[['author', 'total_commits', 'total_insertions', 'total_deletions']].to_dict('records') if not contributor_stats.empty else [],
+                    'top_contributors': top_contributors,
                     'avg_commits_per_contributor': contributor_stats['total_commits'].mean() if not contributor_stats.empty else 0
                 },
                 'files': {
@@ -201,6 +314,7 @@ class GitMetrics:
             
         except Exception as e:
             logger.error(f"Error generating repository summary: {e}")
+            logger.error(f"Exception type: {type(e)}, Exception value: {repr(e)}")
             return {'error': str(e)}
     
     def create_commit_activity_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
@@ -1428,7 +1542,7 @@ class GitMetrics:
                     len(maint_data[maint_data['maintainability_score'] > 80]),
                     len(maint_data[(maint_data['maintainability_score'] > 60) & 
                                   (maint_data['maintainability_score'] <= 80)]),
-                    len(maint_data[(maintain_data['maintainability_score'] > 40) & 
+                    len(maint_data[(maint_data['maintainability_score'] > 40) & 
                                   (maint_data['maintainability_score'] <= 60)]),
                     len(maint_data[maint_data['maintainability_score'] <= 40])
                 ]
