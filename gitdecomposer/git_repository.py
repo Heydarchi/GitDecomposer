@@ -53,9 +53,12 @@ class GitRepository:
         """Get the currently active branch name."""
         try:
             return self.repo.active_branch.name
-        except TypeError:
-            # Handle detached HEAD state
-            return "HEAD (detached)"
+        except (TypeError, Exception):
+            # Handle detached HEAD state or other issues
+            try:
+                return f"HEAD ({self.repo.head.commit.hexsha[:8]})"
+            except Exception:
+                return "HEAD (unknown)"
     
     @property
     def remote_urls(self) -> Dict[str, str]:
@@ -217,15 +220,41 @@ class GitRepository:
             Dict[str, Any]: Repository statistics
         """
         try:
+            # Get basic info with error handling for each component
+            total_commits = 0
+            try:
+                total_commits = len(list(self.repo.iter_commits('--all')))
+            except Exception as e:
+                logger.warning(f"Could not count commits: {e}")
+            
+            total_branches = 0
+            try:
+                total_branches = len(self.get_branches())
+            except Exception as e:
+                logger.warning(f"Could not count branches: {e}")
+            
+            total_tags = 0
+            try:
+                total_tags = len(self.get_tags())
+            except Exception as e:
+                logger.warning(f"Could not count tags: {e}")
+            
+            head_commit = None
+            try:
+                if not self.is_bare:
+                    head_commit = self.repo.head.commit.hexsha
+            except Exception as e:
+                logger.warning(f"Could not get head commit: {e}")
+            
             stats = {
                 'path': str(self.repo_path),
                 'is_bare': self.is_bare,
                 'active_branch': self.active_branch,
-                'total_commits': len(list(self.repo.iter_commits('--all'))),
-                'total_branches': len(self.get_branches()),
-                'total_tags': len(self.get_tags()),
+                'total_commits': total_commits,
+                'total_branches': total_branches,
+                'total_tags': total_tags,
                 'remotes': self.remote_urls,
-                'head_commit': self.repo.head.commit.hexsha if not self.is_bare else None
+                'head_commit': head_commit
             }
             
             logger.info("Retrieved repository statistics")

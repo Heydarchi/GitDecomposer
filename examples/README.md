@@ -41,6 +41,30 @@ Full-featured example that performs complete repository analysis:
 python comprehensive_analysis.py /path/to/repository
 ```
 
+### 4. Enhanced Analytics (`enhanced_analytics.py`) **NEW**
+Demonstrates the latest analytical capabilities including:
+- **Commit velocity analysis** (commits/week trends)
+- **Code churn rate** (lines changed vs total lines)
+- **Bug fix ratio** (fix commits vs total commits) 
+- **Maintainability index** calculation
+- **Technical debt accumulation** rate
+- **Test-to-code ratio** analysis
+- **Documentation coverage** metrics
+- **Repository health score** (0-100)
+
+**Features Showcased:**
+- Repository health scoring system
+- Trend analysis and velocity tracking
+- Quality metrics and recommendations
+- Coverage analysis (tests and documentation)
+- Technical debt identification
+- Maintainability assessment
+
+**Usage:**
+```bash
+python enhanced_analytics.py /path/to/repository
+```
+
 ## Running the Examples
 
 1. **Prerequisites:**

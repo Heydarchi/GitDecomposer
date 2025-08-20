@@ -5,10 +5,16 @@ FileAnalyzer module for analyzing files in a Git repository.
 from typing import List, Dict, Any, Optional, Set, Tuple
 from pathlib import Path
 from collections import defaultdict, Counter
+from datetime import datetime, timedelta
 import pandas as pd
 import logging
+import os
 
 from .git_repository import GitRepository
+from .models.file import (
+    FileInfo, FileStats, FileChange, HotspotFile, CodeQuality,
+    DirectoryStats, FileNetwork, CodeOwnership, FileType, ChangeType
+)
 
 logger = logging.getLogger(__name__)
 
@@ -365,9 +371,13 @@ class FileAnalyzer:
                     # Get line changes for this specific file
                     if file_path in commit_stats.files:
                         file_stat = commit_stats.files[file_path]
-                        file_metrics[file_path]['total_lines_added'] += file_stat['insertions']
-                        file_metrics[file_path]['total_lines_deleted'] += file_stat['deletions']
-                        file_metrics[file_path]['total_lines_changed'] += (file_stat['insertions'] + file_stat['deletions'])
+                        # Ensure file_stat is a dictionary and has the expected keys
+                        if isinstance(file_stat, dict) and 'insertions' in file_stat and 'deletions' in file_stat:
+                            file_metrics[file_path]['total_lines_added'] += file_stat['insertions']
+                            file_metrics[file_path]['total_lines_deleted'] += file_stat['deletions']
+                            file_metrics[file_path]['total_lines_changed'] += (file_stat['insertions'] + file_stat['deletions'])
+                        else:
+                            logger.debug(f"Unexpected file_stat format for {file_path}: {type(file_stat)}")
                         
             except Exception as e:
                 logger.warning(f"Error processing commit {commit.hexsha}: {e}")
@@ -569,3 +579,609 @@ class FileAnalyzer:
         
         logger.info(f"Identified {len(hotspots)} file hotspots")
         return hotspots
+
+    def get_code_churn_analysis(self) -> Dict[str, Any]:
+        """
+        Analyze code churn rate (lines changed vs total lines).
+        
+        Returns:
+            Dict[str, Any]: Code churn metrics and analysis
+        """
+        try:
+            commits = self.git_repo.get_all_commits()
+            if not commits:
+                return {
+                    'overall_churn_rate': 0,
+                    'file_churn_rates': pd.DataFrame(),
+                    'churn_trend': pd.DataFrame(),
+                    'high_churn_files': [],
+                    'churn_by_extension': pd.DataFrame()
+                }
+            
+            # Get current repository stats to estimate total lines
+            repo_stats = self.git_repo.get_repository_stats()
+            total_files = repo_stats.get('total_files', 1)
+            
+            # Estimate total lines in repository (rough calculation)
+            estimated_total_lines = total_files * 50  # Average 50 lines per file estimate
+            
+            # Calculate cumulative line changes
+            total_lines_changed = 0
+            file_changes = defaultdict(lambda: {'additions': 0, 'deletions': 0, 'net_changes': 0})
+            monthly_churn = defaultdict(lambda: {'lines_changed': 0, 'estimated_total': estimated_total_lines})
+            
+            for commit in commits:
+                try:
+                    commit_date = commit.committed_date
+                    month_key = pd.Timestamp(commit_date, unit='s').strftime('%Y-%m')
+                    
+                    changed_files = self.git_repo.get_changed_files(commit.hexsha)
+                    
+                    for file_path, stats in changed_files.items():
+                        additions = stats.get('additions', 0)
+                        deletions = stats.get('deletions', 0)
+                        
+                        file_changes[file_path]['additions'] += additions
+                        file_changes[file_path]['deletions'] += deletions
+                        file_changes[file_path]['net_changes'] += (additions - deletions)
+                        
+                        monthly_churn[month_key]['lines_changed'] += (additions + deletions)
+                        total_lines_changed += (additions + deletions)
+                        
+                except Exception as e:
+                    logger.warning(f"Error processing commit {commit.hexsha}: {e}")
+                    continue
+            
+            # Calculate overall churn rate
+            overall_churn_rate = (total_lines_changed / estimated_total_lines * 100) if estimated_total_lines > 0 else 0
+            
+            # Create file churn rates DataFrame
+            file_churn_data = []
+            for file_path, stats in file_changes.items():
+                total_changes = stats['additions'] + stats['deletions']
+                # Estimate file size (rough calculation based on net changes)
+                estimated_file_size = max(abs(stats['net_changes']), 50)  # Minimum 50 lines
+                churn_rate = (total_changes / estimated_file_size * 100) if estimated_file_size > 0 else 0
+                
+                file_churn_data.append({
+                    'file_path': file_path,
+                    'total_additions': stats['additions'],
+                    'total_deletions': stats['deletions'],
+                    'total_changes': total_changes,
+                    'net_changes': stats['net_changes'],
+                    'estimated_size': estimated_file_size,
+                    'churn_rate': churn_rate,
+                    'extension': Path(file_path).suffix.lower() or 'no_extension'
+                })
+            
+            file_churn_rates = pd.DataFrame(file_churn_data)
+            
+            # Create monthly churn trend
+            trend_data = []
+            for month, data in sorted(monthly_churn.items()):
+                churn_rate = (data['lines_changed'] / data['estimated_total'] * 100) if data['estimated_total'] > 0 else 0
+                trend_data.append({
+                    'month': month,
+                    'lines_changed': data['lines_changed'],
+                    'estimated_total_lines': data['estimated_total'],
+                    'churn_rate': churn_rate
+                })
+            
+            churn_trend = pd.DataFrame(trend_data)
+            if not churn_trend.empty:
+                churn_trend['month'] = pd.to_datetime(churn_trend['month'])
+            
+            # Identify high churn files (top 10% by churn rate)
+            high_churn_files = []
+            if not file_churn_rates.empty:
+                threshold = file_churn_rates['churn_rate'].quantile(0.9)
+                high_churn = file_churn_rates[file_churn_rates['churn_rate'] >= threshold]
+                high_churn_files = high_churn.nlargest(20, 'churn_rate').to_dict('records')
+            
+            # Calculate churn by file extension
+            churn_by_extension = pd.DataFrame()
+            if not file_churn_rates.empty:
+                churn_by_extension = file_churn_rates.groupby('extension').agg({
+                    'churn_rate': ['mean', 'std', 'count'],
+                    'total_changes': 'sum'
+                }).round(2)
+                churn_by_extension.columns = ['avg_churn_rate', 'churn_rate_std', 'file_count', 'total_changes']
+                churn_by_extension = churn_by_extension.reset_index()
+                churn_by_extension = churn_by_extension.sort_values('avg_churn_rate', ascending=False)
+            
+            logger.info(f"Calculated code churn analysis: {overall_churn_rate:.2f}% overall churn rate")
+            return {
+                'overall_churn_rate': overall_churn_rate,
+                'file_churn_rates': file_churn_rates,
+                'churn_trend': churn_trend,
+                'high_churn_files': high_churn_files,
+                'churn_by_extension': churn_by_extension,
+                'total_lines_changed': total_lines_changed,
+                'estimated_total_lines': estimated_total_lines
+            }
+            
+        except Exception as e:
+            logger.error(f"Error analyzing code churn: {e}")
+            return {
+                'overall_churn_rate': 0,
+                'file_churn_rates': pd.DataFrame(),
+                'churn_trend': pd.DataFrame(),
+                'high_churn_files': [],
+                'churn_by_extension': pd.DataFrame()
+            }
+
+    def get_documentation_coverage_analysis(self) -> Dict[str, Any]:
+        """
+        Analyze documentation coverage in the repository.
+        
+        Returns:
+            Dict[str, Any]: Documentation coverage metrics
+        """
+        try:
+            commits = self.git_repo.get_all_commits()
+            if not commits:
+                return {
+                    'documentation_ratio': 0,
+                    'doc_files_count': 0,
+                    'total_files_count': 0,
+                    'doc_file_types': {},
+                    'missing_doc_dirs': []
+                }
+            
+            # Documentation file patterns
+            doc_extensions = {'.md', '.rst', '.txt', '.pdf', '.doc', '.docx'}
+            doc_filenames = {'readme', 'changelog', 'license', 'contributing', 'authors', 'install', 'usage'}
+            doc_directories = {'docs', 'doc', 'documentation', 'wiki'}
+            
+            all_files = set()
+            doc_files = set()
+            directories_with_files = set()
+            
+            # Collect all files from repository
+            for commit in commits:
+                try:
+                    changed_files = self.git_repo.get_changed_files(commit.hexsha)
+                    for file_path in changed_files.keys():
+                        all_files.add(file_path)
+                        
+                        # Check if it's a documentation file
+                        path_obj = Path(file_path)
+                        file_ext = path_obj.suffix.lower()
+                        file_name = path_obj.stem.lower()
+                        dir_parts = [part.lower() for part in path_obj.parts]
+                        
+                        # Add directory info
+                        if len(path_obj.parts) > 1:
+                            directories_with_files.add(path_obj.parts[0].lower())
+                        
+                        # Check if it's a documentation file
+                        is_doc_file = (
+                            file_ext in doc_extensions or
+                            file_name in doc_filenames or
+                            any(doc_dir in dir_parts for doc_dir in doc_directories)
+                        )
+                        
+                        if is_doc_file:
+                            doc_files.add(file_path)
+                            
+                except Exception as e:
+                    logger.warning(f"Error processing commit {commit.hexsha}: {e}")
+                    continue
+            
+            # Calculate metrics
+            total_files_count = len(all_files)
+            doc_files_count = len(doc_files)
+            documentation_ratio = (doc_files_count / total_files_count * 100) if total_files_count > 0 else 0
+            
+            # Analyze documentation file types
+            doc_file_types = Counter()
+            for doc_file in doc_files:
+                ext = Path(doc_file).suffix.lower() or 'no_extension'
+                doc_file_types[ext] += 1
+            
+            # Check for missing documentation in directories
+            missing_doc_dirs = []
+            for directory in directories_with_files:
+                # Check if directory has any documentation files
+                has_docs = any(
+                    directory in Path(doc_file).parts[0].lower() 
+                    for doc_file in doc_files
+                )
+                if not has_docs and directory not in ['__pycache__', '.git', '.github', 'node_modules']:
+                    missing_doc_dirs.append(directory)
+            
+            logger.info(f"Documentation coverage: {documentation_ratio:.1f}%")
+            return {
+                'documentation_ratio': documentation_ratio,
+                'doc_files_count': doc_files_count,
+                'total_files_count': total_files_count,
+                'doc_file_types': dict(doc_file_types),
+                'missing_doc_dirs': missing_doc_dirs[:10],  # Top 10
+                'doc_files_list': list(doc_files)[:20],  # Sample of doc files
+                'recommendations': self._generate_doc_recommendations(documentation_ratio, missing_doc_dirs, dict(doc_file_types))
+            }
+            
+        except Exception as e:
+            logger.error(f"Error analyzing documentation coverage: {e}")
+            return {
+                'documentation_ratio': 0,
+                'doc_files_count': 0,
+                'total_files_count': 0,
+                'doc_file_types': {},
+                'missing_doc_dirs': []
+            }
+    
+    def _generate_doc_recommendations(self, doc_ratio: float, missing_dirs: List[str], doc_types: Dict[str, int]) -> List[str]:
+        """Generate recommendations for improving documentation coverage."""
+        recommendations = []
+        
+        if doc_ratio < 5:
+            recommendations.append("Very low documentation coverage - consider adding README files")
+        elif doc_ratio < 15:
+            recommendations.append("Low documentation coverage - add documentation for key components")
+        elif doc_ratio < 30:
+            recommendations.append("Moderate documentation - consider expanding existing docs")
+        else:
+            recommendations.append("Good documentation coverage - maintain current standards")
+        
+        if missing_dirs:
+            recommendations.append(f"Add documentation to directories: {', '.join(missing_dirs[:3])}")
+        
+        if '.md' not in doc_types:
+            recommendations.append("Consider using Markdown files for better documentation")
+        
+        if len(doc_types) == 1:
+            recommendations.append("Diversify documentation formats for different audiences")
+        
+        return recommendations
+    
+    def _classify_file_type(self, file_path: str) -> FileType:
+        """Classify file type based on path and extension."""
+        path = Path(file_path)
+        extension = path.suffix.lower()
+        name = path.name.lower()
+        path_str = str(path).lower()
+        
+        # Test files
+        if ('test' in path_str or 'spec' in path_str or 
+            name.startswith('test_') or name.endswith('_test.py') or
+            extension in ['.test.js', '.spec.js', '.test.ts', '.spec.ts']):
+            return FileType.TEST
+        
+        # Documentation
+        if extension in ['.md', '.rst', '.txt', '.adoc'] or 'doc' in path_str:
+            return FileType.DOCUMENTATION
+        
+        # Configuration
+        if (extension in ['.json', '.yaml', '.yml', '.ini', '.cfg', '.conf', '.toml'] or
+            name in ['dockerfile', 'makefile', '.gitignore', '.gitattributes']):
+            return FileType.CONFIGURATION
+        
+        # Build files
+        if (extension in ['.xml', '.gradle'] or 
+            name in ['pom.xml', 'build.gradle', 'setup.py', 'package.json']):
+            return FileType.BUILD
+        
+        # Assets
+        if extension in ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.ico', '.css', '.scss', '.less']:
+            return FileType.ASSET
+        
+        # Data files
+        if extension in ['.csv', '.json', '.xml', '.sql', '.db']:
+            return FileType.DATA
+        
+        # Source code
+        if extension in ['.py', '.java', '.js', '.ts', '.c', '.cpp', '.h', '.cs', '.go', '.rb', '.php']:
+            return FileType.SOURCE_CODE
+        
+        return FileType.UNKNOWN
+    
+    def _extract_file_info(self, file_path: str) -> FileInfo:
+        """Extract structured file information."""
+        path = Path(file_path)
+        
+        # Try to get file size from current working tree
+        size_bytes = 0
+        try:
+            if os.path.exists(file_path):
+                size_bytes = os.path.getsize(file_path)
+        except (OSError, IOError):
+            pass
+        
+        return FileInfo(
+            path=file_path,
+            name=path.name,
+            extension=path.suffix.lower(),
+            size_bytes=size_bytes,
+            file_type=self._classify_file_type(file_path),
+            language=self._detect_language(path.suffix.lower())
+        )
+    
+    def _detect_language(self, extension: str) -> Optional[str]:
+        """Detect programming language from file extension."""
+        language_map = {
+            '.py': 'Python',
+            '.java': 'Java',
+            '.js': 'JavaScript',
+            '.ts': 'TypeScript',
+            '.c': 'C',
+            '.cpp': 'C++',
+            '.h': 'C/C++',
+            '.cs': 'C#',
+            '.go': 'Go',
+            '.rb': 'Ruby',
+            '.php': 'PHP',
+            '.swift': 'Swift',
+            '.kt': 'Kotlin',
+            '.scala': 'Scala',
+            '.rs': 'Rust',
+            '.html': 'HTML',
+            '.css': 'CSS',
+            '.scss': 'SCSS',
+            '.sql': 'SQL',
+            '.sh': 'Shell',
+            '.ps1': 'PowerShell',
+            '.r': 'R',
+            '.m': 'MATLAB',
+            '.pl': 'Perl'
+        }
+        return language_map.get(extension)
+    
+    def get_file_stats_analysis(self, file_path: str) -> FileStats:
+        """Get comprehensive file statistics."""
+        try:
+            commits = self.git_repo.get_all_commits()
+            
+            total_commits = 0
+            contributors = set()
+            total_insertions = 0
+            total_deletions = 0
+            commit_dates = []
+            
+            for commit in commits:
+                try:
+                    changed_files = self.git_repo.get_changed_files(commit.hexsha)
+                    if file_path in changed_files:
+                        total_commits += 1
+                        contributors.add((commit.author.name, commit.author.email))
+                        commit_dates.append(datetime.fromtimestamp(commit.committed_date))
+                        
+                        # Try to get insertion/deletion counts
+                        file_data = changed_files[file_path]
+                        if isinstance(file_data, dict):
+                            total_insertions += file_data.get('insertions', 0)
+                            total_deletions += file_data.get('deletions', 0)
+                            
+                except Exception as e:
+                    logger.warning(f"Error processing commit {commit.hexsha} for file {file_path}: {e}")
+                    continue
+            
+            first_commit_date = min(commit_dates) if commit_dates else None
+            last_commit_date = max(commit_dates) if commit_dates else None
+            
+            # Get current line count (simplified)
+            current_lines = 0
+            try:
+                if os.path.exists(file_path):
+                    with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+                        current_lines = sum(1 for _ in f)
+            except (IOError, UnicodeDecodeError):
+                pass
+            
+            return FileStats(
+                path=file_path,
+                total_commits=total_commits,
+                total_contributors=len(contributors),
+                total_insertions=total_insertions,
+                total_deletions=total_deletions,
+                first_commit_date=first_commit_date,
+                last_commit_date=last_commit_date,
+                current_lines=current_lines
+            )
+            
+        except Exception as e:
+            logger.error(f"Error analyzing file stats for {file_path}: {e}")
+            return FileStats(
+                path=file_path,
+                total_commits=0,
+                total_contributors=0,
+                total_insertions=0,
+                total_deletions=0,
+                current_lines=0
+            )
+    
+    def get_hotspot_files_analysis(self, limit: int = 20) -> List[HotspotFile]:
+        """Get hotspot files analysis."""
+        try:
+            commits = self.git_repo.get_all_commits()
+            file_changes = defaultdict(lambda: {
+                'change_count': 0,
+                'contributors': set(),
+                'recent_changes': 0,
+                'total_changes': 0
+            })
+            
+            # Analyze recent activity (last 30 days)
+            now = datetime.now()
+            recent_cutoff = now - timedelta(days=30)
+            
+            for commit in commits:
+                try:
+                    commit_date = datetime.fromtimestamp(commit.committed_date)
+                    changed_files = self.git_repo.get_changed_files(commit.hexsha)
+                    
+                    for file_path, file_data in changed_files.items():
+                        file_changes[file_path]['change_count'] += 1
+                        file_changes[file_path]['contributors'].add((commit.author.name, commit.author.email))
+                        
+                        if commit_date >= recent_cutoff:
+                            file_changes[file_path]['recent_changes'] += 1
+                        
+                        if isinstance(file_data, dict):
+                            insertions = file_data.get('insertions', 0)
+                            deletions = file_data.get('deletions', 0)
+                            file_changes[file_path]['total_changes'] += insertions + deletions
+                            
+                except Exception as e:
+                    logger.warning(f"Error processing commit {commit.hexsha}: {e}")
+                    continue
+            
+            # Calculate hotspot files
+            hotspots = []
+            for file_path, data in file_changes.items():
+                if data['change_count'] < 3:  # Minimum threshold
+                    continue
+                
+                # Calculate risk score
+                change_frequency = data['change_count']
+                unique_contributors = len(data['contributors'])
+                recent_activity = data['recent_changes']
+                
+                # Simple complexity score (based on file extension)
+                complexity_score = self._estimate_file_complexity(file_path)
+                
+                # Risk calculation
+                risk_score = (
+                    change_frequency * 2 +
+                    unique_contributors * 1.5 +
+                    recent_activity * 3 +
+                    complexity_score * 1
+                ) / 7.5 * 100  # Normalize to 0-100
+                
+                hotspot = HotspotFile(
+                    path=file_path,
+                    change_frequency=change_frequency,
+                    unique_contributors=unique_contributors,
+                    complexity_score=complexity_score,
+                    risk_score=min(100, risk_score),
+                    recent_activity=recent_activity
+                )
+                hotspots.append(hotspot)
+            
+            # Sort by risk score and return top N
+            hotspots.sort(key=lambda x: x.risk_score, reverse=True)
+            return hotspots[:limit]
+            
+        except Exception as e:
+            logger.error(f"Error analyzing hotspot files: {e}")
+            return []
+    
+    def _estimate_file_complexity(self, file_path: str) -> float:
+        """Estimate file complexity based on various factors."""
+        path = Path(file_path)
+        
+        # Base complexity by file type
+        complexity_map = {
+            '.py': 5.0,
+            '.java': 6.0,
+            '.js': 4.0,
+            '.ts': 5.0,
+            '.c': 7.0,
+            '.cpp': 8.0,
+            '.cs': 6.0,
+            '.go': 4.0,
+            '.rb': 4.0,
+            '.php': 5.0,
+            '.html': 2.0,
+            '.css': 2.0,
+            '.json': 1.0,
+            '.yaml': 1.0,
+            '.md': 1.0
+        }
+        
+        base_complexity = complexity_map.get(path.suffix.lower(), 3.0)
+        
+        # Adjust for file size (if available)
+        try:
+            if os.path.exists(file_path):
+                size_kb = os.path.getsize(file_path) / 1024
+                if size_kb > 100:  # Large files are more complex
+                    base_complexity *= 1.5
+                elif size_kb > 50:
+                    base_complexity *= 1.2
+        except (OSError, IOError):
+            pass
+        
+        return min(10.0, base_complexity)
+    
+    def get_directory_stats_analysis(self) -> List[DirectoryStats]:
+        """Get directory-level statistics."""
+        try:
+            commits = self.git_repo.get_all_commits()
+            directory_data = defaultdict(lambda: {
+                'files': set(),
+                'commits': set(),
+                'contributors': set(),
+                'lines': 0,
+                'file_types': defaultdict(int),
+                'languages': defaultdict(int)
+            })
+            
+            # Collect data from all commits
+            for commit in commits:
+                try:
+                    changed_files = self.git_repo.get_changed_files(commit.hexsha)
+                    
+                    for file_path in changed_files.keys():
+                        directory = str(Path(file_path).parent)
+                        if directory == '.':
+                            directory = 'root'
+                        
+                        directory_data[directory]['files'].add(file_path)
+                        directory_data[directory]['commits'].add(commit.hexsha)
+                        directory_data[directory]['contributors'].add((commit.author.name, commit.author.email))
+                        
+                        # File type and language
+                        file_info = self._extract_file_info(file_path)
+                        directory_data[directory]['file_types'][file_info.file_type] += 1
+                        if file_info.language:
+                            directory_data[directory]['languages'][file_info.language] += 1
+                        
+                except Exception as e:
+                    logger.warning(f"Error processing commit {commit.hexsha}: {e}")
+                    continue
+            
+            # Create DirectoryStats objects
+            directory_stats = []
+            for directory, data in directory_data.items():
+                # Calculate average file size and complexity
+                avg_file_size = 0
+                avg_complexity = 0
+                file_count = len(data['files'])
+                
+                if file_count > 0:
+                    total_size = 0
+                    total_complexity = 0
+                    valid_files = 0
+                    
+                    for file_path in data['files']:
+                        try:
+                            if os.path.exists(file_path):
+                                total_size += os.path.getsize(file_path)
+                                total_complexity += self._estimate_file_complexity(file_path)
+                                valid_files += 1
+                        except (OSError, IOError):
+                            continue
+                    
+                    if valid_files > 0:
+                        avg_file_size = total_size / valid_files
+                        avg_complexity = total_complexity / valid_files
+                
+                stats = DirectoryStats(
+                    path=directory,
+                    total_files=file_count,
+                    total_lines=data['lines'],  # This would need actual line counting
+                    total_commits=len(data['commits']),
+                    unique_contributors=len(data['contributors']),
+                    file_types=dict(data['file_types']),
+                    languages=dict(data['languages']),
+                    avg_file_size=avg_file_size,
+                    avg_complexity=avg_complexity
+                )
+                directory_stats.append(stats)
+            
+            return directory_stats
+            
+        except Exception as e:
+            logger.error(f"Error analyzing directory stats: {e}")
+            return []

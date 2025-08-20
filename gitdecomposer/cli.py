@@ -87,6 +87,11 @@ Examples:
         print("Generating repository analysis...")
         summary = metrics.generate_repository_summary()
         
+        # Check if summary generation failed
+        if 'error' in summary:
+            print(f"Error generating repository summary: {summary['error']}")
+            summary = {}  # Use empty dict to prevent further errors
+        
         # Print basic stats
         print("\n" + "="*50)
         print("REPOSITORY ANALYSIS SUMMARY")

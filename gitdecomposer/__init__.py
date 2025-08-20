@@ -14,6 +14,8 @@ from .file_analyzer import FileAnalyzer
 from .contributor_analyzer import ContributorAnalyzer
 from .branch_analyzer import BranchAnalyzer
 from .git_metrics import GitMetrics
+from .advanced_metrics import AdvancedMetrics
+from .visualization_engine import VisualizationEngine
 
 __all__ = [
     'GitRepository',
@@ -21,5 +23,7 @@ __all__ = [
     'FileAnalyzer',
     'ContributorAnalyzer',
     'BranchAnalyzer',
-    'GitMetrics'
+    'GitMetrics',
+    'AdvancedMetrics',
+    'VisualizationEngine'
 ]

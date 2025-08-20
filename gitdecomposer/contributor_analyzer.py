@@ -2,13 +2,18 @@
 ContributorAnalyzer module for analyzing contributor patterns and statistics.
 """
 
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Set
 from datetime import datetime, timedelta
 from collections import defaultdict, Counter
 import pandas as pd
 import logging
 
 from .git_repository import GitRepository
+from .models.contributor import (
+    ContributorInfo, ContributorStats, ContributorActivity, 
+    ContributorCollaboration, ContributorExpertise, TeamDynamics,
+    ContributorRole, ActivityLevel
+)
 
 logger = logging.getLogger(__name__)
 
@@ -365,3 +370,235 @@ class ContributorAnalyzer:
         
         logger.info(f"Calculated impact scores for {len(impact_df)} contributors")
         return impact_df
+    
+    def _determine_contributor_role(self, commits: int, activity_span: int, files_touched: int) -> ContributorRole:
+        """Determine contributor role based on activity patterns."""
+        if commits >= 100 and activity_span >= 180:
+            return ContributorRole.CORE_MAINTAINER
+        elif commits >= 20 and activity_span >= 90:
+            return ContributorRole.REGULAR_CONTRIBUTOR
+        elif commits >= 5:
+            return ContributorRole.OCCASIONAL_CONTRIBUTOR
+        else:
+            return ContributorRole.ONE_TIME_CONTRIBUTOR
+    
+    def _extract_contributor_info(self, author_data: Dict[str, Any]) -> ContributorInfo:
+        """Extract structured contributor information."""
+        name = author_data.get('name', 'Unknown')
+        email = author_data.get('email', 'unknown@unknown.com')
+        
+        # Parse dates safely
+        first_commit_date = None
+        last_commit_date = None
+        
+        if 'first_commit' in author_data and author_data['first_commit']:
+            try:
+                if isinstance(author_data['first_commit'], datetime):
+                    first_commit_date = author_data['first_commit']
+                else:
+                    first_commit_date = datetime.fromtimestamp(author_data['first_commit'])
+            except (ValueError, TypeError):
+                pass
+        
+        if 'last_commit' in author_data and author_data['last_commit']:
+            try:
+                if isinstance(author_data['last_commit'], datetime):
+                    last_commit_date = author_data['last_commit']
+                else:
+                    last_commit_date = datetime.fromtimestamp(author_data['last_commit'])
+            except (ValueError, TypeError):
+                pass
+        
+        total_commits = author_data.get('commits', 0)
+        total_insertions = author_data.get('total_insertions', 0)
+        total_deletions = author_data.get('total_deletions', 0)
+        files_touched = set(author_data.get('files_modified', []))
+        
+        # Calculate activity span
+        activity_span = 0
+        if first_commit_date and last_commit_date:
+            activity_span = (last_commit_date - first_commit_date).days
+        
+        role = self._determine_contributor_role(total_commits, activity_span, len(files_touched))
+        
+        return ContributorInfo(
+            name=name,
+            email=email,
+            first_commit_date=first_commit_date,
+            last_commit_date=last_commit_date,
+            total_commits=total_commits,
+            total_insertions=total_insertions,
+            total_deletions=total_deletions,
+            files_touched=files_touched,
+            role=role
+        )
+    
+    def get_contributor_stats_analysis(self) -> ContributorStats:
+        """Get comprehensive contributor statistics."""
+        try:
+            contributor_df = self.get_contributor_statistics()
+            
+            if contributor_df.empty:
+                return ContributorStats(
+                    total_contributors=0,
+                    active_contributors=0,
+                    core_contributors=0,
+                    new_contributors=0,
+                    retention_rate=0.0,
+                    avg_commits_per_contributor=0.0,
+                    avg_contribution_span_days=0.0,
+                    top_contributor_commits=0,
+                    contributor_diversity_index=0.0
+                )
+            
+            total_contributors = len(contributor_df)
+            
+            # Active contributors (activity in last 90 days)
+            now = datetime.now()
+            cutoff_date = now - timedelta(days=90)
+            active_contributors = len(contributor_df[contributor_df['last_commit'] >= cutoff_date])
+            
+            # Core contributors (top 20% by commits or contributors with >50 commits)
+            total_commits = contributor_df['total_commits'].sum()
+            contributor_df_sorted = contributor_df.sort_values('total_commits', ascending=False)
+            
+            # Calculate cumulative commits percentage
+            contributor_df_sorted['cumulative_commits'] = contributor_df_sorted['total_commits'].cumsum()
+            contributor_df_sorted['cumulative_percentage'] = (contributor_df_sorted['cumulative_commits'] / total_commits) * 100
+            
+            # Core contributors are those who account for 80% of commits
+            core_contributors = len(contributor_df_sorted[contributor_df_sorted['cumulative_percentage'] <= 80])
+            if core_contributors == 0:  # Fallback
+                core_contributors = max(1, int(total_contributors * 0.2))
+            
+            # New contributors (first commit in last 90 days)
+            new_contributors = len(contributor_df[contributor_df['first_commit'] >= cutoff_date])
+            
+            # Retention rate (contributors active in both last 90 days and 90-180 days ago)
+            old_cutoff = now - timedelta(days=180)
+            old_active = contributor_df[
+                (contributor_df['first_commit'] <= cutoff_date) & 
+                (contributor_df['last_commit'] >= old_cutoff)
+            ]
+            retention_rate = len(old_active) / max(1, len(contributor_df[contributor_df['first_commit'] <= cutoff_date]))
+            
+            # Calculate diversity index (normalized entropy)
+            commit_counts = contributor_df['total_commits'].values
+            commit_proportions = commit_counts / commit_counts.sum()
+            diversity_index = -sum(p * (p.bit_length() / 8) for p in commit_proportions if p > 0)  # Simplified Shannon entropy
+            max_diversity = (total_contributors.bit_length() / 8) if total_contributors > 1 else 1
+            normalized_diversity = diversity_index / max_diversity if max_diversity > 0 else 0
+            
+            return ContributorStats(
+                total_contributors=total_contributors,
+                active_contributors=active_contributors,
+                core_contributors=core_contributors,
+                new_contributors=new_contributors,
+                retention_rate=retention_rate,
+                avg_commits_per_contributor=contributor_df['total_commits'].mean(),
+                avg_contribution_span_days=contributor_df['activity_span_days'].mean(),
+                top_contributor_commits=contributor_df['total_commits'].max(),
+                contributor_diversity_index=min(1.0, max(0.0, normalized_diversity))
+            )
+            
+        except Exception as e:
+            logger.error(f"Error analyzing contributor stats: {e}")
+            return ContributorStats(
+                total_contributors=0,
+                active_contributors=0,
+                core_contributors=0,
+                new_contributors=0,
+                retention_rate=0.0,
+                avg_commits_per_contributor=0.0,
+                avg_contribution_span_days=0.0,
+                top_contributor_commits=0,
+                contributor_diversity_index=0.0
+            )
+    
+    def get_contributor_activity_analysis(self) -> ContributorActivity:
+        """Get contributor activity patterns."""
+        try:
+            commits = self.git_repo.get_all_commits()
+            
+            commits_by_month = defaultdict(int)
+            commits_by_weekday = defaultdict(int)
+            commits_by_hour = defaultdict(int)
+            
+            weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+            
+            for commit in commits:
+                try:
+                    commit_date = datetime.fromtimestamp(commit.committed_date)
+                    
+                    month_key = commit_date.strftime('%Y-%m')
+                    commits_by_month[month_key] += 1
+                    
+                    weekday_name = weekdays[commit_date.weekday()]
+                    commits_by_weekday[weekday_name] += 1
+                    
+                    commits_by_hour[commit_date.hour] += 1
+                    
+                except (ValueError, AttributeError) as e:
+                    logger.warning(f"Error processing commit date: {e}")
+                    continue
+            
+            return ContributorActivity(
+                commits_by_month=dict(commits_by_month),
+                commits_by_weekday=dict(commits_by_weekday),
+                commits_by_hour=dict(commits_by_hour)
+            )
+            
+        except Exception as e:
+            logger.error(f"Error analyzing contributor activity: {e}")
+            return ContributorActivity()
+    
+    def get_team_dynamics_analysis(self) -> TeamDynamics:
+        """Get team dynamics analysis."""
+        try:
+            contributor_df = self.get_contributor_statistics()
+            
+            if contributor_df.empty:
+                return TeamDynamics()
+            
+            # Build contributor network (simplified - contributors who worked on same files)
+            contributor_network = defaultdict(set)
+            
+            # Calculate influence scores based on commits and files touched
+            influence_scores = {}
+            for _, row in contributor_df.iterrows():
+                author = row['author']
+                score = (row['total_commits'] * 0.6) + (row['files_touched'] * 0.4)
+                influence_scores[author] = score
+            
+            # Normalize influence scores
+            max_influence = max(influence_scores.values()) if influence_scores else 1
+            influence_scores = {k: v / max_influence for k, v in influence_scores.items()}
+            
+            # Identify bottleneck contributors (those with very high influence)
+            bottleneck_contributors = [
+                contributor for contributor, score in influence_scores.items()
+                if score > 0.8
+            ]
+            
+            # Calculate team cohesion (simplified metric)
+            total_contributors = len(contributor_df)
+            active_contributors = len(contributor_df[contributor_df['total_commits'] >= 5])
+            team_cohesion = active_contributors / total_contributors if total_contributors > 0 else 0
+            
+            # Leadership distribution
+            leadership_distribution = {}
+            sorted_contributors = sorted(influence_scores.items(), key=lambda x: x[1], reverse=True)
+            for i, (contributor, score) in enumerate(sorted_contributors[:5]):  # Top 5 leaders
+                leadership_distribution[contributor] = score
+            
+            return TeamDynamics(
+                contributor_network=dict(contributor_network),
+                influence_scores=influence_scores,
+                bottleneck_contributors=bottleneck_contributors,
+                team_cohesion_score=team_cohesion,
+                leadership_distribution=leadership_distribution
+            )
+            
+        except Exception as e:
+            logger.error(f"Error analyzing team dynamics: {e}")
+            return TeamDynamics()
