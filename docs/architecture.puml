@@ -1,0 +1,54 @@
+@startuml
+!theme vibrant
+
+title Application Architecture
+
+package "GitDecomposer" {
+
+  component "CLI" as CLI
+  component "GitMetrics"
+
+  package "Core" {
+    component "GitRepository"
+  }
+
+  package "Analyzers" {
+    component "CommitAnalyzer"
+    component "FileAnalyzer"
+    component "ContributorAnalyzer"
+    component "BranchAnalyzer"
+    component "AdvancedMetrics"
+  }
+
+  package "Visualization" {
+    component "VisualizationEngine"
+  }
+
+  package "Models" {
+    component DataModels
+  }
+
+}
+
+CLI --> GitMetrics
+GitMetrics --> GitRepository
+GitMetrics --> CommitAnalyzer
+GitMetrics --> FileAnalyzer
+GitMetrics --> ContributorAnalyzer
+GitMetrics --> BranchAnalyzer
+GitMetrics --> AdvancedMetrics
+GitMetrics --> VisualizationEngine
+
+CommitAnalyzer --> GitRepository
+FileAnalyzer --> GitRepository
+ContributorAnalyzer --> GitRepository
+BranchAnalyzer --> GitRepository
+AdvancedMetrics --> GitRepository
+
+CommitAnalyzer --> Models
+FileAnalyzer --> Models
+ContributorAnalyzer --> Models
+
+VisualizationEngine --> GitMetrics
+
+@enduml

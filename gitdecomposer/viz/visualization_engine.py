@@ -105,6 +105,19 @@ class VisualizationEngine:
         if save_path:
             fig.write_html(save_path)
             logger.info(f"Commit activity dashboard saved to {save_path}")
+            explanation = """
+            <div style="font-family: Arial, sans-serif; margin: 20px;">
+                <h2>Commit Activity Dashboard Explained</h2>
+                <p>This dashboard provides insights into the commit patterns of the repository.</p>
+                <ul>
+                    <li><b>Commits Over Time:</b> Shows the number of commits per day, revealing the project's activity timeline.</li>
+                    <li><b>Commits by Hour of Day:</b> Displays when commits are typically made, indicating team work schedules.</li>
+                    <li><b>Commits by Day of Week:</b> Highlights the most and least active days for development.</li>
+                    <li><b>Commit Size Distribution:</b> Shows the number of files changed per commit, which can indicate commit granularity.</li>
+                </ul>
+            </div>
+            """
+            self._add_explanation_to_html(save_path, explanation)
         
         return fig
     
@@ -145,7 +158,8 @@ class VisualizationEngine:
             # Top contributors by lines added
             lines_added = [c['total_insertions'] for c in top_10_commits]
             fig.add_trace(
-                go.Bar(x=names, y=lines_added, name='Lines Added'),
+                go.Bar(x=names, y=lines_added, name='Lines Added',
+                      marker=dict(color='lightgreen')),
                 row=1, col=2
             )
             
@@ -193,6 +207,19 @@ class VisualizationEngine:
         if save_path:
             fig.write_html(save_path)
             logger.info(f"Contributor analysis saved to {save_path}")
+            explanation = """
+            <div style="font-family: Arial, sans-serif; margin: 20px;">
+                <h2>Contributor Analysis Explained</h2>
+                <p>This dashboard highlights contributor activity and impact.</p>
+                <ul>
+                    <li><b>Top Contributors by Commits:</b> Ranks contributors by the number of commits.</li>
+                    <li><b>Top Contributors by Lines Added:</b> Ranks contributors by the number of lines of code added.</li>
+                    <li><b>Contributor Activity Over Time:</b> Shows the start and end of activity for the top contributors.</li>
+                    <li><b>Contributors by Impact:</b> A scatter plot showing commits vs. lines added to identify different contributor profiles.</li>
+                </ul>
+            </div>
+            """
+            self._add_explanation_to_html(save_path, explanation)
         
         return fig
     
@@ -234,7 +261,8 @@ class VisualizationEngine:
             files = [f['file'] for f in most_changed[:15]]
             changes = [f['changes'] for f in most_changed[:15]]
             fig.add_trace(
-                go.Bar(x=changes, y=files, orientation='h', name='Changes'),
+                go.Bar(x=changes, y=files, orientation='h', name='Changes',
+                      marker=dict(color='lightcoral')),
                 row=1, col=2
             )
         
@@ -244,7 +272,8 @@ class VisualizationEngine:
             dates = list(churn_data.keys())
             churn_values = list(churn_data.values())
             fig.add_trace(
-                go.Scatter(x=dates, y=churn_values, mode='lines+markers', name='Churn'),
+                go.Scatter(x=dates, y=churn_values, mode='lines+markers', name='Churn',
+                           line=dict(color='green', width=2)),
                 row=2, col=1
             )
         
@@ -265,6 +294,19 @@ class VisualizationEngine:
         if save_path:
             fig.write_html(save_path)
             logger.info(f"File analysis saved to {save_path}")
+            explanation = """
+            <div style="font-family: Arial, sans-serif; margin: 20px;">
+                <h2>File Analysis Explained</h2>
+                <p>This dashboard provides insights into the files within the repository.</p>
+                <ul>
+                    <li><b>File Extensions Distribution:</b> A pie chart showing the proportion of different file types.</li>
+                    <li><b>Most Changed Files:</b> A bar chart of the files that have been modified most frequently.</li>
+                    <li><b>File Churn Analysis:</b> A time-series plot of the number of lines added and deleted over time.</li>
+                    <li><b>Files by Change Frequency:</b> A histogram showing the distribution of how many times files are changed.</li>
+                </ul>
+            </div>
+            """
+            self._add_explanation_to_html(save_path, explanation)
         
         return fig
     
@@ -412,6 +454,21 @@ class VisualizationEngine:
         if save_path:
             fig.write_html(save_path)
             logger.info(f"Enhanced file analysis dashboard saved to {save_path}")
+            explanation = """
+            <div style="font-family: Arial, sans-serif; margin: 20px;">
+                <h2>Enhanced File Analysis Explained</h2>
+                <p>This dashboard provides a deeper look at file metrics.</p>
+                <ul>
+                    <li><b>File Types Distribution:</b> A donut chart of file types by extension.</li>
+                    <li><b>File Change Hotspots:</b> Highlights the most frequently changed files, which may be candidates for refactoring.</li>
+                    <li><b>Code Churn Trends:</b> Shows daily churn with a moving average to identify trends in code stability.</li>
+                    <li><b>Documentation Coverage:</b> A pie chart showing the ratio of documentation files to code files.</li>
+                    <li><b>File Size vs Changes:</b> A scatter plot to identify large, frequently changed files.</li>
+                    <li><b>Directory Analysis:</b> Shows which directories have the most activity.</li>
+                </ul>
+            </div>
+            """
+            self._add_explanation_to_html(save_path, explanation)
         
         return fig
     
@@ -575,6 +632,21 @@ class VisualizationEngine:
             if save_path:
                 fig.write_html(save_path)
                 logger.info(f"Saved technical debt dashboard to {save_path}")
+                explanation = """
+                <div style="font-family: Arial, sans-serif; margin: 20px;">
+                    <h2>Technical Debt Dashboard Explained</h2>
+                    <p>This dashboard visualizes indicators of technical debt in the repository.</p>
+                    <ul>
+                        <li><b>Debt Accumulation Trend:</b> Tracks commits that may introduce technical debt over time.</li>
+                        <li><b>Debt Distribution by Type:</b> Shows the proportion of different types of technical debt indicators.</li>
+                        <li><b>Maintainability vs Debt Correlation:</b> A scatter plot to explore the relationship between maintainability scores and technical debt.</li>
+                        <li><b>Debt Hotspots:</b> Identifies files with the highest technical debt scores.</li>
+                        <li><b>Monthly Debt Rate:</b> Shows the rate of new technical debt introduction each month.</li>
+                        <li><b>Debt Resolution Priority Matrix:</b> Helps prioritize which technical debt to address based on effort and impact.</li>
+                    </ul>
+                </div>
+                """
+                self._add_explanation_to_html(save_path, explanation)
             
             return fig
             
@@ -754,6 +826,21 @@ class VisualizationEngine:
             if save_path:
                 fig.write_html(save_path)
                 logger.info(f"Saved repository health dashboard to {save_path}")
+                explanation = """
+                <div style="font-family: Arial, sans-serif; margin: 20px;">
+                    <h2>Repository Health Dashboard Explained</h2>
+                    <p>This dashboard provides a high-level overview of the repository's health.</p>
+                    <ul>
+                        <li><b>Overall Health Score:</b> A gauge showing a single score representing the overall health of the repository.</li>
+                        <li><b>Quality Metrics Radar:</b> A radar chart showing performance across several quality dimensions.</li>
+                        <li><b>Velocity Trend:</b> Shows the trend of commit velocity over the last 12 weeks.</li>
+                        <li><b>Coverage Metrics:</b> Bar chart showing test, documentation, and other coverage metrics.</li>
+                        <li><b>Risk Assessment:</b> A bar chart showing the distribution of risks at different levels.</li>
+                        <li><b>Health Factors Breakdown:</b> A pie chart showing the contribution of different factors to the overall health score.</li>
+                    </ul>
+                </div>
+                """
+                self._add_explanation_to_html(save_path, explanation)
             
             return fig
             
@@ -942,6 +1029,19 @@ class VisualizationEngine:
             if save_path:
                 fig.write_html(save_path)
                 logger.info(f"Saved predictive maintenance report to {save_path}")
+                explanation = """
+                <div style="font-family: Arial, sans-serif; margin: 20px;">
+                    <h2>Predictive Maintenance Report Explained</h2>
+                    <p>This report provides forecasts related to repository maintenance.</p>
+                    <ul>
+                        <li><b>Maintenance Effort Forecast:</b> Predicts the effort required for maintenance over the next 6 months.</li>
+                        <li><b>Quality Degradation Risk:</b> Shows the distribution of files by their risk of quality degradation.</li>
+                        <li><b>Resource Requirement Projection:</b> Forecasts the number of developers needed to maintain the current velocity.</li>
+                        <li><b>Intervention Recommendations:</b> Suggests actions to take to improve repository health, prioritized by impact.</li>
+                    </ul>
+                </div>
+                """
+                self._add_explanation_to_html(save_path, explanation)
             
             return fig
             
@@ -1086,6 +1186,19 @@ class VisualizationEngine:
             if save_path:
                 fig.write_html(save_path)
                 logger.info(f"Saved velocity forecasting dashboard to {save_path}")
+                explanation = """
+                <div style="font-family: Arial, sans-serif; margin: 20px;">
+                    <h2>Development Velocity Forecasting Dashboard Explained</h2>
+                    <p>This dashboard provides forecasts of development velocity.</p>
+                    <ul>
+                        <li><b>Velocity Forecast:</b> Predicts the commit velocity for the next 12 weeks.</li>
+                        <li><b>Sprint Performance Prediction:</b> Forecasts the number of commits that will be delivered in upcoming sprints.</li>
+                        <li><b>Team Productivity Distribution:</b> Shows the distribution of productivity across the team.</li>
+                        <li><b>Bottleneck Analysis:</b> Identifies potential bottlenecks in the development process.</li>
+                    </ul>
+                </div>
+                """
+                self._add_explanation_to_html(save_path, explanation)
             
             return fig
             
@@ -1129,3 +1242,14 @@ class VisualizationEngine:
                 logger.error(f"Failed to generate {viz_name}: {e}")
         
         return generated_reports
+    
+    def _add_explanation_to_html(self, save_path: str, explanation_html: str):
+        """Appends explanation section to the end of a Plotly HTML file."""
+        if not save_path:
+            return
+        try:
+            with open(save_path, "a") as f:
+                f.write(explanation_html)
+            logger.info(f"Appended explanation to {save_path}")
+        except Exception as e:
+            logger.error(f"Could not append explanation to {save_path}: {e}")
