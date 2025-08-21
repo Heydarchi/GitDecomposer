@@ -10,7 +10,7 @@ from .repository import (
     RepositoryInfo,
     RepositorySummary,
     AdvancedRepositorySummary,
-    RepositoryMetadata
+    RepositoryMetadata,
 )
 
 from .commit import (
@@ -20,7 +20,7 @@ from .commit import (
     CommitFrequency,
     CommitVelocity,
     CommitPattern,
-    CommitQuality
+    CommitQuality,
 )
 
 from .contributor import (
@@ -31,7 +31,7 @@ from .contributor import (
     ContributorActivity,
     ContributorCollaboration,
     ContributorExpertise,
-    TeamDynamics
+    TeamDynamics,
 )
 
 from .file import (
@@ -44,7 +44,7 @@ from .file import (
     CodeQuality,
     DirectoryStats,
     FileNetwork,
-    CodeOwnership
+    CodeOwnership,
 )
 
 from .branch import (
@@ -57,7 +57,7 @@ from .branch import (
     BranchingStrategy,
     BranchCollaboration,
     BranchLifecycle,
-    BranchProtection
+    BranchProtection,
 )
 
 from .metrics import (
@@ -71,7 +71,7 @@ from .metrics import (
     TechnicalMetrics,
     ProcessMetrics,
     PerformanceBenchmark,
-    MetricsDashboard
+    MetricsDashboard,
 )
 
 from .analysis import (
@@ -86,25 +86,23 @@ from .analysis import (
     Dashboard,
     ExportOptions,
     AnalysisSession,
-    ComparisonAnalysis
+    ComparisonAnalysis,
 )
 
 __all__ = [
     # Repository models
     "RepositoryInfo",
-    "RepositorySummary", 
+    "RepositorySummary",
     "AdvancedRepositorySummary",
     "RepositoryMetadata",
-    
     # Commit models
     "CommitType",
     "CommitInfo",
     "CommitStats",
     "CommitFrequency",
     "CommitVelocity",
-    "CommitPattern", 
+    "CommitPattern",
     "CommitQuality",
-    
     # Contributor models
     "ContributorRole",
     "ActivityLevel",
@@ -114,10 +112,9 @@ __all__ = [
     "ContributorCollaboration",
     "ContributorExpertise",
     "TeamDynamics",
-    
     # File models
     "FileType",
-    "ChangeType", 
+    "ChangeType",
     "FileInfo",
     "FileStats",
     "FileChange",
@@ -126,7 +123,6 @@ __all__ = [
     "DirectoryStats",
     "FileNetwork",
     "CodeOwnership",
-    
     # Branch models
     "BranchType",
     "BranchStatus",
@@ -138,7 +134,6 @@ __all__ = [
     "BranchCollaboration",
     "BranchLifecycle",
     "BranchProtection",
-    
     # Metrics models
     "MetricCategory",
     "TrendDirection",
@@ -151,7 +146,6 @@ __all__ = [
     "ProcessMetrics",
     "PerformanceBenchmark",
     "MetricsDashboard",
-    
     # Analysis models
     "AnalysisType",
     "ReportFormat",
@@ -164,5 +158,5 @@ __all__ = [
     "Dashboard",
     "ExportOptions",
     "AnalysisSession",
-    "ComparisonAnalysis"
+    "ComparisonAnalysis",
 ]

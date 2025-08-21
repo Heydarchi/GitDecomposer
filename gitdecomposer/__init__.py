@@ -20,12 +20,12 @@ from .git_metrics import GitMetrics
 from .viz import VisualizationEngine
 
 __all__ = [
-    'GitRepository',
-    'CommitAnalyzer', 
-    'FileAnalyzer',
-    'ContributorAnalyzer',
-    'BranchAnalyzer',
-    'GitMetrics',
-    'AdvancedMetrics',
-    'VisualizationEngine'
+    "GitRepository",
+    "CommitAnalyzer",
+    "FileAnalyzer",
+    "ContributorAnalyzer",
+    "BranchAnalyzer",
+    "GitMetrics",
+    "AdvancedMetrics",
+    "VisualizationEngine",
 ]

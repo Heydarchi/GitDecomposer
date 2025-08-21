@@ -25,7 +25,7 @@ else:
         "matplotlib>=3.8.0",
         "seaborn>=0.13.0",
         "numpy>=1.26.0",
-        "plotly>=5.17.0"
+        "plotly>=5.17.0",
     ]
 
 setup(
