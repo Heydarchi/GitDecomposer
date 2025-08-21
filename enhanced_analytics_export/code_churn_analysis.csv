@@ -1,0 +1,8 @@
+file_path,total_additions,total_deletions,total_changes,net_changes,estimated_size,churn_rate,extension
+enhanced_analytics_export/branch_statistics.csv,2,0,2,2,50,4.0,.csv
+enhanced_analytics_export/bug_fix_analysis.csv,2,0,2,2,50,4.0,.csv
+enhanced_analytics_export/commit_frequency.csv,3,0,3,3,50,6.0,.csv
+enhanced_analytics_export/commit_size_analysis.csv,2,0,2,2,50,4.0,.csv
+enhanced_analytics_export/commit_velocity.csv,2,0,2,2,50,4.0,.csv
+enhanced_analytics_export/contributor_statistics.csv,3,0,3,3,50,6.0,.csv
+enhanced_analytics_export/technical_debt_analysis.csv,2,0,2,2,50,4.0,.csv
