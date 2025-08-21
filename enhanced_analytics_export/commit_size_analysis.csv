@@ -1,3 +1,0 @@
-sha,author,date,message,files_changed,total_lines,lines_added,lines_deleted,net_lines,size_by_lines,size_by_files
-501df3dc,copilot-swe-agent[bot],1755764046,Initial analysis plan for advanced_metrics.py improvements,7,16,16,0,16,S (11-50 lines),Many (6-10 files)
-72806312,copilot-swe-agent[bot],1755763802,Initial plan,0,0,0,0,0,XS (≤10 lines),Few (≤2 files)

@@ -1,8 +1,0 @@
-file_path,extension,commit_count,total_lines_added,total_lines_deleted,total_lines_changed,unique_authors,days_active,commits_per_day,lines_changed_per_day,avg_lines_per_commit,change_intensity,first_change_date,last_change_date
-enhanced_analytics_export/commit_frequency.csv,.csv,1,3,0,3,1,0.0,1.0,3.0,3.0,3,1755764046,1755764046
-enhanced_analytics_export/contributor_statistics.csv,.csv,1,3,0,3,1,0.0,1.0,3.0,3.0,3,1755764046,1755764046
-enhanced_analytics_export/branch_statistics.csv,.csv,1,2,0,2,1,0.0,1.0,2.0,2.0,2,1755764046,1755764046
-enhanced_analytics_export/bug_fix_analysis.csv,.csv,1,2,0,2,1,0.0,1.0,2.0,2.0,2,1755764046,1755764046
-enhanced_analytics_export/commit_size_analysis.csv,.csv,1,2,0,2,1,0.0,1.0,2.0,2.0,2,1755764046,1755764046
-enhanced_analytics_export/commit_velocity.csv,.csv,1,2,0,2,1,0.0,1.0,2.0,2.0,2,1755764046,1755764046
-enhanced_analytics_export/technical_debt_analysis.csv,.csv,1,2,0,2,1,0.0,1.0,2.0,2.0,2,1755764046,1755764046

@@ -1,8 +1,0 @@
-file_path,change_count,extension
-enhanced_analytics_export/branch_statistics.csv,1,.csv
-enhanced_analytics_export/bug_fix_analysis.csv,1,.csv
-enhanced_analytics_export/commit_frequency.csv,1,.csv
-enhanced_analytics_export/commit_size_analysis.csv,1,.csv
-enhanced_analytics_export/commit_velocity.csv,1,.csv
-enhanced_analytics_export/contributor_statistics.csv,1,.csv
-enhanced_analytics_export/technical_debt_analysis.csv,1,.csv

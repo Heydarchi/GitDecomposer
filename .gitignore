@@ -178,3 +178,6 @@ gitdecomposer_output/
 *_analysis.html
 *_report.html
 comprehensive_report.html
+enhanced_analytics_export/
+enhanced_repository_report.html
+validate_improvements.py
