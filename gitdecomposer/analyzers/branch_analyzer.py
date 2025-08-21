@@ -2,11 +2,12 @@
 BranchAnalyzer module for analyzing Git branches and branching patterns.
 """
 
-from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime, timedelta
-from collections import defaultdict, Counter
-import pandas as pd
 import logging
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+import pandas as pd
 
 from ..core.git_repository import GitRepository
 

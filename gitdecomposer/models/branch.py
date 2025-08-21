@@ -6,9 +6,9 @@ and branching strategy analysis results.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Set
 from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 
 class BranchType(Enum):

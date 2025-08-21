@@ -4,13 +4,14 @@ Example implementation of advanced reporting capabilities for GitDecomposer.
 This demonstrates how to create specialized reports using the existing analytical data.
 """
 
-import pandas as pd
-import plotly.graph_objects as go
-import plotly.express as px
-from plotly.subplots import make_subplots
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
+
 import numpy as np
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 
 class AdvancedReportGenerator:
@@ -588,7 +589,7 @@ def demonstrate_advanced_reporting():
 
         sys.path.insert(0, str(Path(__file__).parent.parent))
 
-        from gitdecomposer import GitRepository, GitMetrics
+        from gitdecomposer import GitMetrics, GitRepository
 
         # Initialize with current repository
         repo_path = str(Path(__file__).parent.parent)

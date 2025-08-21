@@ -6,10 +6,10 @@ and code analysis results.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Set, Tuple
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 class FileType(Enum):

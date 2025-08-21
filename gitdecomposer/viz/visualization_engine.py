@@ -3,16 +3,17 @@ VisualizationEngine module for creating charts and dashboards.
 Extracted from GitMetrics to provide focused visualization capabilities.
 """
 
-from typing import List, Dict, Any, Optional, Tuple
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import seaborn as sns
+from plotly.subplots import make_subplots
 
 logger = logging.getLogger(__name__)
 

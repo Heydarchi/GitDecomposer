@@ -2,14 +2,13 @@
 Basic tests for GitDecomposer classes.
 """
 
-import unittest
-import tempfile
 import os
-from unittest.mock import Mock, patch
-from pathlib import Path
-
 # Import our classes
 import sys
+import tempfile
+import unittest
+from pathlib import Path
+from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -77,14 +76,9 @@ class TestGitDecomposerIntegration(unittest.TestCase):
     def test_import_all_modules(self):
         """Test that all modules can be imported."""
         try:
-            from gitdecomposer import (
-                GitRepository,
-                CommitAnalyzer,
-                FileAnalyzer,
-                ContributorAnalyzer,
-                BranchAnalyzer,
-                GitMetrics,
-            )
+            from gitdecomposer import (BranchAnalyzer, CommitAnalyzer,
+                                       ContributorAnalyzer, FileAnalyzer,
+                                       GitMetrics, GitRepository)
 
             # If we get here, imports worked
             self.assertTrue(True)
@@ -138,10 +132,8 @@ class TestAnalyzerClasses(unittest.TestCase):
 
     def test_analyzer_initialization(self):
         """Test that analyzers can be initialized."""
-        from gitdecomposer.analyzers import CommitAnalyzer
-        from gitdecomposer.analyzers import FileAnalyzer
-        from gitdecomposer.analyzers import ContributorAnalyzer
-        from gitdecomposer.analyzers import BranchAnalyzer
+        from gitdecomposer.analyzers import (BranchAnalyzer, CommitAnalyzer,
+                                             ContributorAnalyzer, FileAnalyzer)
         from gitdecomposer.git_metrics import GitMetrics
 
         # Test that analyzers can be created

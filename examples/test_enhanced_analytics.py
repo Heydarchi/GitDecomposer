@@ -11,7 +11,7 @@ from pathlib import Path
 # Add the parent directory to the Python path to import gitdecomposer
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from gitdecomposer import GitRepository, GitMetrics, AdvancedMetrics
+from gitdecomposer import AdvancedMetrics, GitMetrics, GitRepository
 
 
 def test_enhanced_analytics():

@@ -2,15 +2,15 @@
 GitRepository module for handling Git repository operations.
 """
 
+import logging
 import os
 from pathlib import Path
-from typing import List, Optional, Dict, Any
-import logging
+from typing import Any, Dict, List, Optional
 
 # Try to import GitPython, but don't hard-fail at import time so tests can patch Repo
 try:  # pragma: no cover - environment dependent
-    from git import Repo, InvalidGitRepositoryError  # type: ignore
-    from git.objects import Commit, Blob, Tree  # type: ignore
+    from git import InvalidGitRepositoryError, Repo  # type: ignore
+    from git.objects import Blob, Commit, Tree  # type: ignore
 except ModuleNotFoundError:  # pragma: no cover - graceful fallback
     Repo = None  # type: ignore
 

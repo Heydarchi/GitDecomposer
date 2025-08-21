@@ -2,23 +2,19 @@
 ContributorAnalyzer module for analyzing contributor patterns and statistics.
 """
 
-from typing import List, Dict, Any, Optional, Tuple, Set
-from datetime import datetime, timedelta
-from collections import defaultdict, Counter
-import pandas as pd
 import logging
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+import pandas as pd
 
 from ..core.git_repository import GitRepository
-from ..models.contributor import (
-    ContributorInfo,
-    ContributorStats,
-    ContributorActivity,
-    ContributorCollaboration,
-    ContributorExpertise,
-    TeamDynamics,
-    ContributorRole,
-    ActivityLevel,
-)
+from ..models.contributor import (ActivityLevel, ContributorActivity,
+                                  ContributorCollaboration,
+                                  ContributorExpertise, ContributorInfo,
+                                  ContributorRole, ContributorStats,
+                                  TeamDynamics)
 
 logger = logging.getLogger(__name__)
 

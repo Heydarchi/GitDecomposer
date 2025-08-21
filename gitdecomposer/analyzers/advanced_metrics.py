@@ -2,14 +2,15 @@
 AdvancedMetrics module for sophisticated repository analysis.
 """
 
-from typing import List, Dict, Any, Optional, Tuple
-from pathlib import Path
-from collections import defaultdict, Counter
-import pandas as pd
+import logging
 import math
 import re
-import logging
+from collections import Counter, defaultdict
 from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import pandas as pd
 
 from ..core.git_repository import GitRepository
 

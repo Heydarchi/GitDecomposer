@@ -6,9 +6,9 @@ and measurement results for repository analysis.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class MetricCategory(Enum):

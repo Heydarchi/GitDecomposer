@@ -5,89 +5,30 @@ This package contains all data classes and models used throughout
 the GitDecomposer application for type-safe data structures.
 """
 
-# Import all data classes for easy access
-from .repository import (
-    RepositoryInfo,
-    RepositorySummary,
-    AdvancedRepositorySummary,
-    RepositoryMetadata,
-)
-
+from .analysis import (AnalysisConfig, AnalysisResults, AnalysisSession,
+                       AnalysisType, ComparisonAnalysis, Dashboard,
+                       ExportOptions, Finding, Report, ReportFormat,
+                       ReportSection, Severity)
+from .branch import (BranchCollaboration, BranchInfo, BranchingStrategy,
+                     BranchLifecycle, BranchProtection, BranchStats,
+                     BranchStatus, BranchType, MergeAnalysis, MergeStrategy)
 from .commit import (
-    CommitType,
-    CommitInfo,
-    CommitStats,
-    CommitFrequency,
-    CommitVelocity,
-    CommitPattern,
-    CommitQuality,
-)
-
-from .contributor import (
-    ContributorRole,
-    ActivityLevel,
-    ContributorInfo,
-    ContributorStats,
-    ContributorActivity,
-    ContributorCollaboration,
-    ContributorExpertise,
-    TeamDynamics,
-)
-
-from .file import (
-    FileType,
-    ChangeType,
-    FileInfo,
-    FileStats,
-    FileChange,
-    HotspotFile,
-    CodeQuality,
-    DirectoryStats,
-    FileNetwork,
-    CodeOwnership,
-)
-
-from .branch import (
-    BranchType,
-    BranchStatus,
-    MergeStrategy,
-    BranchInfo,
-    BranchStats,
-    MergeAnalysis,
-    BranchingStrategy,
-    BranchCollaboration,
-    BranchLifecycle,
-    BranchProtection,
-)
-
-from .metrics import (
-    MetricCategory,
-    TrendDirection,
-    MetricValue,
-    MetricTrend,
-    ProductivityMetrics,
-    QualityMetrics,
-    CollaborationMetrics,
-    TechnicalMetrics,
-    ProcessMetrics,
-    PerformanceBenchmark,
-    MetricsDashboard,
-)
-
-from .analysis import (
-    AnalysisType,
-    ReportFormat,
-    Severity,
-    AnalysisConfig,
-    Finding,
-    AnalysisResults,
-    ReportSection,
-    Report,
-    Dashboard,
-    ExportOptions,
-    AnalysisSession,
-    ComparisonAnalysis,
-)
+    CommitFrequency, CommitInfo, CommitPattern, CommitQuality, CommitStats,
+    CommitType, CommitVelocity)
+from .contributor import (ActivityLevel, ContributorActivity,
+                          ContributorCollaboration, ContributorExpertise,
+                          ContributorInfo, ContributorRole, ContributorStats,
+                          TeamDynamics)
+from .file import (ChangeType, CodeOwnership, CodeQuality, DirectoryStats,
+                   FileChange, FileInfo, FileNetwork, FileStats, FileType,
+                   HotspotFile)
+from .metrics import (CollaborationMetrics, MetricCategory, MetricsDashboard,
+                      MetricTrend, MetricValue, PerformanceBenchmark,
+                      ProcessMetrics, ProductivityMetrics, QualityMetrics,
+                      TechnicalMetrics, TrendDirection)
+# Import all data classes for easy access
+from .repository import (AdvancedRepositorySummary, RepositoryInfo,
+                         RepositoryMetadata, RepositorySummary)
 
 __all__ = [
     # Repository models

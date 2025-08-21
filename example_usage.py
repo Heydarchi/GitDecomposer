@@ -6,22 +6,17 @@ This script demonstrates how to use all the classes in the GitDecomposer package
 to analyze a Git repository.
 """
 
+import logging
 import os
 import sys
-import logging
 from pathlib import Path
 
 # Add the package to Python path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from gitdecomposer import (
-    GitRepository,
-    CommitAnalyzer,
-    FileAnalyzer,
-    ContributorAnalyzer,
-    BranchAnalyzer,
-    GitMetrics,
-)
+    BranchAnalyzer, CommitAnalyzer, ContributorAnalyzer, FileAnalyzer,
+    GitMetrics, GitRepository)
 
 # Configure logging
 logging.basicConfig(

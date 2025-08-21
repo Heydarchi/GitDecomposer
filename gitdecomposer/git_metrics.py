@@ -2,31 +2,26 @@
 GitMetrics module for calculating and visualizing Git repository metrics.
 """
 
-from typing import List, Dict, Any, Optional, Tuple
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
-import plotly.express as px
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
+import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import seaborn as sns
+from plotly.subplots import make_subplots
+
+from .analyzers import (AdvancedMetrics, BranchAnalyzer, CommitAnalyzer,
+                        ContributorAnalyzer, FileAnalyzer)
 from .core import GitRepository
-from .analyzers import (
-    CommitAnalyzer,
-    FileAnalyzer,
-    ContributorAnalyzer,
-    BranchAnalyzer,
-    AdvancedMetrics,
-)
+from .models.analysis import AnalysisConfig, AnalysisResults, AnalysisType
+from .models.metrics import MetricsDashboard
+from .models.repository import (AdvancedRepositorySummary, RepositoryInfo,
+                                RepositorySummary)
 from .viz import VisualizationEngine
-from .models.repository import RepositoryInfo, RepositorySummary, AdvancedRepositorySummary
-from .models.analysis import AnalysisResults, AnalysisConfig, AnalysisType
-from .models.metrics import MetricsDashboard
-from .models.analysis import AnalysisResults, AnalysisConfig, AnalysisType
-from .models.metrics import MetricsDashboard
 
 logger = logging.getLogger(__name__)
 

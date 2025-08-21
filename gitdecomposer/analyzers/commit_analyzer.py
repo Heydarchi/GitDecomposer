@@ -2,24 +2,19 @@
 CommitAnalyzer module for analyzing Git commits.
 """
 
-from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime, timedelta
-from collections import defaultdict, Counter
-import pandas as pd
-from git.objects import Commit
 import logging
 import re
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+import pandas as pd
+from git.objects import Commit
 
 from ..core.git_repository import GitRepository
-from ..models.commit import (
-    CommitInfo,
-    CommitStats,
-    CommitFrequency,
-    CommitVelocity,
-    CommitPattern,
-    CommitQuality,
-    CommitType,
-)
+from ..models.commit import (CommitFrequency, CommitInfo, CommitPattern,
+                             CommitQuality, CommitStats, CommitType,
+                             CommitVelocity)
 
 logger = logging.getLogger(__name__)
 

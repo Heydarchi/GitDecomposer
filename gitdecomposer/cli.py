@@ -3,14 +3,14 @@ Command Line Interface for GitDecomposer.
 """
 
 import argparse
-import sys
 import os
+import sys
 from pathlib import Path
 
 # Add the package to Python path for development
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from gitdecomposer import GitRepository, GitMetrics
+from gitdecomposer import GitMetrics, GitRepository
 
 
 def main():

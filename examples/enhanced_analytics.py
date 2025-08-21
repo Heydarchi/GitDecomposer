@@ -19,7 +19,7 @@ from pathlib import Path
 # Add the package to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from gitdecomposer import GitRepository, GitMetrics
+from gitdecomposer import GitMetrics, GitRepository
 
 
 def analyze_enhanced_metrics(repo_path: str):

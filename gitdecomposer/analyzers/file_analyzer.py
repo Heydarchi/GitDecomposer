@@ -2,27 +2,19 @@
 FileAnalyzer module for analyzing files in a Git repository.
 """
 
-from typing import List, Dict, Any, Optional, Set, Tuple
-from pathlib import Path
-from collections import defaultdict, Counter
-from datetime import datetime, timedelta
-import pandas as pd
 import logging
 import os
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+import pandas as pd
 
 from ..core.git_repository import GitRepository
-from ..models.file import (
-    FileInfo,
-    FileStats,
-    FileChange,
-    HotspotFile,
-    CodeQuality,
-    DirectoryStats,
-    FileNetwork,
-    CodeOwnership,
-    FileType,
-    ChangeType,
-)
+from ..models.file import (ChangeType, CodeOwnership, CodeQuality,
+                           DirectoryStats, FileChange, FileInfo, FileNetwork,
+                           FileStats, FileType, HotspotFile)
 
 logger = logging.getLogger(__name__)
 

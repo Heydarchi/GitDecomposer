@@ -6,9 +6,9 @@ and contribution analysis results.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Set
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
 
 class ContributorRole(Enum):

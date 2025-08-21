@@ -6,9 +6,9 @@ and analysis results.
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Tuple
 from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
 
 
 class CommitType(Enum):
