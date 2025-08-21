@@ -12,7 +12,7 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from gitdecomposer.git_repository import GitRepository
+from gitdecomposer import GitRepository
 
 
 class TestGitRepository(unittest.TestCase):
@@ -34,7 +34,7 @@ class TestGitRepository(unittest.TestCase):
                 # Expected to fail since it's not a git repo
                 self.assertTrue("Invalid Git repository" in str(e) or "git" in str(e).lower())
     
-    @patch('gitdecomposer.git_repository.Repo')
+    @patch('gitdecomposer.core.git_repository.Repo')
     def test_repository_stats_structure(self, mock_repo):
         """Test that repository stats returns proper structure."""
         # Mock the git repository
@@ -103,7 +103,7 @@ class TestGitDecomposerIntegration(unittest.TestCase):
 class TestAnalyzerClasses(unittest.TestCase):
     """Test analyzer classes with mocked data."""
     
-    @patch('gitdecomposer.git_repository.Repo')
+    @patch('gitdecomposer.core.git_repository.Repo')
     def setUp(self, mock_repo):
         """Set up test fixtures."""
         # Mock the git repository
@@ -128,10 +128,10 @@ class TestAnalyzerClasses(unittest.TestCase):
     
     def test_analyzer_initialization(self):
         """Test that analyzers can be initialized."""
-        from gitdecomposer.commit_analyzer import CommitAnalyzer
-        from gitdecomposer.file_analyzer import FileAnalyzer
-        from gitdecomposer.contributor_analyzer import ContributorAnalyzer
-        from gitdecomposer.branch_analyzer import BranchAnalyzer
+        from gitdecomposer.analyzers import CommitAnalyzer
+        from gitdecomposer.analyzers import FileAnalyzer
+        from gitdecomposer.analyzers import ContributorAnalyzer
+        from gitdecomposer.analyzers import BranchAnalyzer
         from gitdecomposer.git_metrics import GitMetrics
         
         # Test that analyzers can be created

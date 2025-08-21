@@ -8,14 +8,16 @@ Git repository data including commits, branches, files, and contributors.
 __version__ = "1.0.0"
 __author__ = "GitDecomposer Team"
 
-from .git_repository import GitRepository
-from .commit_analyzer import CommitAnalyzer
-from .file_analyzer import FileAnalyzer
-from .contributor_analyzer import ContributorAnalyzer
-from .branch_analyzer import BranchAnalyzer
+from .core import GitRepository
+from .analyzers import (
+    CommitAnalyzer,
+    FileAnalyzer,
+    ContributorAnalyzer,
+    BranchAnalyzer,
+    AdvancedMetrics,
+)
 from .git_metrics import GitMetrics
-from .advanced_metrics import AdvancedMetrics
-from .visualization_engine import VisualizationEngine
+from .viz import VisualizationEngine
 
 __all__ = [
     'GitRepository',

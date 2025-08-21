@@ -8,7 +8,7 @@ from collections import defaultdict, Counter
 import pandas as pd
 import logging
 
-from .git_repository import GitRepository
+from ..core.git_repository import GitRepository
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +81,7 @@ class BranchAnalyzer:
                     'first_commit_date': first_commit,
                     'last_commit_date': last_commit,
                     'activity_span_days': activity_span,
+                    'days_since_last_commit': (datetime.now() - last_commit).days if last_commit else None,
                     'avg_commits_per_day': len(commits) / max(activity_span, 1) if activity_span > 0 else len(commits)
                 })
                 
@@ -331,13 +332,21 @@ class BranchAnalyzer:
         
         # Check for stale branches
         if not branch_stats.empty:
+            # Ensure we have days_since_last_commit; compute if missing
+            if 'days_since_last_commit' not in branch_stats.columns and 'last_commit_date' in branch_stats.columns:
+                try:
+                    branch_stats = branch_stats.copy()
+                    branch_stats['days_since_last_commit'] = branch_stats['last_commit_date'].apply(
+                        lambda x: (datetime.now() - x).days if pd.notnull(x) else None
+                    )
+                except Exception:
+                    logger.warning("Could not compute 'days_since_last_commit' from 'last_commit_date'")
+
             if 'days_since_last_commit' in branch_stats.columns:
                 stale_condition = branch_stats['days_since_last_commit'] > 90
                 stale_branches = len(branch_stats[stale_condition])
                 if stale_branches > 3:
                     recommendations.append(f"Consider cleaning up {stale_branches} stale branches to improve repository hygiene")
-            else:
-                logger.warning("Column 'days_since_last_commit' not found in branch_stats")
         
         # Check merge frequency
         merge_percentage = merge_analysis.get('merge_percentage', 0)

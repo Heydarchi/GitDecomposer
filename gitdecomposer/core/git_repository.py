@@ -5,9 +5,26 @@ GitRepository module for handling Git repository operations.
 import os
 from pathlib import Path
 from typing import List, Optional, Dict, Any
-from git import Repo, InvalidGitRepositoryError
-from git.objects import Commit, Blob, Tree
 import logging
+
+# Try to import GitPython, but don't hard-fail at import time so tests can patch Repo
+try:  # pragma: no cover - environment dependent
+    from git import Repo, InvalidGitRepositoryError  # type: ignore
+    from git.objects import Commit, Blob, Tree  # type: ignore
+except ModuleNotFoundError:  # pragma: no cover - graceful fallback
+    Repo = None  # type: ignore
+    
+    class InvalidGitRepositoryError(Exception):
+        pass
+
+    class Commit:  # minimal placeholders for typing/instance checks
+        pass
+
+    class Blob:  # used in isinstance checks when traversing trees
+        pass
+
+    class Tree:
+        pass
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +53,13 @@ class GitRepository:
         if not self.repo_path.exists():
             raise FileNotFoundError(f"Repository path does not exist: {self.repo_path}")
             
+        # Defer hard dependency error until initialization time to allow tests to patch Repo
+        if Repo is None:
+            raise ImportError(
+                "GitPython is required but not installed. Install with 'pip install GitPython' or "
+                "add it to your requirements.txt."
+            )
+
         try:
             self.repo = Repo(str(self.repo_path))
         except InvalidGitRepositoryError as e:
@@ -212,6 +236,24 @@ class GitRepository:
             logger.error(f"Error getting changed files for commit {commit_sha}: {e}")
             return {}
     
+    def get_all_files_at_head(self) -> List[str]:
+        """List all file paths in the repository at HEAD (working tree snapshot).
+
+        Returns:
+            List[str]: Relative file paths at HEAD
+        """
+        try:
+            commit = self.repo.head.commit
+            files: List[str] = []
+            for item in commit.tree.traverse():
+                if isinstance(item, Blob):
+                    files.append(item.path)
+            logger.info(f"Found {len(files)} files at HEAD")
+            return files
+        except Exception as e:
+            logger.error(f"Error listing files at HEAD: {e}")
+            return []
+
     def get_repository_stats(self) -> Dict[str, Any]:
         """
         Get basic repository statistics.
@@ -258,6 +300,14 @@ class GitRepository:
             except Exception as e:
                 logger.warning(f"Could not get remote URLs: {e}")
             
+            # Attempt to count files at HEAD
+            total_files = 0
+            try:
+                files_at_head = self.get_all_files_at_head()
+                total_files = len(files_at_head)
+            except Exception as e:
+                logger.warning(f"Could not list files at HEAD: {e}")
+
             stats = {
                 'path': str(self.repo_path),
                 'is_bare': self.is_bare,
@@ -266,7 +316,8 @@ class GitRepository:
                 'total_branches': total_branches,
                 'total_tags': total_tags,
                 'remotes': remote_urls,
-                'head_commit': head_commit
+                'head_commit': head_commit,
+                'total_files': total_files
             }
             
             logger.info("Retrieved repository statistics")

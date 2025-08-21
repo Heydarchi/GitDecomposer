@@ -8,8 +8,8 @@ from collections import defaultdict, Counter
 import pandas as pd
 import logging
 
-from .git_repository import GitRepository
-from .models.contributor import (
+from ..core.git_repository import GitRepository
+from ..models.contributor import (
     ContributorInfo, ContributorStats, ContributorActivity, 
     ContributorCollaboration, ContributorExpertise, TeamDynamics,
     ContributorRole, ActivityLevel

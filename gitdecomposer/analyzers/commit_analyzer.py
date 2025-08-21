@@ -10,8 +10,8 @@ from git.objects import Commit
 import logging
 import re
 
-from .git_repository import GitRepository
-from .models.commit import (
+from ..core.git_repository import GitRepository
+from ..models.commit import (
     CommitInfo, CommitStats, CommitFrequency, CommitVelocity, 
     CommitPattern, CommitQuality, CommitType
 )

@@ -10,8 +10,8 @@ import pandas as pd
 import logging
 import os
 
-from .git_repository import GitRepository
-from .models.file import (
+from ..core.git_repository import GitRepository
+from ..models.file import (
     FileInfo, FileStats, FileChange, HotspotFile, CodeQuality,
     DirectoryStats, FileNetwork, CodeOwnership, FileType, ChangeType
 )

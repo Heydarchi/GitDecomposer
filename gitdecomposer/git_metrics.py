@@ -13,14 +13,18 @@ import logging
 from datetime import datetime
 from pathlib import Path
 
-from .git_repository import GitRepository
-from .commit_analyzer import CommitAnalyzer
-from .file_analyzer import FileAnalyzer
-from .contributor_analyzer import ContributorAnalyzer
-from .branch_analyzer import BranchAnalyzer
-from .advanced_metrics import AdvancedMetrics
-from .visualization_engine import VisualizationEngine
+from .core import GitRepository
+from .analyzers import (
+    CommitAnalyzer,
+    FileAnalyzer,
+    ContributorAnalyzer,
+    BranchAnalyzer,
+    AdvancedMetrics,
+)
+from .viz import VisualizationEngine
 from .models.repository import RepositoryInfo, RepositorySummary, AdvancedRepositorySummary
+from .models.analysis import AnalysisResults, AnalysisConfig, AnalysisType
+from .models.metrics import MetricsDashboard
 from .models.analysis import AnalysisResults, AnalysisConfig, AnalysisType
 from .models.metrics import MetricsDashboard
 
