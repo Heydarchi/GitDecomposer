@@ -90,7 +90,7 @@ lint_code() {
     print_success "Import sorting check passed"
     
     echo "Running flake8 linter..."
-    flake8 ${SOURCE_DIRS} --max-line-length=100 --extend-ignore=E203,W503
+    flake8 ${SOURCE_DIRS} --max-line-length=120 --extend-ignore=E203,W503
     print_success "Flake8 linting passed"
 }
 

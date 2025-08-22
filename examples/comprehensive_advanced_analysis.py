@@ -45,9 +45,7 @@ def demonstrate_advanced_reports():
         quality_data = advanced_metrics.get("code_quality", {})
         coverage_data = advanced_metrics.get("coverage_metrics", {})
 
-        print(
-            f"   Commit Velocity: {velocity_data.get('avg_commits_per_week', 0):.1f} commits/week"
-        )
+        print(f"   Commit Velocity: {velocity_data.get('avg_commits_per_week', 0):.1f} commits/week")
         print(f"   Maintainability: {quality_data.get('maintainability_score', 0):.1f}/100")
         print(f"   Test Coverage: {coverage_data.get('test_coverage_percentage', 0):.1f}%")
 
@@ -60,21 +58,15 @@ def demonstrate_advanced_reports():
 
         # Repository Health Dashboard
         print("   ✓ Creating Repository Health Dashboard...")
-        health_dashboard = metrics.create_repository_health_dashboard(
-            "repository_health_dashboard.html"
-        )
+        health_dashboard = metrics.create_repository_health_dashboard("repository_health_dashboard.html")
 
         # Predictive Maintenance Report
         print("   ✓ Creating Predictive Maintenance Report...")
-        predictive_report = metrics.create_predictive_maintenance_report(
-            "predictive_maintenance_report.html"
-        )
+        predictive_report = metrics.create_predictive_maintenance_report("predictive_maintenance_report.html")
 
         # Velocity Forecasting Dashboard
         print("   ✓ Creating Velocity Forecasting Dashboard...")
-        velocity_dashboard = metrics.create_velocity_forecasting_dashboard(
-            "velocity_forecasting_dashboard.html"
-        )
+        velocity_dashboard = metrics.create_velocity_forecasting_dashboard("velocity_forecasting_dashboard.html")
 
         # 3. Generate all advanced reports at once
         print("\n3. Generating All Advanced Reports (Batch Mode)...")
@@ -124,12 +116,8 @@ def demonstrate_advanced_reports():
         print("   Available Advanced Reports:")
         print("     ✓ Technical Debt Analysis - Debt trends, hotspots, priority matrix")
         print("     ✓ Repository Health Dashboard - Health scoring, quality radar, risk assessment")
-        print(
-            "     ✓ Predictive Maintenance - Effort forecasting, resource planning, interventions"
-        )
-        print(
-            "     ✓ Velocity Forecasting - Sprint predictions, productivity analysis, bottlenecks"
-        )
+        print("     ✓ Predictive Maintenance - Effort forecasting, resource planning, interventions")
+        print("     ✓ Velocity Forecasting - Sprint predictions, productivity analysis, bottlenecks")
         print("     ✓ Enhanced Comprehensive Report - All analytics in one unified report")
 
         print("\n   Advanced Capabilities:")

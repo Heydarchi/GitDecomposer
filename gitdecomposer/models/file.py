@@ -74,11 +74,7 @@ class FileInfo:
     @property
     def is_test_file(self) -> bool:
         """Check if this is a test file."""
-        return (
-            self.file_type == FileType.TEST
-            or "test" in self.path.lower()
-            or "spec" in self.path.lower()
-        )
+        return self.file_type == FileType.TEST or "test" in self.path.lower() or "spec" in self.path.lower()
 
     @property
     def is_config_file(self) -> bool:
@@ -209,9 +205,7 @@ class HotspotFile:
     @property
     def requires_attention(self) -> bool:
         """Check if file requires immediate attention."""
-        return self.risk_score >= 70 or (
-            self.change_frequency >= 20 and self.complexity_score >= 7.0
-        )
+        return self.risk_score >= 70 or (self.change_frequency >= 20 and self.complexity_score >= 7.0)
 
 
 @dataclass

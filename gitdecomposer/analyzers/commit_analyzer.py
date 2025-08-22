@@ -117,9 +117,7 @@ class CommitAnalyzer:
         """
         commits = self._get_commits()
 
-        weekdays = [
-            datetime.fromtimestamp(commit.committed_date).strftime("%A") for commit in commits
-        ]
+        weekdays = [datetime.fromtimestamp(commit.committed_date).strftime("%A") for commit in commits]
         weekday_counts = Counter(weekdays)
 
         # Order weekdays properly
@@ -190,9 +188,7 @@ class CommitAnalyzer:
                         "sha": commit.hexsha[:8],
                         "author": commit.author.name,
                         "date": datetime.fromtimestamp(commit.committed_date),
-                        "message": commit.message.strip().split("\n")[0][
-                            :100
-                        ],  # First line, max 100 chars
+                        "message": commit.message.strip().split("\n")[0][:100],  # First line, max 100 chars
                         "total_lines": total_lines,
                         "insertions": insertions,
                         "deletions": deletions,
@@ -242,12 +238,8 @@ class CommitAnalyzer:
 
         analysis = {
             "total_commits": len(commits),
-            "avg_message_length": (
-                sum(message_lengths) / len(message_lengths) if message_lengths else 0
-            ),
-            "avg_summary_length": (
-                sum(summary_lengths) / len(summary_lengths) if summary_lengths else 0
-            ),
+            "avg_message_length": (sum(message_lengths) / len(message_lengths) if message_lengths else 0),
+            "avg_summary_length": (sum(summary_lengths) / len(summary_lengths) if summary_lengths else 0),
             "common_words": common_words,
             "common_prefixes": dict(prefixes),
             "empty_messages": sum(1 for msg in messages if not msg.strip()),
@@ -344,11 +336,7 @@ class CommitAnalyzer:
         if not df.empty:
             df["date"] = pd.to_datetime(df["date"])
             # Group by month and author
-            timeline = (
-                df.groupby([df["date"].dt.to_period("M"), "author"])
-                .size()
-                .reset_index(name="commit_count")
-            )
+            timeline = df.groupby([df["date"].dt.to_period("M"), "author"]).size().reset_index(name="commit_count")
             timeline["date"] = timeline["date"].dt.start_time
         else:
             timeline = pd.DataFrame(columns=["date", "author", "commit_count"])
@@ -383,9 +371,7 @@ class CommitAnalyzer:
 
             # Filter commits by date range
             recent_commits = [
-                commit
-                for commit in commits
-                if start_date <= datetime.fromtimestamp(commit.committed_date) <= end_date
+                commit for commit in commits if start_date <= datetime.fromtimestamp(commit.committed_date) <= end_date
             ]
 
             # Group commits by week
@@ -411,17 +397,13 @@ class CommitAnalyzer:
 
             # Calculate metrics
             avg_commits_per_week = weekly_velocity["commit_count"].mean()
-            current_week_velocity = (
-                weekly_velocity["commit_count"].iloc[-1] if len(weekly_velocity) > 0 else 0
-            )
+            current_week_velocity = weekly_velocity["commit_count"].iloc[-1] if len(weekly_velocity) > 0 else 0
 
             # Calculate trend
             if len(weekly_velocity) >= 4:
                 recent_avg = weekly_velocity["commit_count"].tail(4).mean()
                 older_avg = weekly_velocity["commit_count"].head(4).mean()
-                velocity_change_percentage = (
-                    ((recent_avg - older_avg) / older_avg * 100) if older_avg > 0 else 0
-                )
+                velocity_change_percentage = ((recent_avg - older_avg) / older_avg * 100) if older_avg > 0 else 0
 
                 if velocity_change_percentage > 10:
                     trend = "increasing"
@@ -538,9 +520,7 @@ class CommitAnalyzer:
             all_messages = " ".join([commit["message"].lower() for commit in bug_fix_commits])
             word_counts = Counter(all_messages.split())
             common_bug_keywords = [
-                word
-                for word, count in word_counts.most_common(10)
-                if word in bug_keywords and len(word) > 2
+                word for word, count in word_counts.most_common(10) if word in bug_keywords and len(word) > 2
             ]
 
             logger.info(f"Analyzed bug fix ratio: {bug_fix_ratio:.1f}%")
@@ -582,9 +562,7 @@ class CommitAnalyzer:
             return CommitType.TEST
         elif message_lower.startswith("chore"):
             return CommitType.CHORE
-        elif "merge" in message_lower and (
-            "pull request" in message_lower or "branch" in message_lower
-        ):
+        elif "merge" in message_lower and ("pull request" in message_lower or "branch" in message_lower):
             return CommitType.MERGE
         elif message_lower.startswith("initial"):
             return CommitType.INITIAL
@@ -642,18 +620,12 @@ class CommitAnalyzer:
                 author_name=commit.author.name if commit.author else "Unknown",
                 author_email=commit.author.email if commit.author else "unknown@unknown.com",
                 committer_name=commit.committer.name if commit.committer else "Unknown",
-                committer_email=(
-                    commit.committer.email if commit.committer else "unknown@unknown.com"
-                ),
+                committer_email=(commit.committer.email if commit.committer else "unknown@unknown.com"),
                 authored_date=(
-                    datetime.fromtimestamp(commit.authored_date)
-                    if commit.authored_date
-                    else datetime.now()
+                    datetime.fromtimestamp(commit.authored_date) if commit.authored_date else datetime.now()
                 ),
                 committed_date=(
-                    datetime.fromtimestamp(commit.committed_date)
-                    if commit.committed_date
-                    else datetime.now()
+                    datetime.fromtimestamp(commit.committed_date) if commit.committed_date else datetime.now()
                 ),
                 commit_type=CommitType.OTHER,
             )
@@ -686,9 +658,7 @@ class CommitAnalyzer:
         first_commit_date = min(dates) if dates else None
         last_commit_date = max(dates) if dates else None
 
-        avg_commit_size = (
-            (total_insertions + total_deletions) / len(commit_infos) if commit_infos else 0
-        )
+        avg_commit_size = (total_insertions + total_deletions) / len(commit_infos) if commit_infos else 0
         avg_files_per_commit = total_files_changed / len(commit_infos) if commit_infos else 0
 
         commit_types = Counter(c.commit_type for c in commit_infos)

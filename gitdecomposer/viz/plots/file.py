@@ -91,9 +91,7 @@ class FilePlotter(BasePlotter):
             )
 
             change_counts = [f["changes"] for f in most_changed]
-            fig.add_trace(
-                go.Histogram(x=change_counts, name="Change Frequency", nbinsx=15), row=2, col=2
-            )
+            fig.add_trace(go.Histogram(x=change_counts, name="Change Frequency", nbinsx=15), row=2, col=2)
 
         if file_churn and "churn_over_time" in file_churn:
             churn_data = file_churn["churn_over_time"]
@@ -279,9 +277,7 @@ class FilePlotter(BasePlotter):
 
 
 # Backwards compatibility functions
-def create_file_analysis_visualization(
-    metrics_coordinator, save_path: Optional[str] = None
-) -> go.Figure:
+def create_file_analysis_visualization(metrics_coordinator, save_path: Optional[str] = None) -> go.Figure:
     """
     Backwards compatibility function for file analysis visualization.
 
@@ -296,9 +292,7 @@ def create_file_analysis_visualization(
     return plotter.create_visualization(save_path)
 
 
-def create_enhanced_file_analysis_dashboard(
-    metrics_coordinator, save_path: Optional[str] = None
-) -> go.Figure:
+def create_enhanced_file_analysis_dashboard(metrics_coordinator, save_path: Optional[str] = None) -> go.Figure:
     """
     Backwards compatibility function for enhanced file analysis dashboard.
 

@@ -60,15 +60,11 @@ class CLI:
         """Validate repository path and set up output directory."""
         self.repo_path = Path(self.args.repository).resolve()
         if not self.repo_path.exists():
-            self.console.print(
-                f"[bold red]Error: Repository path '{self.repo_path}' does not exist[/bold red]"
-            )
+            self.console.print(f"[bold red]Error: Repository path '{self.repo_path}' does not exist[/bold red]")
             sys.exit(1)
 
         if not (self.repo_path / ".git").exists():
-            self.console.print(
-                f"[bold red]Error: '{self.repo_path}' is not a Git repository[/bold red]"
-            )
+            self.console.print(f"[bold red]Error: '{self.repo_path}' is not a Git repository[/bold red]")
             sys.exit(1)
 
         self.output_dir = Path(self.args.output)
@@ -91,14 +87,8 @@ class CLI:
                 self.console.print(f"Summary result type: {type(summary)}, value: {summary}")
 
             if not summary or "error" in summary:
-                error_msg = (
-                    summary.get("error", "Unknown error")
-                    if summary
-                    else "Summary generation failed"
-                )
-                self.console.print(
-                    f"[bold red]Error generating repository summary: {error_msg}[/bold red]"
-                )
+                error_msg = summary.get("error", "Unknown error") if summary else "Summary generation failed"
+                self.console.print(f"[bold red]Error generating repository summary: {error_msg}[/bold red]")
                 return
 
             self._display_summary(summary)
@@ -193,9 +183,7 @@ class CLI:
             TextColumn("[progress.description]{task.description}"),
             transient=True,
         ) as progress:
-            task = progress.add_task(
-                "Creating visualizations...", total=len(visualizations_to_create)
-            )
+            task = progress.add_task("Creating visualizations...", total=len(visualizations_to_create))
             for name, (func, filename) in visualizations_to_create.items():
                 progress.update(task, description=f"Creating {name}...")
                 try:
@@ -210,9 +198,7 @@ class CLI:
         try:
             self.metrics.create_index_page_only(str(self.output_dir))
             index_path = self.output_dir / "index.html"
-            self.console.print(
-                f"  ✓ Created: [link=file://{index_path.resolve()}]index.html[/link] (Main Dashboard)"
-            )
+            self.console.print(f"  ✓ Created: [link=file://{index_path.resolve()}]index.html[/link] (Main Dashboard)")
             self.console.print(f"✓ HTML reports saved to {html_dir}")
         except Exception as e:
             self.console.print(f"  ✗ Failed to create index page: [red]{e}[/red]")

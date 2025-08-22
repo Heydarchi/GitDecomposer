@@ -159,8 +159,7 @@ class AdvancedReportGenerator:
                     marker=dict(
                         size=15,
                         color=[
-                            "red" if i > 5 and e < 5 else "orange" if i > 3 else "green"
-                            for i, e in zip(impact, effort)
+                            "red" if i > 5 and e < 5 else "orange" if i > 3 else "green" for i, e in zip(impact, effort)
                         ],
                         line=dict(width=2, color="black"),
                     ),
@@ -171,9 +170,7 @@ class AdvancedReportGenerator:
             )
 
         # Update layout
-        fig.update_layout(
-            title_text="Technical Debt Analysis Dashboard", height=1200, showlegend=True
-        )
+        fig.update_layout(title_text="Technical Debt Analysis Dashboard", height=1200, showlegend=True)
 
         # Update specific axis labels
         fig.update_xaxes(title_text="Month", row=1, col=1)
@@ -270,9 +267,7 @@ class AdvancedReportGenerator:
             100 - quality_metrics.get("technical_debt_rate", 0),  # Invert
         ]
 
-        fig.add_trace(
-            go.Scatterpolar(r=values, theta=categories, fill="toself", name="Current"), row=1, col=2
-        )
+        fig.add_trace(go.Scatterpolar(r=values, theta=categories, fill="toself", name="Current"), row=1, col=2)
 
         # 3. Velocity trend (simulated data based on current velocity)
         velocity_data = advanced_metrics.get("commit_velocity", {})
@@ -308,10 +303,7 @@ class AdvancedReportGenerator:
                 y=list(coverage_data.values()),
                 name="Coverage %",
                 marker=dict(
-                    color=[
-                        "green" if v > 70 else "orange" if v > 40 else "red"
-                        for v in coverage_data.values()
-                    ]
+                    color=["green" if v > 70 else "orange" if v > 40 else "red" for v in coverage_data.values()]
                 ),
             ),
             row=2,
@@ -338,8 +330,7 @@ class AdvancedReportGenerator:
             "Test Coverage": coverage_metrics.get("test_coverage_percentage", 0) / 100 * 20,
             "Documentation": min(coverage_metrics.get("documentation_ratio", 0) / 30, 1) * 15,
             "Low Bug Ratio": max(0, (20 - quality_metrics.get("bug_fix_ratio", 20)) / 20) * 20,
-            "Low Tech Debt": max(0, (20 - quality_metrics.get("technical_debt_rate", 20)) / 20)
-            * 20,
+            "Low Tech Debt": max(0, (20 - quality_metrics.get("technical_debt_rate", 20)) / 20) * 20,
         }
 
         fig.add_trace(
@@ -391,9 +382,7 @@ class AdvancedReportGenerator:
 
         # Simulate effort increase based on technical debt and churn
         debt_rate = (
-            self.enhanced_summary.get("advanced_metrics", {})
-            .get("code_quality", {})
-            .get("technical_debt_rate", 5)
+            self.enhanced_summary.get("advanced_metrics", {}).get("code_quality", {}).get("technical_debt_rate", 5)
         )
         churn_rate = churn_analysis.get("overall_churn_rate", 30)
 
@@ -436,16 +425,10 @@ class AdvancedReportGenerator:
             risk_counts = [
                 len(maint_data[maint_data["maintainability_score"] > 80]),
                 len(
-                    maint_data[
-                        (maint_data["maintainability_score"] > 60)
-                        & (maint_data["maintainability_score"] <= 80)
-                    ]
+                    maint_data[(maint_data["maintainability_score"] > 60) & (maint_data["maintainability_score"] <= 80)]
                 ),
                 len(
-                    maint_data[
-                        (maint_data["maintainability_score"] > 40)
-                        & (maint_data["maintainability_score"] <= 60)
-                    ]
+                    maint_data[(maint_data["maintainability_score"] > 40) & (maint_data["maintainability_score"] <= 60)]
                 ),
                 len(maint_data[maint_data["maintainability_score"] <= 40]),
             ]
@@ -517,9 +500,7 @@ class AdvancedReportGenerator:
         )
 
         # Update layout
-        fig.update_layout(
-            title_text="Predictive Maintenance Analysis Report", height=1000, showlegend=True
-        )
+        fig.update_layout(title_text="Predictive Maintenance Analysis Report", height=1000, showlegend=True)
 
         # Update axis labels
         fig.update_xaxes(title_text="Month", row=1, col=1)

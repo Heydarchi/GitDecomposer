@@ -121,18 +121,12 @@ class ContributorStats:
     @property
     def active_ratio(self) -> float:
         """Get ratio of active to total contributors."""
-        return (
-            self.active_contributors / self.total_contributors
-            if self.total_contributors > 0
-            else 0.0
-        )
+        return self.active_contributors / self.total_contributors if self.total_contributors > 0 else 0.0
 
     @property
     def core_ratio(self) -> float:
         """Get ratio of core to total contributors."""
-        return (
-            self.core_contributors / self.total_contributors if self.total_contributors > 0 else 0.0
-        )
+        return self.core_contributors / self.total_contributors if self.total_contributors > 0 else 0.0
 
     @property
     def health_score(self) -> float:
@@ -146,9 +140,7 @@ class ContributorStats:
         score += self.retention_rate * 25
 
         # New contributors (20 points)
-        new_ratio = (
-            self.new_contributors / self.total_contributors if self.total_contributors > 0 else 0
-        )
+        new_ratio = self.new_contributors / self.total_contributors if self.total_contributors > 0 else 0
         score += min(20, new_ratio * 100)
 
         # Diversity (15 points)
@@ -274,9 +266,7 @@ class ContributorCollaboration:
         if not self.coauthored_commits:
             return []
 
-        sorted_collaborators = sorted(
-            self.coauthored_commits.items(), key=lambda x: x[1], reverse=True
-        )
+        sorted_collaborators = sorted(self.coauthored_commits.items(), key=lambda x: x[1], reverse=True)
         return [name for name, _ in sorted_collaborators[:5]]
 
 
@@ -348,9 +338,7 @@ class TeamDynamics:
         if total_contributors <= 1:
             return 0.0
 
-        total_connections = sum(
-            len(connections) for connections in self.contributor_network.values()
-        )
+        total_connections = sum(len(connections) for connections in self.contributor_network.values())
         max_connections = total_contributors * (total_contributors - 1)
 
         return total_connections / max_connections if max_connections > 0 else 0.0

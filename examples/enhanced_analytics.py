@@ -111,9 +111,7 @@ def analyze_enhanced_metrics(repo_path: str):
     print("\n8. MAINTAINABILITY INDEX")
     print("-" * 40)
     maintainability = metrics.advanced_metrics.calculate_maintainability_index()
-    print(
-        f"Overall maintainability score: {maintainability.get('overall_maintainability_score', 0):.1f}/100"
-    )
+    print(f"Overall maintainability score: {maintainability.get('overall_maintainability_score', 0):.1f}/100")
 
     factors = maintainability.get("maintainability_factors", {})
     print(f"Average commits per file: {factors.get('avg_commits_per_file', 0):.1f}")

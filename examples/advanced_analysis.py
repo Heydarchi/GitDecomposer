@@ -55,9 +55,7 @@ def advanced_analysis(repo_path: str):
     contributors = contributor_analyzer.get_contributor_statistics()
     if not contributors.empty:
         top_contributor = contributors.iloc[0]
-        print(
-            f"Top contributor: {top_contributor['author']} with {top_contributor['total_commits']} commits"
-        )
+        print(f"Top contributor: {top_contributor['author']} with {top_contributor['total_commits']} commits")
 
     impact_analysis = contributor_analyzer.get_contributor_impact_analysis()
     print(f"Impact analysis completed for {len(impact_analysis)} contributors")

@@ -89,16 +89,12 @@ class GitMetrics:
                 "commit_velocity": {
                     "avg_commits_per_week": velocity_analysis.get("avg_commits_per_week", 0),
                     "velocity_trend": velocity_analysis.get("velocity_trend", "unknown"),
-                    "velocity_change_percentage": velocity_analysis.get(
-                        "velocity_change_percentage", 0
-                    ),
+                    "velocity_change_percentage": velocity_analysis.get("velocity_change_percentage", 0),
                 },
                 "code_quality": {
                     "bug_fix_ratio": bug_fix_analysis.get("bug_fix_ratio", 0),
                     "code_churn_rate": churn_analysis.get("overall_churn_rate", 0),
-                    "maintainability_score": maintainability.get(
-                        "overall_maintainability_score", 0
-                    ),
+                    "maintainability_score": maintainability.get("overall_maintainability_score", 0),
                     "technical_debt_rate": technical_debt.get("debt_accumulation_rate", 0),
                 },
                 "coverage_metrics": {
@@ -120,18 +116,14 @@ class GitMetrics:
             health_factors = {
                 "maintainability": maintainability.get("overall_maintainability_score", 0) / 100,
                 "test_coverage": min(test_ratio.get("test_coverage_percentage", 0) / 100, 1.0),
-                "documentation": min(
-                    doc_coverage.get("documentation_ratio", 0) / 30, 1.0
-                ),  # 30% doc ratio = perfect
+                "documentation": min(doc_coverage.get("documentation_ratio", 0) / 30, 1.0),  # 30% doc ratio = perfect
                 "low_bug_ratio": max(
                     0, (20 - bug_fix_analysis.get("bug_fix_ratio", 20)) / 20
                 ),  # Lower bug ratio is better
                 "low_debt": max(
                     0, (20 - technical_debt.get("debt_accumulation_rate", 20)) / 20
                 ),  # Lower debt is better
-                "low_churn": max(
-                    0, (50 - churn_analysis.get("overall_churn_rate", 50)) / 50
-                ),  # Lower churn is better
+                "low_churn": max(0, (50 - churn_analysis.get("overall_churn_rate", 50)) / 50),  # Lower churn is better
             }
 
             overall_health_score = sum(health_factors.values()) / len(health_factors) * 100
@@ -151,9 +143,7 @@ class GitMetrics:
 
             enhanced_summary["repository_health_category"] = health_category
 
-            logger.info(
-                f"Generated enhanced repository summary with health score: {overall_health_score:.1f}"
-            )
+            logger.info(f"Generated enhanced repository summary with health score: {overall_health_score:.1f}")
             return enhanced_summary
 
         except Exception as e:
@@ -163,9 +153,7 @@ class GitMetrics:
                 return self.generate_repository_summary()
             except Exception as fallback_error:
                 logger.error(f"Error in fallback basic summary: {fallback_error}")
-                return {
-                    "error": f"Enhanced summary failed: {e}, Basic summary failed: {fallback_error}"
-                }
+                return {"error": f"Enhanced summary failed: {e}, Basic summary failed: {fallback_error}"}
 
     def generate_repository_summary(self) -> Dict[str, Any]:
         """
@@ -320,22 +308,14 @@ class GitMetrics:
                     "total_contributors": len(contributor_stats),
                     "top_contributors": top_contributors,
                     "avg_commits_per_contributor": (
-                        contributor_stats["total_commits"].mean()
-                        if not contributor_stats.empty
-                        else 0
+                        contributor_stats["total_commits"].mean() if not contributor_stats.empty else 0
                     ),
                 },
                 "files": {
                     "total_unique_extensions": len(file_extensions),
-                    "top_extensions": (
-                        file_extensions.head(5).to_dict("records")
-                        if not file_extensions.empty
-                        else []
-                    ),
+                    "top_extensions": (file_extensions.head(5).to_dict("records") if not file_extensions.empty else []),
                     "most_changed_files": (
-                        most_changed_files.head(5).to_dict("records")
-                        if not most_changed_files.empty
-                        else []
+                        most_changed_files.head(5).to_dict("records") if not most_changed_files.empty else []
                     ),
                 },
                 "commits": {
@@ -467,9 +447,7 @@ class GitMetrics:
                             x=top_complex["total_changes"],
                             y=top_complex["unique_authors"],
                             mode="markers",
-                            text=top_complex["file_path"].apply(
-                                lambda x: x.split("/")[-1]
-                            ),  # Just filename
+                            text=top_complex["file_path"].apply(lambda x: x.split("/")[-1]),  # Just filename
                             name="File Complexity",
                             marker=dict(
                                 size=top_complex["complexity_score"] / 10,
@@ -584,9 +562,7 @@ class GitMetrics:
                         y=top_hotspots["file_path"].apply(lambda x: x.split("/")[-1]),
                         orientation="h",
                         name="Hotspot Score",
-                        marker_color=[
-                            colors.get(risk, "gray") for risk in top_hotspots["risk_level"]
-                        ],
+                        marker_color=[colors.get(risk, "gray") for risk in top_hotspots["risk_level"]],
                         text=top_hotspots["risk_level"],
                     ),
                     row=2,
@@ -611,21 +587,17 @@ class GitMetrics:
             if not frequency_analysis.empty and "last_change_date" in frequency_analysis.columns:
                 # Create time-based analysis
                 time_data = frequency_analysis.copy()
-                time_data["change_month"] = pd.to_datetime(
-                    time_data["last_change_date"], unit="s"
-                ).dt.to_period("M")
-                monthly_intensity = (
-                    time_data.groupby("change_month")["change_intensity"].sum().reset_index()
-                )
+                time_data["change_month"] = pd.to_datetime(time_data["last_change_date"], unit="s").dt.to_period("M")
+                monthly_intensity = time_data.groupby("change_month")["change_intensity"].sum().reset_index()
                 monthly_intensity["change_month"] = monthly_intensity["change_month"].dt.start_time
 
                 # Normalize marker sizes based on change intensity (6-20 range)
                 max_intensity = monthly_intensity["change_intensity"].max()
                 min_intensity = monthly_intensity["change_intensity"].min()
                 if max_intensity > min_intensity:
-                    normalized_sizes = 6 + 14 * (
-                        monthly_intensity["change_intensity"] - min_intensity
-                    ) / (max_intensity - min_intensity)
+                    normalized_sizes = 6 + 14 * (monthly_intensity["change_intensity"] - min_intensity) / (
+                        max_intensity - min_intensity
+                    )
                 else:
                     normalized_sizes = [10] * len(monthly_intensity)
 
@@ -644,17 +616,13 @@ class GitMetrics:
 
             # 6. Lines vs Files per Commit Correlation
             if "detailed_data" in commit_size_analysis:
-                commit_data = pd.DataFrame(
-                    commit_size_analysis["detailed_data"][:100]
-                )  # Limit for performance
+                commit_data = pd.DataFrame(commit_size_analysis["detailed_data"][:100])  # Limit for performance
                 if not commit_data.empty:
                     # Calculate marker sizes based on total lines changed (6-20 range)
                     max_lines = commit_data["total_lines"].max()
                     min_lines = commit_data["total_lines"].min()
                     if max_lines > min_lines:
-                        normalized_sizes = 6 + 14 * (commit_data["total_lines"] - min_lines) / (
-                            max_lines - min_lines
-                        )
+                        normalized_sizes = 6 + 14 * (commit_data["total_lines"] - min_lines) / (max_lines - min_lines)
                     else:
                         normalized_sizes = [10] * len(commit_data)
 
@@ -677,9 +645,7 @@ class GitMetrics:
                     )
 
             # Update layout
-            fig.update_layout(
-                title_text="Enhanced File Analysis Dashboard", showlegend=False, height=1200
-            )
+            fig.update_layout(title_text="Enhanced File Analysis Dashboard", showlegend=False, height=1200)
 
             # Update axes labels
             fig.update_xaxes(title_text="Number of Commits", row=1, col=1)
@@ -1032,18 +998,10 @@ class GitMetrics:
 
             # 2. Quality Metrics Bar Chart
             quality_metrics = {
-                "Maintainability": advanced_metrics.get("code_quality", {}).get(
-                    "maintainability_score", 0
-                ),
-                "Test Coverage": advanced_metrics.get("coverage_metrics", {}).get(
-                    "test_coverage_percentage", 0
-                ),
-                "Documentation": advanced_metrics.get("coverage_metrics", {}).get(
-                    "documentation_ratio", 0
-                )
-                * 3,
-                "Low Bug Ratio": 100
-                - advanced_metrics.get("code_quality", {}).get("bug_fix_ratio", 0),
+                "Maintainability": advanced_metrics.get("code_quality", {}).get("maintainability_score", 0),
+                "Test Coverage": advanced_metrics.get("coverage_metrics", {}).get("test_coverage_percentage", 0),
+                "Documentation": advanced_metrics.get("coverage_metrics", {}).get("documentation_ratio", 0) * 3,
+                "Low Bug Ratio": 100 - advanced_metrics.get("code_quality", {}).get("bug_fix_ratio", 0),
             }
 
             fig.add_trace(
@@ -1052,10 +1010,7 @@ class GitMetrics:
                     y=list(quality_metrics.values()),
                     name="Quality Score",
                     marker=dict(
-                        color=[
-                            "green" if v > 70 else "orange" if v > 40 else "red"
-                            for v in quality_metrics.values()
-                        ]
+                        color=["green" if v > 70 else "orange" if v > 40 else "red" for v in quality_metrics.values()]
                     ),
                 ),
                 row=1,
@@ -1074,10 +1029,7 @@ class GitMetrics:
             elif trend == "decreasing":
                 velocity_data = [current_velocity * (1 - 0.02 * i) for i in range(8)]
             else:
-                velocity_data = [
-                    current_velocity + np.random.normal(0, current_velocity * 0.05)
-                    for _ in range(8)
-                ]
+                velocity_data = [current_velocity + np.random.normal(0, current_velocity * 0.05) for _ in range(8)]
 
             fig.add_trace(
                 go.Scatter(
@@ -1120,9 +1072,7 @@ class GitMetrics:
                     font=dict(size=14, color="gray"),
                 )
 
-            fig.update_layout(
-                title_text="Executive Summary Dashboard", height=800, showlegend=False
-            )
+            fig.update_layout(title_text="Executive Summary Dashboard", height=800, showlegend=False)
 
             # Create HTML report with summary data only
             html_content = f"""
@@ -1537,7 +1487,9 @@ class GitMetrics:
                 for rec in all_recommendations:
                     html_content += f"<li>{rec}</li>"
             else:
-                html_content += "<li>No specific recommendations at this time - repository appears to be in good health.</li>"
+                html_content += (
+                    "<li>No specific recommendations at this time - repository appears to be in good health.</li>"
+                )
 
             # Add specific insights based on analytics
             html_content += "</ul><h3>Key Insights</h3><ul>"
@@ -1545,36 +1497,38 @@ class GitMetrics:
             # Velocity insights
             velocity_trend = velocity_analysis.get("velocity_trend", "stable")
             if velocity_trend == "increasing":
-                html_content += (
-                    "<li>Commit velocity is increasing - team productivity is improving</li>"
-                )
+                html_content += "<li>Commit velocity is increasing - team productivity is improving</li>"
             elif velocity_trend == "decreasing":
-                html_content += (
-                    "<li>Commit velocity is decreasing - consider investigating bottlenecks</li>"
-                )
+                html_content += "<li>Commit velocity is decreasing - consider investigating bottlenecks</li>"
 
             # Quality insights
             bug_ratio = bug_fix_analysis.get("bug_fix_ratio", 0)
             if bug_ratio > 20:
-                html_content += f"<li>High bug fix ratio ({bug_ratio:.1f}%) - focus on preventive measures and code review</li>"
+                html_content += (
+                    f"<li>High bug fix ratio ({bug_ratio:.1f}%) - focus on preventive measures and code review</li>"
+                )
             elif bug_ratio < 5:
                 html_content += f"<li>Low bug fix ratio ({bug_ratio:.1f}%) - excellent code quality maintenance</li>"
 
             # Test coverage insights
             test_coverage = test_analysis.get("test_coverage_percentage", 0)
             if test_coverage < 30:
-                html_content += (
-                    f"<li>Low test coverage ({test_coverage:.1f}%) - prioritize adding tests</li>"
-                )
+                html_content += f"<li>Low test coverage ({test_coverage:.1f}%) - prioritize adding tests</li>"
             elif test_coverage > 80:
-                html_content += f"<li>Excellent test coverage ({test_coverage:.1f}%) - maintain current testing standards</li>"
+                html_content += (
+                    f"<li>Excellent test coverage ({test_coverage:.1f}%) - maintain current testing standards</li>"
+                )
 
             # Documentation insights
             doc_ratio = doc_coverage.get("documentation_ratio", 0)
             if doc_ratio < 10:
-                html_content += f"<li>Limited documentation ({doc_ratio:.1f}%) - consider adding README and API docs</li>"
+                html_content += (
+                    f"<li>Limited documentation ({doc_ratio:.1f}%) - consider adding README and API docs</li>"
+                )
             elif doc_ratio > 25:
-                html_content += f"<li>Good documentation coverage ({doc_ratio:.1f}%) - documentation culture is strong</li>"
+                html_content += (
+                    f"<li>Good documentation coverage ({doc_ratio:.1f}%) - documentation culture is strong</li>"
+                )
 
             html_content += f"""
                     </ul>
@@ -1743,9 +1697,7 @@ class GitMetrics:
             debt_hotspots = debt_analysis.get("debt_hotspots", [])[:10]
             if debt_hotspots:
                 hotspot_files = [h.get("file", f"File_{i}") for i, h in enumerate(debt_hotspots)]
-                hotspot_scores = [
-                    h.get("debt_score", np.random.uniform(20, 100)) for h in debt_hotspots
-                ]
+                hotspot_scores = [h.get("debt_score", np.random.uniform(20, 100)) for h in debt_hotspots]
 
                 fig.add_trace(
                     go.Bar(
@@ -1802,9 +1754,7 @@ class GitMetrics:
                 )
 
             # Update layout
-            fig.update_layout(
-                title_text="Technical Debt Analysis Dashboard", height=1200, showlegend=True
-            )
+            fig.update_layout(title_text="Technical Debt Analysis Dashboard", height=1200, showlegend=True)
 
             # Update specific axis labels
             fig.update_xaxes(title_text="Month", row=1, col=1)
@@ -1971,10 +1921,7 @@ class GitMetrics:
                     y=list(coverage_data.values()),
                     name="Coverage %",
                     marker=dict(
-                        color=[
-                            "green" if v > 70 else "orange" if v > 40 else "red"
-                            for v in coverage_data.values()
-                        ]
+                        color=["green" if v > 70 else "orange" if v > 40 else "red" for v in coverage_data.values()]
                     ),
                 ),
                 row=2,
@@ -2001,8 +1948,7 @@ class GitMetrics:
                 "Test Coverage": coverage_metrics.get("test_coverage_percentage", 0) / 100 * 20,
                 "Documentation": min(coverage_metrics.get("documentation_ratio", 0) / 30, 1) * 15,
                 "Low Bug Ratio": max(0, (20 - quality_metrics.get("bug_fix_ratio", 20)) / 20) * 20,
-                "Low Tech Debt": max(0, (20 - quality_metrics.get("technical_debt_rate", 20)) / 20)
-                * 20,
+                "Low Tech Debt": max(0, (20 - quality_metrics.get("technical_debt_rate", 20)) / 20) * 20,
             }
 
             fig.add_trace(
@@ -2017,9 +1963,7 @@ class GitMetrics:
             )
 
             # Update layout
-            fig.update_layout(
-                title_text="Repository Health Dashboard", height=1000, showlegend=True
-            )
+            fig.update_layout(title_text="Repository Health Dashboard", height=1000, showlegend=True)
 
             if save_path:
                 # Generate explanations for repository health dashboard
@@ -2086,9 +2030,7 @@ class GitMetrics:
 
             # Simulate effort increase based on technical debt and churn
             debt_rate = (
-                enhanced_summary.get("advanced_metrics", {})
-                .get("code_quality", {})
-                .get("technical_debt_rate", 5)
+                enhanced_summary.get("advanced_metrics", {}).get("code_quality", {}).get("technical_debt_rate", 5)
             )
             churn_rate = churn_analysis.get("overall_churn_rate", 30)
 
@@ -2132,14 +2074,12 @@ class GitMetrics:
                     len(maint_data[maint_data["maintainability_score"] > 80]),
                     len(
                         maint_data[
-                            (maint_data["maintainability_score"] > 60)
-                            & (maint_data["maintainability_score"] <= 80)
+                            (maint_data["maintainability_score"] > 60) & (maint_data["maintainability_score"] <= 80)
                         ]
                     ),
                     len(
                         maint_data[
-                            (maint_data["maintainability_score"] > 40)
-                            & (maint_data["maintainability_score"] <= 60)
+                            (maint_data["maintainability_score"] > 40) & (maint_data["maintainability_score"] <= 60)
                         ]
                     ),
                     len(maint_data[maint_data["maintainability_score"] <= 40]),
@@ -2161,9 +2101,7 @@ class GitMetrics:
             velocity = velocity_analysis.get("avg_commits_per_week", 10)
 
             # Project resource needs based on predicted effort
-            resource_needs = [
-                base_resources * (effort / current_effort) for effort in predicted_effort
-            ]
+            resource_needs = [base_resources * (effort / current_effort) for effort in predicted_effort]
 
             fig.add_trace(
                 go.Scatter(
@@ -2214,9 +2152,7 @@ class GitMetrics:
             )
 
             # Update layout
-            fig.update_layout(
-                title_text="Predictive Maintenance Analysis Report", height=1000, showlegend=True
-            )
+            fig.update_layout(title_text="Predictive Maintenance Analysis Report", height=1000, showlegend=True)
 
             # Update axis labels
             fig.update_xaxes(title_text="Month", row=1, col=1)
@@ -2290,9 +2226,7 @@ class GitMetrics:
             elif velocity_trend == "decreasing":
                 forecast = [current_velocity * (1 - 0.02 * i) for i in weeks]
             else:
-                forecast = [
-                    current_velocity + np.random.normal(0, current_velocity * 0.1) for _ in weeks
-                ]
+                forecast = [current_velocity + np.random.normal(0, current_velocity * 0.1) for _ in weeks]
 
             fig.add_trace(
                 go.Scatter(
@@ -2352,14 +2286,10 @@ class GitMetrics:
 
             # 3. Team productivity distribution
             team_members = ["Dev A", "Dev B", "Dev C", "Dev D", "Dev E"]
-            productivity = np.random.normal(
-                current_velocity / len(team_members), 2, len(team_members)
-            )
+            productivity = np.random.normal(current_velocity / len(team_members), 2, len(team_members))
 
             fig.add_trace(
-                go.Box(
-                    y=productivity, name="Productivity Distribution", boxpoints="all", jitter=0.3
-                ),
+                go.Box(y=productivity, name="Productivity Distribution", boxpoints="all", jitter=0.3),
                 row=2,
                 col=1,
             )
@@ -2486,9 +2416,7 @@ class GitMetrics:
 
             # Get file count (approximate)
             try:
-                file_count = (
-                    len(list(Path(repo_path).rglob("*"))) if Path(repo_path).exists() else 0
-                )
+                file_count = len(list(Path(repo_path).rglob("*"))) if Path(repo_path).exists() else 0
             except (OSError, PermissionError):
                 file_count = 0
 
@@ -2504,11 +2432,7 @@ class GitMetrics:
                 main_branch=(
                     "main"
                     if "main" in branch_names
-                    else (
-                        "master"
-                        if "master" in branch_names
-                        else branch_names[0] if branch_names else "unknown"
-                    )
+                    else ("master" if "master" in branch_names else branch_names[0] if branch_names else "unknown")
                 ),
                 languages=[],  # This would need more sophisticated detection
             )
@@ -2540,9 +2464,7 @@ class GitMetrics:
             health_factors = []
 
             # Commit activity (0-25 points)
-            commits_per_week = (
-                commit_stats.commits_per_day * 7 if commit_stats.commits_per_day else 0
-            )
+            commits_per_week = commit_stats.commits_per_day * 7 if commit_stats.commits_per_day else 0
             if commits_per_week >= 10:
                 health_factors.append(25)
             elif commits_per_week >= 5:
@@ -2607,9 +2529,7 @@ class GitMetrics:
                 analysis_date=datetime.now(),
             )
 
-    def get_comprehensive_analysis(
-        self, config: Optional[AnalysisConfig] = None
-    ) -> AnalysisResults:
+    def get_comprehensive_analysis(self, config: Optional[AnalysisConfig] = None) -> AnalysisResults:
         """Get comprehensive analysis results using our data models."""
         if config is None:
             config = AnalysisConfig(analysis_type=AnalysisType.COMPREHENSIVE)

@@ -24,9 +24,7 @@ from gitdecomposer import (
 )
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
 
 def analyze_repository(repo_path: str, output_dir: str = "analysis_output"):
@@ -73,18 +71,14 @@ def analyze_repository(repo_path: str, output_dir: str = "analysis_output"):
 
         # Commit messages analysis
         message_analysis = commit_analyzer.get_commit_messages_analysis()
-        print(
-            f"   - Average commit message length: {message_analysis.get('avg_message_length', 0):.1f} characters"
-        )
+        print(f"   - Average commit message length: {message_analysis.get('avg_message_length', 0):.1f} characters")
         print(
             f"   - Most common commit words: {', '.join([word for word, _ in message_analysis.get('common_words', [])[:5]])}"
         )
 
         # Merge analysis
         merge_analysis = commit_analyzer.get_merge_commit_analysis()
-        print(
-            f"   - Merge commits: {merge_analysis.get('merge_percentage', 0):.1f}% of total commits"
-        )
+        print(f"   - Merge commits: {merge_analysis.get('merge_percentage', 0):.1f}% of total commits")
 
         # 2. FILE ANALYSIS
         print("\nAnalyzing files...")
@@ -137,12 +131,8 @@ def analyze_repository(repo_path: str, output_dir: str = "analysis_output"):
 
         # Branching strategy insights
         branching_insights = branch_analyzer.get_branching_strategy_insights()
-        print(
-            f"   - Detected branching model: {branching_insights.get('branching_model', 'Unknown')}"
-        )
-        print(
-            f"   - Average branch lifetime: {branching_insights.get('avg_branch_lifetime_days', 0):.1f} days"
-        )
+        print(f"   - Detected branching model: {branching_insights.get('branching_model', 'Unknown')}")
+        print(f"   - Average branch lifetime: {branching_insights.get('avg_branch_lifetime_days', 0):.1f} days")
 
         # Recommendations
         recommendations = branching_insights.get("recommendations", [])
@@ -194,9 +184,7 @@ def analyze_repository(repo_path: str, output_dir: str = "analysis_output"):
         print(f"   Contributors: {summary.get('contributors', {}).get('total_contributors', 0)}")
         print(f"   Branches: {summary.get('branches', {}).get('total_branches', 0)}")
         print(f"   File Extensions: {summary.get('files', {}).get('total_unique_extensions', 0)}")
-        print(
-            f"   Branching Model: {summary.get('branches', {}).get('branching_model', 'Unknown')}"
-        )
+        print(f"   Branching Model: {summary.get('branches', {}).get('branching_model', 'Unknown')}")
 
         print(f"\nAnalysis results saved to: {os.path.abspath(output_dir)}")
 

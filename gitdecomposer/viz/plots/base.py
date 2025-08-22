@@ -37,9 +37,7 @@ class BasePlotter(ABC):
         """
         pass
 
-    def save_html(
-        self, fig: go.Figure, save_path: str, visualization_type: str = "default"
-    ) -> None:
+    def save_html(self, fig: go.Figure, save_path: str, visualization_type: str = "default") -> None:
         """
         Save the figure as an HTML file with an explanation section.
 

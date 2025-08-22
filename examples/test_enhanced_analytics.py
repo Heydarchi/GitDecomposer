@@ -30,9 +30,7 @@ def test_enhanced_analytics():
         # Generate enhanced summary with new analytics
         enhanced_summary = metrics.get_enhanced_repository_summary()
 
-        print(
-            f"Repository Health Score: {enhanced_summary.get('repository_health_score', 0):.1f}/100"
-        )
+        print(f"Repository Health Score: {enhanced_summary.get('repository_health_score', 0):.1f}/100")
         print(f"Health Category: {enhanced_summary.get('repository_health_category', 'Unknown')}")
 
         # Display advanced metrics
@@ -153,9 +151,7 @@ def test_individual_analytics():
         print("\n--- Maintainability Analysis ---")
         maintainability = metrics.advanced_metrics.calculate_maintainability_index()
         print(f"Overall score: {maintainability.get('overall_maintainability_score', 0):.1f}")
-        print(
-            f"Files analyzed: {maintainability.get('maintainability_factors', {}).get('total_files_analyzed', 0)}"
-        )
+        print(f"Files analyzed: {maintainability.get('maintainability_factors', {}).get('total_files_analyzed', 0)}")
 
         # Test technical debt
         print("\n--- Technical Debt Analysis ---")

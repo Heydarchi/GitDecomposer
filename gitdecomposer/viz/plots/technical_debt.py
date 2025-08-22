@@ -46,12 +46,8 @@ class TechnicalDebtPlotter(BasePlotter):
             go.Figure: Technical debt dashboard
         """
         try:
-            debt_analysis = (
-                self.metrics_coordinator.advanced_metrics.calculate_technical_debt_accumulation()
-            )
-            maintainability = (
-                self.metrics_coordinator.advanced_metrics.calculate_maintainability_index()
-            )
+            debt_analysis = self.metrics_coordinator.advanced_metrics.calculate_technical_debt_accumulation()
+            maintainability = self.metrics_coordinator.advanced_metrics.calculate_maintainability_index()
 
             fig = make_subplots(
                 rows=3,
@@ -129,11 +125,7 @@ class TechnicalDebtPlotter(BasePlotter):
 
             if debt_analysis and "debt_over_time" in debt_analysis:
                 debt_df = pd.DataFrame(debt_analysis["debt_over_time"])
-                if (
-                    not debt_df.empty
-                    and "date" in debt_df.columns
-                    and "debt_score" in debt_df.columns
-                ):
+                if not debt_df.empty and "date" in debt_df.columns and "debt_score" in debt_df.columns:
                     debt_df["month"] = pd.to_datetime(debt_df["date"]).dt.to_period("M")
                     monthly_debt = debt_df.groupby("month")["debt_score"].sum().reset_index()
                     monthly_debt["month"] = monthly_debt["month"].astype(str)
@@ -147,9 +139,7 @@ class TechnicalDebtPlotter(BasePlotter):
                         col=1,
                     )
 
-            fig.update_layout(
-                title_text="Technical Debt Analysis Dashboard", height=1200, showlegend=False
-            )
+            fig.update_layout(title_text="Technical Debt Analysis Dashboard", height=1200, showlegend=False)
 
             if save_path:
                 self.save_html(fig, save_path)
@@ -160,9 +150,7 @@ class TechnicalDebtPlotter(BasePlotter):
 
 
 # Backwards compatibility function
-def create_technical_debt_dashboard(
-    metrics_coordinator, save_path: Optional[str] = None
-) -> go.Figure:
+def create_technical_debt_dashboard(metrics_coordinator, save_path: Optional[str] = None) -> go.Figure:
     """
     Backwards compatibility function for technical debt dashboard.
 

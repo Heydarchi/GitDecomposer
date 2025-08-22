@@ -86,11 +86,7 @@ class AdvancedMetrics:
                         changes = 0
                         if file_path in commit_stats.files:
                             file_stat = commit_stats.files[file_path]
-                            if (
-                                isinstance(file_stat, dict)
-                                and "insertions" in file_stat
-                                and "deletions" in file_stat
-                            ):
+                            if isinstance(file_stat, dict) and "insertions" in file_stat and "deletions" in file_stat:
                                 changes = file_stat["insertions"] + file_stat["deletions"]
 
                         metrics["total_changes"] += changes
@@ -101,15 +97,9 @@ class AdvancedMetrics:
                         metrics["authors"].add(commit.author.name)
 
                         # Update last/first change (in days since now)
-                        if (
-                            metrics["last_change_days"] == 0
-                            or days_since_commit < metrics["last_change_days"]
-                        ):
+                        if metrics["last_change_days"] == 0 or days_since_commit < metrics["last_change_days"]:
                             metrics["last_change_days"] = days_since_commit
-                        if (
-                            metrics["first_change_days"] == 0
-                            or days_since_commit > metrics["first_change_days"]
-                        ):
+                        if metrics["first_change_days"] == 0 or days_since_commit > metrics["first_change_days"]:
                             metrics["first_change_days"] = days_since_commit
 
                         # Defer complexity calculation until after aggregation
@@ -129,21 +119,15 @@ class AdvancedMetrics:
                 metrics["avg_commit_size"] = metrics["total_changes"] / metrics["commit_count"]
                 metrics["author_count"] = len(metrics.get("authors", set()))
                 # Compute complexity based on file type and total historical changes
-                metrics["complexity_score"] = self._calculate_file_complexity_score(
-                    file_path, metrics["total_changes"]
-                )
+                metrics["complexity_score"] = self._calculate_file_complexity_score(file_path, metrics["total_changes"])
 
                 # Calculate maintainability score (0-100 scale)
                 # Lower scores for high complexity, frequent changes, many authors, large commits.
-                complexity_penalty = min(
-                    metrics["complexity_score"], 30
-                )  # log-scaled complexity, capped
+                complexity_penalty = min(metrics["complexity_score"], 30)  # log-scaled complexity, capped
                 # Use commit density over active period (commits per month) instead of raw count
                 active_days = max(1, metrics["first_change_days"] - metrics["last_change_days"] + 1)
                 commits_per_month = metrics["commit_count"] / max(1.0, active_days / 30.0)
-                change_frequency_penalty = min(
-                    commits_per_month * 3.0, 20
-                )  # ~3 pts per commit/month
+                change_frequency_penalty = min(commits_per_month * 3.0, 20)  # ~3 pts per commit/month
                 author_penalty = min(max(0, metrics["author_count"] - 1) * 5, 15)
                 size_penalty = min((metrics["avg_commit_size"] / 100) * 10, 10)
                 # Older, stable files get a small bonus
@@ -154,12 +138,7 @@ class AdvancedMetrics:
                     min(
                         100,
                         100
-                        - (
-                            complexity_penalty
-                            + change_frequency_penalty
-                            + author_penalty
-                            + size_penalty
-                        )
+                        - (complexity_penalty + change_frequency_penalty + author_penalty + size_penalty)
                         + staleness_bonus,
                     ),
                 )
@@ -205,16 +184,12 @@ class AdvancedMetrics:
                     "files_needing_attention": len(
                         file_maintainability[file_maintainability["maintainability_score"] < 40]
                     ),
-                    "excellent_files": len(
-                        file_maintainability[file_maintainability["maintainability_score"] >= 80]
-                    ),
+                    "excellent_files": len(file_maintainability[file_maintainability["maintainability_score"] >= 80]),
                     "total_files_analyzed": len(file_maintainability),
                 }
 
                 # Generate recommendations
-                recommendations = self._generate_maintainability_recommendations(
-                    file_maintainability, factors
-                )
+                recommendations = self._generate_maintainability_recommendations(file_maintainability, factors)
             else:
                 overall_score = 0
                 factors = {}
@@ -343,9 +318,7 @@ class AdvancedMetrics:
                         # Track net effect in files (+1 for introducing, -1 for reducing)
                         changed_files = self.git_repo.get_changed_files(commit.hexsha)
                         for file_path in changed_files.keys():
-                            file_debt_scores[file_path] += (1 if introducing else 0) + (
-                                -1 if reducing else 0
-                            )
+                            file_debt_scores[file_path] += (1 if introducing else 0) + (-1 if reducing else 0)
 
                     if introducing:
                         monthly_debt[month_key]["debt_commits_introducing"] += 1
@@ -361,14 +334,10 @@ class AdvancedMetrics:
             for month in sorted(monthly_debt.keys()):
                 data = monthly_debt[month]
                 introducing_rate = (
-                    (data["debt_commits_introducing"] / data["total_commits"] * 100)
-                    if data["total_commits"] > 0
-                    else 0
+                    (data["debt_commits_introducing"] / data["total_commits"] * 100) if data["total_commits"] > 0 else 0
                 )
                 reducing_rate = (
-                    (data["debt_commits_reducing"] / data["total_commits"] * 100)
-                    if data["total_commits"] > 0
-                    else 0
+                    (data["debt_commits_reducing"] / data["total_commits"] * 100) if data["total_commits"] > 0 else 0
                 )
 
                 trend_data.append(
@@ -392,25 +361,17 @@ class AdvancedMetrics:
 
             # Calculate overall debt accumulation rate
             total_commits = sum(data["total_commits"] for data in monthly_debt.values())
-            total_introducing = sum(
-                data["debt_commits_introducing"] for data in monthly_debt.values()
-            )
+            total_introducing = sum(data["debt_commits_introducing"] for data in monthly_debt.values())
             total_reducing = sum(data["debt_commits_reducing"] for data in monthly_debt.values())
-            debt_accumulation_rate = (
-                (total_introducing / total_commits * 100) if total_commits > 0 else 0
-            )
+            debt_accumulation_rate = (total_introducing / total_commits * 100) if total_commits > 0 else 0
             net_debt_delta_percentage = (
-                ((total_introducing - total_reducing) / total_commits * 100)
-                if total_commits > 0
-                else 0
+                ((total_introducing - total_reducing) / total_commits * 100) if total_commits > 0 else 0
             )
 
             # Identify debt hotspots (files with highest debt scores)
             debt_hotspots = [
                 {"file_path": file_path, "debt_score": score}
-                for file_path, score in sorted(
-                    file_debt_scores.items(), key=lambda x: x[1], reverse=True
-                )[:20]
+                for file_path, score in sorted(file_debt_scores.items(), key=lambda x: x[1], reverse=True)[:20]
             ]
 
             # Aggregate debt by type
@@ -499,8 +460,7 @@ class AdvancedMetrics:
                 # Check if it's a test file
                 is_test = (
                     re.search(test_patterns["test_files"], file_name) is not None
-                    or re.search(test_patterns["test_dirs"], str(path_obj).replace("\\", "/"))
-                    is not None
+                    or re.search(test_patterns["test_dirs"], str(path_obj).replace("\\", "/")) is not None
                     or any(file_name.endswith(ext) for ext in test_patterns["test_extensions"])
                 )
 
@@ -528,17 +488,13 @@ class AdvancedMetrics:
             # Calculate metrics
             test_files_count = len(test_files)
             code_files_count = len(code_files)
-            test_to_code_ratio = (
-                (test_files_count / code_files_count) if code_files_count > 0 else 0
-            )
+            test_to_code_ratio = (test_files_count / code_files_count) if code_files_count > 0 else 0
 
             # Find directories without tests
             untested_directories = []
             for dir_name, counts in directories.items():
                 if counts["total"] > 1 and counts["tests"] == 0:  # Has files but no tests
-                    untested_directories.append(
-                        {"directory": dir_name, "file_count": counts["total"]}
-                    )
+                    untested_directories.append({"directory": dir_name, "file_count": counts["total"]})
 
             # Sort by file count descending
             untested_directories.sort(key=lambda x: x["file_count"], reverse=True)
@@ -567,9 +523,7 @@ class AdvancedMetrics:
                 "test_patterns": pattern_usage,
                 "untested_directories": untested_directories[:10],  # Top 10
                 "test_coverage_percentage": (test_to_code_ratio * 100),
-                "recommendations": self._generate_test_recommendations(
-                    test_to_code_ratio, untested_directories
-                ),
+                "recommendations": self._generate_test_recommendations(test_to_code_ratio, untested_directories),
             }
 
         except Exception as e:
@@ -582,9 +536,7 @@ class AdvancedMetrics:
                 "untested_directories": [],
             }
 
-    def _generate_maintainability_recommendations(
-        self, df: pd.DataFrame, factors: Dict[str, float]
-    ) -> List[str]:
+    def _generate_maintainability_recommendations(self, df: pd.DataFrame, factors: Dict[str, float]) -> List[str]:
         """Generate recommendations for improving maintainability."""
         recommendations = []
 
@@ -594,13 +546,9 @@ class AdvancedMetrics:
         avg_score = df["maintainability_score"].mean()
 
         if avg_score < 40:
-            recommendations.append(
-                "Critical: Overall maintainability is very low - prioritize refactoring"
-            )
+            recommendations.append("Critical: Overall maintainability is very low - prioritize refactoring")
         elif avg_score < 60:
-            recommendations.append(
-                "Low maintainability - focus on reducing complexity and commit sizes"
-            )
+            recommendations.append("Low maintainability - focus on reducing complexity and commit sizes")
         elif avg_score < 80:
             recommendations.append("Moderate maintainability - continue improving code quality")
         else:
@@ -608,19 +556,13 @@ class AdvancedMetrics:
 
         # Specific recommendations based on factors
         if factors.get("avg_commits_per_file", 0) > 20:
-            recommendations.append(
-                "High commit frequency detected - consider breaking down large files"
-            )
+            recommendations.append("High commit frequency detected - consider breaking down large files")
 
         if factors.get("avg_authors_per_file", 0) > 3:
-            recommendations.append(
-                "Many contributors per file - ensure good documentation and code standards"
-            )
+            recommendations.append("Many contributors per file - ensure good documentation and code standards")
 
         if factors.get("files_needing_attention", 0) > 0:
-            recommendations.append(
-                f"{factors['files_needing_attention']} files need immediate attention"
-            )
+            recommendations.append(f"{factors['files_needing_attention']} files need immediate attention")
 
         return recommendations
 
@@ -629,9 +571,7 @@ class AdvancedMetrics:
         recommendations = []
 
         if ratio < 0.1:
-            recommendations.append(
-                "Very low test coverage - start adding tests for critical components"
-            )
+            recommendations.append("Very low test coverage - start adding tests for critical components")
         elif ratio < 0.3:
             recommendations.append("Low test coverage - increase test writing efforts")
         elif ratio < 0.7:

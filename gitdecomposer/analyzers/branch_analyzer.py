@@ -70,9 +70,7 @@ class BranchAnalyzer:
                 # Calculate metrics
                 first_commit = min(commit_dates) if commit_dates else None
                 last_commit = max(commit_dates) if commit_dates else None
-                activity_span = (
-                    (last_commit - first_commit).days if first_commit and last_commit else 0
-                )
+                activity_span = (last_commit - first_commit).days if first_commit and last_commit else 0
 
                 branch_stats.append(
                     {
@@ -85,13 +83,9 @@ class BranchAnalyzer:
                         "first_commit_date": first_commit,
                         "last_commit_date": last_commit,
                         "activity_span_days": activity_span,
-                        "days_since_last_commit": (
-                            (datetime.now() - last_commit).days if last_commit else None
-                        ),
+                        "days_since_last_commit": ((datetime.now() - last_commit).days if last_commit else None),
                         "avg_commits_per_day": (
-                            len(commits) / max(activity_span, 1)
-                            if activity_span > 0
-                            else len(commits)
+                            len(commits) / max(activity_span, 1) if activity_span > 0 else len(commits)
                         ),
                     }
                 )
@@ -130,9 +124,7 @@ class BranchAnalyzer:
             if not main_branch:
                 return {"error": "No branches found"}
 
-            main_commits = set(
-                commit.hexsha for commit in self.git_repo.get_all_commits(branch=main_branch)
-            )
+            main_commits = set(commit.hexsha for commit in self.git_repo.get_all_commits(branch=main_branch))
 
             divergence_data = []
 
@@ -155,9 +147,7 @@ class BranchAnalyzer:
                             "shared_with_main": len(shared_commits),
                             "unique_commits": len(unique_to_branch),
                             "divergence_percentage": (
-                                (len(unique_to_branch) / len(branch_commits) * 100)
-                                if branch_commits
-                                else 0
+                                (len(unique_to_branch) / len(branch_commits) * 100) if branch_commits else 0
                             ),
                         }
                     )
@@ -177,9 +167,7 @@ class BranchAnalyzer:
                 ),
             }
 
-            logger.info(
-                f"Analyzed divergence for {len(divergence_data)} branches from {main_branch}"
-            )
+            logger.info(f"Analyzed divergence for {len(divergence_data)} branches from {main_branch}")
             return analysis
 
         except Exception as e:
@@ -217,9 +205,7 @@ class BranchAnalyzer:
         # Calculate average time between merges
         if len(merge_times) > 1:
             merge_times.sort()
-            time_diffs = [
-                (merge_times[i + 1] - merge_times[i]).days for i in range(len(merge_times) - 1)
-            ]
+            time_diffs = [(merge_times[i + 1] - merge_times[i]).days for i in range(len(merge_times) - 1)]
             avg_days_between_merges = sum(time_diffs) / len(time_diffs)
         else:
             avg_days_between_merges = 0
@@ -308,25 +294,13 @@ class BranchAnalyzer:
         # Analyze branch naming patterns
         branch_names = branch_stats["branch_name"].tolist()
         naming_patterns = {
-            "feature_branches": len(
-                [b for b in branch_names if "feature" in b.lower() or "feat" in b.lower()]
-            ),
+            "feature_branches": len([b for b in branch_names if "feature" in b.lower() or "feat" in b.lower()]),
             "bugfix_branches": len(
-                [
-                    b
-                    for b in branch_names
-                    if "bugfix" in b.lower() or "fix" in b.lower() or "hotfix" in b.lower()
-                ]
+                [b for b in branch_names if "bugfix" in b.lower() or "fix" in b.lower() or "hotfix" in b.lower()]
             ),
-            "release_branches": len(
-                [b for b in branch_names if "release" in b.lower() or "rel" in b.lower()]
-            ),
-            "develop_branches": len(
-                [b for b in branch_names if "develop" in b.lower() or "dev" in b.lower()]
-            ),
-            "main_branches": len(
-                [b for b in branch_names if b.lower() in ["main", "master", "trunk"]]
-            ),
+            "release_branches": len([b for b in branch_names if "release" in b.lower() or "rel" in b.lower()]),
+            "develop_branches": len([b for b in branch_names if "develop" in b.lower() or "dev" in b.lower()]),
+            "main_branches": len([b for b in branch_names if b.lower() in ["main", "master", "trunk"]]),
         }
 
         # Calculate branch metrics
@@ -361,9 +335,7 @@ class BranchAnalyzer:
             "branch_diversity_score": len(
                 set([b.split("/")[0] if "/" in b else b.split("-")[0] for b in branch_names])
             ),
-            "recommendations": self._generate_branching_recommendations(
-                branch_stats, merge_analysis, naming_patterns
-            ),
+            "recommendations": self._generate_branching_recommendations(branch_stats, merge_analysis, naming_patterns),
         }
 
         logger.info(f"Generated branching strategy insights for {len(branch_names)} branches")
@@ -381,19 +353,14 @@ class BranchAnalyzer:
         # Check for stale branches
         if not branch_stats.empty:
             # Ensure we have days_since_last_commit; compute if missing
-            if (
-                "days_since_last_commit" not in branch_stats.columns
-                and "last_commit_date" in branch_stats.columns
-            ):
+            if "days_since_last_commit" not in branch_stats.columns and "last_commit_date" in branch_stats.columns:
                 try:
                     branch_stats = branch_stats.copy()
                     branch_stats["days_since_last_commit"] = branch_stats["last_commit_date"].apply(
                         lambda x: (datetime.now() - x).days if pd.notnull(x) else None
                     )
                 except Exception:
-                    logger.warning(
-                        "Could not compute 'days_since_last_commit' from 'last_commit_date'"
-                    )
+                    logger.warning("Could not compute 'days_since_last_commit' from 'last_commit_date'")
 
             if "days_since_last_commit" in branch_stats.columns:
                 stale_condition = branch_stats["days_since_last_commit"] > 90
@@ -406,13 +373,9 @@ class BranchAnalyzer:
         # Check merge frequency
         merge_percentage = merge_analysis.get("merge_percentage", 0)
         if merge_percentage < 10:
-            recommendations.append(
-                "Low merge frequency detected - consider using feature branches and pull requests"
-            )
+            recommendations.append("Low merge frequency detected - consider using feature branches and pull requests")
         elif merge_percentage > 50:
-            recommendations.append(
-                "High merge frequency - ensure proper code review processes are in place"
-            )
+            recommendations.append("High merge frequency - ensure proper code review processes are in place")
 
         # Check naming consistency
         total_branches = sum(naming_patterns.values())
@@ -429,12 +392,8 @@ class BranchAnalyzer:
         if not branch_stats.empty:
             avg_commits = branch_stats["total_commits"].mean()
             if avg_commits > 50:
-                recommendations.append(
-                    "Branches have many commits on average - consider more frequent merging"
-                )
+                recommendations.append("Branches have many commits on average - consider more frequent merging")
             elif avg_commits < 3:
-                recommendations.append(
-                    "Many short-lived branches detected - good for feature development"
-                )
+                recommendations.append("Many short-lived branches detected - good for feature development")
 
         return recommendations

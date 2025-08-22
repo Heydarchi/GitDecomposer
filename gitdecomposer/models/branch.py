@@ -249,11 +249,7 @@ class BranchingStrategy:
     @property
     def is_git_flow(self) -> bool:
         """Check if using Git Flow strategy."""
-        return (
-            self.develop_branch is not None
-            and self.feature_prefix is not None
-            and self.release_prefix is not None
-        )
+        return self.develop_branch is not None and self.feature_prefix is not None and self.release_prefix is not None
 
     @property
     def is_github_flow(self) -> bool:
@@ -280,36 +276,22 @@ class BranchCollaboration:
     """Branch collaboration patterns."""
 
     shared_branches: Dict[str, Set[str]] = field(default_factory=dict)  # branch -> contributors
-    collaboration_frequency: Dict[str, int] = field(
-        default_factory=dict
-    )  # branch -> collaborations
-    conflict_patterns: Dict[str, List[str]] = field(
-        default_factory=dict
-    )  # branch -> conflict types
-    code_review_coverage: Dict[str, float] = field(
-        default_factory=dict
-    )  # branch -> review coverage
-    pair_programming_evidence: Dict[str, int] = field(
-        default_factory=dict
-    )  # branch -> pair commits
+    collaboration_frequency: Dict[str, int] = field(default_factory=dict)  # branch -> collaborations
+    conflict_patterns: Dict[str, List[str]] = field(default_factory=dict)  # branch -> conflict types
+    code_review_coverage: Dict[str, float] = field(default_factory=dict)  # branch -> review coverage
+    pair_programming_evidence: Dict[str, int] = field(default_factory=dict)  # branch -> pair commits
 
     @property
     def avg_contributors_per_branch(self) -> float:
         """Get average contributors per branch."""
         if not self.shared_branches:
             return 0.0
-        return sum(len(contributors) for contributors in self.shared_branches.values()) / len(
-            self.shared_branches
-        )
+        return sum(len(contributors) for contributors in self.shared_branches.values()) / len(self.shared_branches)
 
     @property
     def high_collaboration_branches(self) -> List[str]:
         """Get branches with high collaboration."""
-        return [
-            branch
-            for branch, contributors in self.shared_branches.items()
-            if len(contributors) >= 3
-        ]
+        return [branch for branch, contributors in self.shared_branches.items() if len(contributors) >= 3]
 
     @property
     def collaboration_health_score(self) -> float:
@@ -332,18 +314,15 @@ class BranchCollaboration:
 
         # Conflict management (20 points)
         if self.conflict_patterns:
-            avg_conflicts = sum(
-                len(conflicts) for conflicts in self.conflict_patterns.values()
-            ) / len(self.conflict_patterns)
+            avg_conflicts = sum(len(conflicts) for conflicts in self.conflict_patterns.values()) / len(
+                self.conflict_patterns
+            )
             conflict_score = max(0, 20 - (avg_conflicts * 2))
             score += conflict_score
 
         # Pair programming (10 points)
         if self.pair_programming_evidence:
-            pair_ratio = (
-                len([b for b, count in self.pair_programming_evidence.items() if count > 0])
-                / total_branches
-            )
+            pair_ratio = len([b for b, count in self.pair_programming_evidence.items() if count > 0]) / total_branches
             score += pair_ratio * 10
 
         return max(0.0, min(100.0, score))
@@ -427,6 +406,4 @@ class BranchProtection:
     @property
     def high_risk_branches(self) -> List[str]:
         """Get branches with high violation rates."""
-        return [
-            branch for branch, violations in self.rule_violations.items() if len(violations) >= 3
-        ]
+        return [branch for branch, violations in self.rule_violations.items() if len(violations) >= 3]

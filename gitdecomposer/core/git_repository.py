@@ -90,9 +90,7 @@ class GitRepository:
         """Get all remote URLs."""
         return {remote.name: list(remote.urls)[0] for remote in self.repo.remotes}
 
-    def get_all_commits(
-        self, branch: Optional[str] = None, max_count: Optional[int] = None
-    ) -> List[Commit]:
+    def get_all_commits(self, branch: Optional[str] = None, max_count: Optional[int] = None) -> List[Commit]:
         """
         Get all commits from the repository.
 

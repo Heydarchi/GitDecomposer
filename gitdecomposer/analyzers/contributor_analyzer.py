@@ -222,9 +222,7 @@ class ContributorAnalyzer:
                             "total_files_1": len(contributor_files[contrib1]),
                             "total_files_2": len(contributor_files[contrib2]),
                             "collaboration_score": len(shared_files)
-                            / min(
-                                len(contributor_files[contrib1]), len(contributor_files[contrib2])
-                            ),
+                            / min(len(contributor_files[contrib1]), len(contributor_files[contrib2])),
                         }
                     )
 
@@ -285,9 +283,7 @@ class ContributorAnalyzer:
                     "top_directories": [f"{dir} ({count})" for dir, count in top_directories],
                     "primary_extension": top_extensions[0][0] if top_extensions else "None",
                     "extension_focus": (
-                        (top_extensions[0][1] / total_changes * 100)
-                        if top_extensions and total_changes > 0
-                        else 0
+                        (top_extensions[0][1] / total_changes * 100) if top_extensions and total_changes > 0 else 0
                     ),
                 }
             )
@@ -310,29 +306,21 @@ class ContributorAnalyzer:
         """
         contributor_stats = self.get_contributor_statistics()
 
-        new_contributors = contributor_stats[
-            contributor_stats["activity_span_days"] <= days_threshold
-        ]
-        experienced_contributors = contributor_stats[
-            contributor_stats["activity_span_days"] > days_threshold
-        ]
+        new_contributors = contributor_stats[contributor_stats["activity_span_days"] <= days_threshold]
+        experienced_contributors = contributor_stats[contributor_stats["activity_span_days"] > days_threshold]
 
         analysis = {
             "total_contributors": len(contributor_stats),
             "new_contributors": len(new_contributors),
             "experienced_contributors": len(experienced_contributors),
             "new_percentage": (
-                len(new_contributors) / len(contributor_stats) * 100
-                if len(contributor_stats) > 0
-                else 0
+                len(new_contributors) / len(contributor_stats) * 100 if len(contributor_stats) > 0 else 0
             ),
             "new_contributors_avg_commits": (
                 new_contributors["total_commits"].mean() if not new_contributors.empty else 0
             ),
             "experienced_contributors_avg_commits": (
-                experienced_contributors["total_commits"].mean()
-                if not experienced_contributors.empty
-                else 0
+                experienced_contributors["total_commits"].mean() if not experienced_contributors.empty else 0
             ),
             "new_contributors_list": new_contributors["author"].tolist(),
             "top_experienced_contributors": experienced_contributors.head(10)["author"].tolist(),
@@ -407,9 +395,7 @@ class ContributorAnalyzer:
         contributor_stats["lines_per_commit"] = (
             contributor_stats["total_insertions"] + contributor_stats["total_deletions"]
         ) / contributor_stats["total_commits"]
-        contributor_stats["files_per_commit"] = (
-            contributor_stats["files_touched"] / contributor_stats["total_commits"]
-        )
+        contributor_stats["files_per_commit"] = contributor_stats["files_touched"] / contributor_stats["total_commits"]
 
         # Normalize metrics for impact score (0-100)
         def normalize_column(col):
@@ -420,9 +406,7 @@ class ContributorAnalyzer:
             contributor_stats["total_insertions"] + contributor_stats["total_deletions"]
         )
         contributor_stats["files_score"] = normalize_column(contributor_stats["files_touched"])
-        contributor_stats["consistency_score"] = normalize_column(
-            contributor_stats["avg_commits_per_day"]
-        )
+        contributor_stats["consistency_score"] = normalize_column(contributor_stats["avg_commits_per_day"])
 
         # Overall impact score (weighted average)
         contributor_stats["impact_score"] = (
@@ -450,9 +434,7 @@ class ContributorAnalyzer:
         logger.info(f"Calculated impact scores for {len(impact_df)} contributors")
         return impact_df
 
-    def _determine_contributor_role(
-        self, commits: int, activity_span: int, files_touched: int
-    ) -> ContributorRole:
+    def _determine_contributor_role(self, commits: int, activity_span: int, files_touched: int) -> ContributorRole:
         """Determine contributor role based on activity patterns."""
         if commits >= 100 and activity_span >= 180:
             return ContributorRole.CORE_MAINTAINER
@@ -544,17 +526,13 @@ class ContributorAnalyzer:
             contributor_df_sorted = contributor_df.sort_values("total_commits", ascending=False)
 
             # Calculate cumulative commits percentage
-            contributor_df_sorted["cumulative_commits"] = contributor_df_sorted[
-                "total_commits"
-            ].cumsum()
+            contributor_df_sorted["cumulative_commits"] = contributor_df_sorted["total_commits"].cumsum()
             contributor_df_sorted["cumulative_percentage"] = (
                 contributor_df_sorted["cumulative_commits"] / total_commits
             ) * 100
 
             # Core contributors are those who account for 80% of commits
-            core_contributors = len(
-                contributor_df_sorted[contributor_df_sorted["cumulative_percentage"] <= 80]
-            )
+            core_contributors = len(contributor_df_sorted[contributor_df_sorted["cumulative_percentage"] <= 80])
             if core_contributors == 0:  # Fallback
                 core_contributors = max(1, int(total_contributors * 0.2))
 
@@ -564,8 +542,7 @@ class ContributorAnalyzer:
             # Retention rate (contributors active in both last 90 days and 90-180 days ago)
             old_cutoff = now - timedelta(days=180)
             old_active = contributor_df[
-                (contributor_df["first_commit"] <= cutoff_date)
-                & (contributor_df["last_commit"] >= old_cutoff)
+                (contributor_df["first_commit"] <= cutoff_date) & (contributor_df["last_commit"] >= old_cutoff)
             ]
             retention_rate = len(old_active) / max(
                 1, len(contributor_df[contributor_df["first_commit"] <= cutoff_date])
@@ -674,16 +651,12 @@ class ContributorAnalyzer:
             influence_scores = {k: v / max_influence for k, v in influence_scores.items()}
 
             # Identify bottleneck contributors (those with very high influence)
-            bottleneck_contributors = [
-                contributor for contributor, score in influence_scores.items() if score > 0.8
-            ]
+            bottleneck_contributors = [contributor for contributor, score in influence_scores.items() if score > 0.8]
 
             # Calculate team cohesion (simplified metric)
             total_contributors = len(contributor_df)
             active_contributors = len(contributor_df[contributor_df["total_commits"] >= 5])
-            team_cohesion = (
-                active_contributors / total_contributors if total_contributors > 0 else 0
-            )
+            team_cohesion = active_contributors / total_contributors if total_contributors > 0 else 0
 
             # Leadership distribution
             leadership_distribution = {}

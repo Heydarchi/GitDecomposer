@@ -99,9 +99,7 @@ class FileAnalyzer:
         df = pd.DataFrame(top_files, columns=["file_path", "change_count"])
 
         # Add file extension info
-        df["extension"] = df["file_path"].apply(
-            lambda x: Path(x).suffix.lower() or "<no extension>"
-        )
+        df["extension"] = df["file_path"].apply(lambda x: Path(x).suffix.lower() or "<no extension>")
 
         logger.info(f"Found top {len(df)} most changed files")
         return df
@@ -144,9 +142,7 @@ class FileAnalyzer:
                 "average_file_size": df["size"].mean(),
                 "median_file_size": df["size"].median(),
                 "largest_files": df.nlargest(10, "size")[["path", "size"]].to_dict("records"),
-                "size_by_extension": df.groupby("extension")["size"]
-                .agg(["count", "sum", "mean"])
-                .to_dict("index"),
+                "size_by_extension": df.groupby("extension")["size"].agg(["count", "sum", "mean"]).to_dict("index"),
             }
 
             logger.info(f"Analyzed sizes for {len(file_sizes)} files")
@@ -197,9 +193,7 @@ class FileAnalyzer:
             "change_types": dict(change_types),
             "first_modified": first_commit,
             "last_modified": last_commit,
-            "days_active": (
-                (last_commit - first_commit) / 86400 if first_commit and last_commit else 0
-            ),
+            "days_active": ((last_commit - first_commit) / 86400 if first_commit and last_commit else 0),
         }
 
         logger.info(f"Analyzed lifecycle for file: {file_path}")
@@ -228,9 +222,7 @@ class FileAnalyzer:
         df = df.sort_values("modifications", ascending=False)
 
         # Add file extension info
-        df["extension"] = df["file_path"].apply(
-            lambda x: Path(x).suffix.lower() or "<no extension>"
-        )
+        df["extension"] = df["file_path"].apply(lambda x: Path(x).suffix.lower() or "<no extension>")
 
         logger.info(f"Found {len(df)} files modified by {author_name}")
         return df
@@ -263,9 +255,7 @@ class FileAnalyzer:
         df = df.sort_values("changes_in_period", ascending=False)
 
         # Add additional metrics
-        df["extension"] = df["file_path"].apply(
-            lambda x: Path(x).suffix.lower() or "<no extension>"
-        )
+        df["extension"] = df["file_path"].apply(lambda x: Path(x).suffix.lower() or "<no extension>")
         df["churn_rate"] = df["changes_in_period"] / time_window_days
 
         logger.info(f"Analyzed file churn for {time_window_days} days")
@@ -299,9 +289,7 @@ class FileAnalyzer:
                     "directory": directory,
                     "unique_files": len(stats["files"]),
                     "total_changes": stats["changes"],
-                    "avg_changes_per_file": (
-                        stats["changes"] / len(stats["files"]) if stats["files"] else 0
-                    ),
+                    "avg_changes_per_file": (stats["changes"] / len(stats["files"]) if stats["files"] else 0),
                 }
             )
 
@@ -311,9 +299,7 @@ class FileAnalyzer:
         logger.info(f"Analyzed {len(df)} directories")
         return df
 
-    def get_file_complexity_metrics(
-        self, file_extensions: Optional[List[str]] = None
-    ) -> pd.DataFrame:
+    def get_file_complexity_metrics(self, file_extensions: Optional[List[str]] = None) -> pd.DataFrame:
         """
         Get complexity metrics for files (based on change frequency and author count).
 
@@ -407,20 +393,14 @@ class FileAnalyzer:
                     if file_path in commit_stats.files:
                         file_stat = commit_stats.files[file_path]
                         # Ensure file_stat is a dictionary and has the expected keys
-                        if (
-                            isinstance(file_stat, dict)
-                            and "insertions" in file_stat
-                            and "deletions" in file_stat
-                        ):
+                        if isinstance(file_stat, dict) and "insertions" in file_stat and "deletions" in file_stat:
                             file_metrics[file_path]["total_lines_added"] += file_stat["insertions"]
                             file_metrics[file_path]["total_lines_deleted"] += file_stat["deletions"]
                             file_metrics[file_path]["total_lines_changed"] += (
                                 file_stat["insertions"] + file_stat["deletions"]
                             )
                         else:
-                            logger.debug(
-                                f"Unexpected file_stat format for {file_path}: {type(file_stat)}"
-                            )
+                            logger.debug(f"Unexpected file_stat format for {file_path}: {type(file_stat)}")
 
             except Exception as e:
                 logger.warning(f"Error processing commit {commit.hexsha}: {e}")
@@ -434,9 +414,7 @@ class FileAnalyzer:
 
             # Calculate frequency metrics
             if metrics["first_change"] and metrics["last_change"]:
-                days_active = (
-                    metrics["last_change"] - metrics["first_change"]
-                ) / 86400  # Convert to days
+                days_active = (metrics["last_change"] - metrics["first_change"]) / 86400  # Convert to days
                 commit_frequency = metrics["commit_count"] / max(days_active, 1)
                 line_frequency = metrics["total_lines_changed"] / max(days_active, 1)
             else:
@@ -452,18 +430,13 @@ class FileAnalyzer:
                     "total_lines_deleted": metrics["total_lines_deleted"],
                     "total_lines_changed": metrics["total_lines_changed"],
                     "unique_authors": len(metrics["authors"]),
-                    "days_active": (
-                        days_active if metrics["first_change"] and metrics["last_change"] else 0
-                    ),
+                    "days_active": (days_active if metrics["first_change"] and metrics["last_change"] else 0),
                     "commits_per_day": commit_frequency,
                     "lines_changed_per_day": line_frequency,
                     "avg_lines_per_commit": (
-                        metrics["total_lines_changed"] / metrics["commit_count"]
-                        if metrics["commit_count"] > 0
-                        else 0
+                        metrics["total_lines_changed"] / metrics["commit_count"] if metrics["commit_count"] > 0 else 0
                     ),
-                    "change_intensity": metrics["total_lines_changed"]
-                    * metrics["commit_count"],  # Combined metric
+                    "change_intensity": metrics["total_lines_changed"] * metrics["commit_count"],  # Combined metric
                     "first_change_date": metrics["first_change"],
                     "last_change_date": metrics["last_change"],
                 }
@@ -495,9 +468,7 @@ class FileAnalyzer:
                     "sha": commit.hexsha[:8],
                     "author": commit.author.name,
                     "date": commit.committed_date,
-                    "message": commit.message.strip().split("\n")[0][
-                        :100
-                    ],  # First line, max 100 chars
+                    "message": commit.message.strip().split("\n")[0][:100],  # First line, max 100 chars
                     "files_changed": len(changed_files),
                     "total_lines": stats.total["lines"],
                     "lines_added": stats.total["insertions"],
@@ -555,19 +526,13 @@ class FileAnalyzer:
             "statistics": {
                 "avg_lines_per_commit": df["total_lines"].mean(),
                 "median_lines_per_commit": df["total_lines"].median(),
-                "max_lines_commit": (
-                    df.loc[df["total_lines"].idxmax()].to_dict() if not df.empty else None
-                ),
+                "max_lines_commit": (df.loc[df["total_lines"].idxmax()].to_dict() if not df.empty else None),
                 "avg_files_per_commit": df["files_changed"].mean(),
                 "median_files_per_commit": df["files_changed"].median(),
-                "max_files_commit": (
-                    df.loc[df["files_changed"].idxmax()].to_dict() if not df.empty else None
-                ),
+                "max_files_commit": (df.loc[df["files_changed"].idxmax()].to_dict() if not df.empty else None),
             },
             "correlations": {
-                "lines_vs_files_correlation": (
-                    df["total_lines"].corr(df["files_changed"]) if len(df) > 1 else 0
-                )
+                "lines_vs_files_correlation": (df["total_lines"].corr(df["files_changed"]) if len(df) > 1 else 0)
             },
             "detailed_data": df.to_dict("records")[:100],  # Top 100 commits for detailed view
         }
@@ -670,9 +635,7 @@ class FileAnalyzer:
             # Calculate cumulative line changes
             total_lines_changed = 0
             file_changes = defaultdict(lambda: {"additions": 0, "deletions": 0, "net_changes": 0})
-            monthly_churn = defaultdict(
-                lambda: {"lines_changed": 0, "estimated_total": estimated_total_lines}
-            )
+            monthly_churn = defaultdict(lambda: {"lines_changed": 0, "estimated_total": estimated_total_lines})
 
             for commit in commits:
                 try:
@@ -684,11 +647,7 @@ class FileAnalyzer:
 
                     for file_path, file_stat in commit_stats.files.items():
                         # Ensure file_stat is a dictionary with the expected keys
-                        if (
-                            isinstance(file_stat, dict)
-                            and "insertions" in file_stat
-                            and "deletions" in file_stat
-                        ):
+                        if isinstance(file_stat, dict) and "insertions" in file_stat and "deletions" in file_stat:
                             additions = file_stat["insertions"]
                             deletions = file_stat["deletions"]
 
@@ -704,11 +663,7 @@ class FileAnalyzer:
                     continue
 
             # Calculate overall churn rate
-            overall_churn_rate = (
-                (total_lines_changed / estimated_total_lines * 100)
-                if estimated_total_lines > 0
-                else 0
-            )
+            overall_churn_rate = (total_lines_changed / estimated_total_lines * 100) if estimated_total_lines > 0 else 0
 
             # Create file churn rates DataFrame
             file_churn_data = []
@@ -716,9 +671,7 @@ class FileAnalyzer:
                 total_changes = stats["additions"] + stats["deletions"]
                 # Estimate file size (rough calculation based on net changes)
                 estimated_file_size = max(abs(stats["net_changes"]), 50)  # Minimum 50 lines
-                churn_rate = (
-                    (total_changes / estimated_file_size * 100) if estimated_file_size > 0 else 0
-                )
+                churn_rate = (total_changes / estimated_file_size * 100) if estimated_file_size > 0 else 0
 
                 file_churn_data.append(
                     {
@@ -739,9 +692,7 @@ class FileAnalyzer:
             trend_data = []
             for month, data in sorted(monthly_churn.items()):
                 churn_rate = (
-                    (data["lines_changed"] / data["estimated_total"] * 100)
-                    if data["estimated_total"] > 0
-                    else 0
+                    (data["lines_changed"] / data["estimated_total"] * 100) if data["estimated_total"] > 0 else 0
                 )
                 trend_data.append(
                     {
@@ -778,13 +729,9 @@ class FileAnalyzer:
                     "total_changes",
                 ]
                 churn_by_extension = churn_by_extension.reset_index()
-                churn_by_extension = churn_by_extension.sort_values(
-                    "avg_churn_rate", ascending=False
-                )
+                churn_by_extension = churn_by_extension.sort_values("avg_churn_rate", ascending=False)
 
-            logger.info(
-                f"Calculated code churn analysis: {overall_churn_rate:.2f}% overall churn rate"
-            )
+            logger.info(f"Calculated code churn analysis: {overall_churn_rate:.2f}% overall churn rate")
             return {
                 "overall_churn_rate": overall_churn_rate,
                 "file_churn_rates": file_churn_rates,
@@ -874,9 +821,7 @@ class FileAnalyzer:
             # Calculate metrics
             total_files_count = len(all_files)
             doc_files_count = len(doc_files)
-            documentation_ratio = (
-                (doc_files_count / total_files_count * 100) if total_files_count > 0 else 0
-            )
+            documentation_ratio = (doc_files_count / total_files_count * 100) if total_files_count > 0 else 0
 
             # Analyze documentation file types
             doc_file_types = Counter()
@@ -888,9 +833,7 @@ class FileAnalyzer:
             missing_doc_dirs = []
             for directory in directories_with_files:
                 # Check if directory has any documentation files
-                has_docs = any(
-                    directory in Path(doc_file).parts[0].lower() for doc_file in doc_files
-                )
+                has_docs = any(directory in Path(doc_file).parts[0].lower() for doc_file in doc_files)
                 if not has_docs and directory not in [
                     "__pycache__",
                     ".git",
@@ -931,18 +874,14 @@ class FileAnalyzer:
         if doc_ratio < 5:
             recommendations.append("Very low documentation coverage - consider adding README files")
         elif doc_ratio < 15:
-            recommendations.append(
-                "Low documentation coverage - add documentation for key components"
-            )
+            recommendations.append("Low documentation coverage - add documentation for key components")
         elif doc_ratio < 30:
             recommendations.append("Moderate documentation - consider expanding existing docs")
         else:
             recommendations.append("Good documentation coverage - maintain current standards")
 
         if missing_dirs:
-            recommendations.append(
-                f"Add documentation to directories: {', '.join(missing_dirs[:3])}"
-            )
+            recommendations.append(f"Add documentation to directories: {', '.join(missing_dirs[:3])}")
 
         if ".md" not in doc_types:
             recommendations.append("Consider using Markdown files for better documentation")
@@ -1091,18 +1030,12 @@ class FileAnalyzer:
                         commit_stats = commit.stats
                         if file_path in commit_stats.files:
                             file_data = commit_stats.files[file_path]
-                            if (
-                                isinstance(file_data, dict)
-                                and "insertions" in file_data
-                                and "deletions" in file_data
-                            ):
+                            if isinstance(file_data, dict) and "insertions" in file_data and "deletions" in file_data:
                                 total_insertions += file_data["insertions"]
                                 total_deletions += file_data["deletions"]
 
                 except Exception as e:
-                    logger.warning(
-                        f"Error processing commit {commit.hexsha} for file {file_path}: {e}"
-                    )
+                    logger.warning(f"Error processing commit {commit.hexsha} for file {file_path}: {e}")
                     continue
 
             first_commit_date = min(commit_dates) if commit_dates else None
@@ -1164,9 +1097,7 @@ class FileAnalyzer:
 
                     for file_path in changed_files.keys():
                         file_changes[file_path]["change_count"] += 1
-                        file_changes[file_path]["contributors"].add(
-                            (commit.author.name, commit.author.email)
-                        )
+                        file_changes[file_path]["contributors"].add((commit.author.name, commit.author.email))
 
                         if commit_date >= recent_cutoff:
                             file_changes[file_path]["recent_changes"] += 1
@@ -1174,11 +1105,7 @@ class FileAnalyzer:
                         # Get insertions/deletions from commit stats
                         if file_path in commit_stats.files:
                             file_data = commit_stats.files[file_path]
-                            if (
-                                isinstance(file_data, dict)
-                                and "insertions" in file_data
-                                and "deletions" in file_data
-                            ):
+                            if isinstance(file_data, dict) and "insertions" in file_data and "deletions" in file_data:
                                 insertions = file_data["insertions"]
                                 deletions = file_data["deletions"]
                                 file_changes[file_path]["total_changes"] += insertions + deletions
@@ -1203,12 +1130,7 @@ class FileAnalyzer:
 
                 # Risk calculation
                 risk_score = (
-                    (
-                        change_frequency * 2
-                        + unique_contributors * 1.5
-                        + recent_activity * 3
-                        + complexity_score * 1
-                    )
+                    (change_frequency * 2 + unique_contributors * 1.5 + recent_activity * 3 + complexity_score * 1)
                     / 7.5
                     * 100
                 )  # Normalize to 0-100
@@ -1296,9 +1218,7 @@ class FileAnalyzer:
 
                         directory_data[directory]["files"].add(file_path)
                         directory_data[directory]["commits"].add(commit.hexsha)
-                        directory_data[directory]["contributors"].add(
-                            (commit.author.name, commit.author.email)
-                        )
+                        directory_data[directory]["contributors"].add((commit.author.name, commit.author.email))
 
                         # File type and language
                         file_info = self._extract_file_info(file_path)

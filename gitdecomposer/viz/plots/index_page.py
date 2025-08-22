@@ -8,9 +8,7 @@ from typing import Dict
 logger = logging.getLogger(__name__)
 
 
-def create_index_page(
-    output_path: str, report_links: Dict[str, str], csv_links: Dict[str, str], summary: Dict
-):
+def create_index_page(output_path: str, report_links: Dict[str, str], csv_links: Dict[str, str], summary: Dict):
     """
     Creates a main index.html page with links to all reports and CSVs.
 
@@ -25,12 +23,8 @@ def create_index_page(
     contributors_info = summary.get("contributors", {})
     branches_info = summary.get("branches", {})
 
-    report_list_items = "".join(
-        f'<li><a href="{path}">{name}</a></li>' for name, path in report_links.items()
-    )
-    csv_list_items = "".join(
-        f'<li><a href="{path}">{name}</a></li>' for name, path in csv_links.items()
-    )
+    report_list_items = "".join(f'<li><a href="{path}">{name}</a></li>' for name, path in report_links.items())
+    csv_list_items = "".join(f'<li><a href="{path}">{name}</a></li>' for name, path in csv_links.items())
 
     html_content = f"""
     <!DOCTYPE html>

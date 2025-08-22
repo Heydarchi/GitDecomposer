@@ -109,9 +109,7 @@ class CommitPlotter(BasePlotter):
                 col=2,
             )
 
-        fig.update_layout(
-            title="Repository Commit Activity Dashboard", height=800, showlegend=False
-        )
+        fig.update_layout(title="Repository Commit Activity Dashboard", height=800, showlegend=False)
 
         if save_path:
             self.save_html(fig, save_path)
@@ -120,9 +118,7 @@ class CommitPlotter(BasePlotter):
 
 
 # Backwards compatibility function
-def create_commit_activity_dashboard(
-    metrics_coordinator, save_path: Optional[str] = None
-) -> go.Figure:
+def create_commit_activity_dashboard(metrics_coordinator, save_path: Optional[str] = None) -> go.Figure:
     """
     Backwards compatibility function for commit activity dashboard.
 

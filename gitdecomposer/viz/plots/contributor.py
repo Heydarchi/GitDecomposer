@@ -65,9 +65,7 @@ class ContributorPlotter(BasePlotter):
             top_10_commits = contributors.head(10)
 
             fig.add_trace(
-                go.Bar(
-                    x=top_10_commits["author"], y=top_10_commits["total_commits"], name="Commits"
-                ),
+                go.Bar(x=top_10_commits["author"], y=top_10_commits["total_commits"], name="Commits"),
                 row=1,
                 col=1,
             )
@@ -130,9 +128,7 @@ class ContributorPlotter(BasePlotter):
 
 
 # Backwards compatibility function
-def create_contributor_analysis_charts(
-    metrics_coordinator, save_path: Optional[str] = None
-) -> go.Figure:
+def create_contributor_analysis_charts(metrics_coordinator, save_path: Optional[str] = None) -> go.Figure:
     """
     Backwards compatibility function for contributor analysis charts.
 

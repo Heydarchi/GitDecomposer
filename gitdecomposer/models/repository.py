@@ -99,9 +99,7 @@ class AdvancedRepositorySummary(RepositorySummary):
     @property
     def critical_issues_count(self) -> int:
         """Get count of critical issues."""
-        return len(
-            [r for r in self.recommendations if "critical" in r.lower() or "urgent" in r.lower()]
-        )
+        return len([r for r in self.recommendations if "critical" in r.lower() or "urgent" in r.lower()])
 
     @property
     def maintainability_category(self) -> str:
