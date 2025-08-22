@@ -49,28 +49,28 @@ class TestDashboardGenerator:
     def test_service_attributes_exist(self, dashboard_generator):
         """Test that expected service attributes exist."""
         expected_attributes = [
-            'git_repo',
-            'commit_analyzer',
-            'file_analyzer',
-            'contributor_analyzer',
-            'branch_analyzer',
-            'advanced_metrics',
-            'visualization'
+            "git_repo",
+            "commit_analyzer",
+            "file_analyzer",
+            "contributor_analyzer",
+            "branch_analyzer",
+            "advanced_metrics",
+            "visualization",
         ]
-        
+
         for attr in expected_attributes:
             assert hasattr(dashboard_generator, attr), f"Missing attribute: {attr}"
 
     def test_dashboard_methods_exist(self, dashboard_generator):
         """Test that expected dashboard methods exist."""
         expected_methods = [
-            'create_commit_activity_dashboard',
-            'create_contributor_analysis_charts',
-            'create_file_analysis_visualization',
-            'create_enhanced_file_analysis_dashboard',
-            'create_branch_analysis_dashboard'
+            "create_commit_activity_dashboard",
+            "create_contributor_analysis_charts",
+            "create_file_analysis_visualization",
+            "create_enhanced_file_analysis_dashboard",
+            "create_branch_analysis_dashboard",
         ]
-        
+
         for method in expected_methods:
             assert hasattr(dashboard_generator, method), f"Missing method: {method}"
             assert callable(getattr(dashboard_generator, method)), f"Method {method} is not callable"
@@ -113,7 +113,7 @@ class TestDashboardGenerator:
     def test_save_path_parameter_accepted(self, dashboard_generator, temp_output_dir):
         """Test that dashboard methods accept save_path parameter."""
         save_path = os.path.join(temp_output_dir, "test_dashboard.html")
-        
+
         # These should not raise errors when called with save_path
         try:
             dashboard_generator.create_commit_activity_dashboard(save_path)
@@ -132,9 +132,9 @@ class TestDashboardGenerator:
             dashboard_generator.create_contributor_analysis_charts,
             dashboard_generator.create_file_analysis_visualization,
             dashboard_generator.create_enhanced_file_analysis_dashboard,
-            dashboard_generator.create_branch_analysis_dashboard
+            dashboard_generator.create_branch_analysis_dashboard,
         ]
-        
+
         for method in methods:
             try:
                 result = method()
@@ -150,16 +150,16 @@ class TestDashboardGenerator:
         methods = [
             dashboard_generator.create_commit_activity_dashboard,
             dashboard_generator.create_contributor_analysis_charts,
-            dashboard_generator.create_file_analysis_visualization
+            dashboard_generator.create_file_analysis_visualization,
         ]
-        
+
         for method in methods:
             try:
                 result = method()
                 results.append(result)
             except Exception as e:
                 pytest.fail(f"Method {method.__name__} failed: {e}")
-        
+
         # All methods should complete without throwing exceptions
         assert len(results) == 3
         # Results can be None due to mock data, which is acceptable
@@ -174,16 +174,16 @@ class TestDashboardGenerator:
             dashboard_generator.file_analyzer,
             dashboard_generator.contributor_analyzer,
             dashboard_generator.branch_analyzer,
-            dashboard_generator.advanced_metrics
+            dashboard_generator.advanced_metrics,
         ]
-        
+
         for analyzer in analyzers:
             assert analyzer is not None, "Analyzer should be initialized"
 
     def test_visualization_engine_accessible(self, dashboard_generator):
         """Test that visualization engine is properly accessible."""
         assert dashboard_generator.visualization is not None
-        assert hasattr(dashboard_generator.visualization, 'create_commit_activity_dashboard')
+        assert hasattr(dashboard_generator.visualization, "create_commit_activity_dashboard")
 
 
 if __name__ == "__main__":

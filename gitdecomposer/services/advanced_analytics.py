@@ -425,8 +425,16 @@ class AdvancedAnalytics:
                     # Historical data
                     fig.add_trace(
                         go.Scatter(
-                            x=velocity_data["week_start"] if "week_start" in velocity_data.columns else list(range(len(velocity_data))),
-                            y=velocity_data["commit_count"] if "commit_count" in velocity_data.columns else [0] * len(velocity_data),
+                            x=(
+                                velocity_data["week_start"]
+                                if "week_start" in velocity_data.columns
+                                else list(range(len(velocity_data)))
+                            ),
+                            y=(
+                                velocity_data["commit_count"]
+                                if "commit_count" in velocity_data.columns
+                                else [0] * len(velocity_data)
+                            ),
                             mode="lines+markers",
                             name="Historical Velocity",
                             line=dict(color="blue"),
@@ -515,8 +523,6 @@ class AdvancedAnalytics:
             logger.error(f"Error creating predictive maintenance report: {e}")
             return self._create_error_figure("Error creating predictive maintenance report")
 
-
-
     def generate_all_advanced_reports(self, output_dir: str = "advanced_reports") -> Dict[str, str]:
         """
         Generate all advanced analytics reports.
@@ -563,8 +569,16 @@ class AdvancedAnalytics:
                 # Historical data (all weeks)
                 fig.add_trace(
                     go.Scatter(
-                        x=velocity_data["week_start"] if "week_start" in velocity_data.columns else list(range(len(velocity_data))),
-                        y=velocity_data["commit_count"] if "commit_count" in velocity_data.columns else [0] * len(velocity_data),
+                        x=(
+                            velocity_data["week_start"]
+                            if "week_start" in velocity_data.columns
+                            else list(range(len(velocity_data)))
+                        ),
+                        y=(
+                            velocity_data["commit_count"]
+                            if "commit_count" in velocity_data.columns
+                            else [0] * len(velocity_data)
+                        ),
                         mode="lines+markers",
                         name="Historical Velocity",
                         line=dict(color="blue"),
@@ -623,19 +637,19 @@ class AdvancedAnalytics:
     ) -> dict:
         """Calculate repository health score based on various factors."""
         health_factors = {}
-        
+
         # Bug ratio score (lower is better)
         health_factors["bug_ratio"] = max(0, 1 - bug_ratio)
-        
+
         # Test coverage score
         health_factors["test_coverage"] = test_coverage / 100.0
-        
+
         # Documentation ratio score
         health_factors["documentation"] = doc_ratio / 100.0
-        
+
         # Maintainability score
         health_factors["maintainability"] = maintainability / 100.0
-        
+
         return health_factors
 
     def create_velocity_forecasting_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
@@ -651,17 +665,12 @@ class AdvancedAnalytics:
         try:
             # Get velocity data
             velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis(weeks_back=12)
-            
+
             # Create forecasting dashboard
             fig = make_subplots(
                 rows=2,
                 cols=2,
-                subplot_titles=[
-                    "Velocity Trend",
-                    "Velocity Distribution",
-                    "Team Productivity",
-                    "Forecasting"
-                ],
+                subplot_titles=["Velocity Trend", "Velocity Distribution", "Team Productivity", "Forecasting"],
                 specs=[
                     [{"secondary_y": False}, {"type": "histogram"}],
                     [{"type": "indicator"}, {"secondary_y": False}],
@@ -672,11 +681,11 @@ class AdvancedAnalytics:
             if "velocity_trend" in velocity_analysis:
                 trend_data = velocity_analysis["velocity_trend"]
                 # Check if trend_data is a DataFrame and not empty
-                if hasattr(trend_data, 'empty') and not trend_data.empty:
+                if hasattr(trend_data, "empty") and not trend_data.empty:
                     fig.add_trace(
                         go.Scatter(
-                            x=trend_data.index if hasattr(trend_data, 'index') else list(range(len(trend_data))),
-                            y=trend_data.values if hasattr(trend_data, 'values') else trend_data,
+                            x=trend_data.index if hasattr(trend_data, "index") else list(range(len(trend_data))),
+                            y=trend_data.values if hasattr(trend_data, "values") else trend_data,
                             mode="lines+markers",
                             name="Velocity Trend",
                             line=dict(color="blue", width=2),
@@ -712,7 +721,7 @@ class AdvancedAnalytics:
             # Team productivity metrics
             avg_velocity = velocity_analysis.get("average_velocity", 0)
             productivity_score = min(100, avg_velocity * 20)  # Convert to 0-100 scale
-            
+
             fig.add_trace(
                 go.Indicator(
                     mode="gauge+number",

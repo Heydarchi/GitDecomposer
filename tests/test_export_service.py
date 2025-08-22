@@ -50,9 +50,9 @@ class TestExportService:
         """Test CSV export functionality."""
         csv_dir = os.path.join(temp_output_dir, "CSV")
         os.makedirs(csv_dir, exist_ok=True)
-        
+
         files_created = export_service.export_metrics_to_csv(csv_dir)
-        
+
         assert isinstance(files_created, dict)
         # Check that directory exists
         assert os.path.exists(csv_dir)
@@ -60,18 +60,18 @@ class TestExportService:
     def test_export_csv_data_creates_directory(self, export_service, temp_output_dir):
         """Test that CSV export creates directory if it doesn't exist."""
         csv_dir = os.path.join(temp_output_dir, "nonexistent", "CSV")
-        
+
         files_created = export_service.export_metrics_to_csv(csv_dir)
-        
+
         assert os.path.exists(csv_dir)
         assert isinstance(files_created, dict)
 
     def test_export_single_metric(self, export_service, temp_output_dir):
         """Test single metric export functionality."""
         metric_file = os.path.join(temp_output_dir, "test_metric.csv")
-        
+
         result = export_service.export_single_metric("test_metric", metric_file)
-        
+
         # Should return boolean indicating success/failure
         assert isinstance(result, bool)
 
@@ -79,7 +79,7 @@ class TestExportService:
         """Test error handling with invalid directory."""
         # Test with invalid directory (should handle gracefully)
         invalid_dir = "/root/nonexistent/forbidden"
-        
+
         try:
             export_service.export_metrics_to_csv(invalid_dir)
             # If it succeeds, it handled the error gracefully
@@ -91,37 +91,34 @@ class TestExportService:
         """Test service scalability with multiple operations."""
         # Test multiple exports don't interfere with each other
         csv_dir = os.path.join(temp_output_dir, "CSV")
-        
+
         # Run multiple exports
         results = []
         for i in range(3):
             files_created = export_service.export_metrics_to_csv(csv_dir)
             results.append(files_created)
-        
+
         # All should return dictionaries
         assert all(isinstance(result, dict) for result in results)
 
     def test_service_attributes_exist(self, export_service):
         """Test that expected service attributes exist."""
         expected_attributes = [
-            'git_repo',
-            'commit_analyzer',
-            'file_analyzer', 
-            'contributor_analyzer',
-            'branch_analyzer',
-            'advanced_metrics'
+            "git_repo",
+            "commit_analyzer",
+            "file_analyzer",
+            "contributor_analyzer",
+            "branch_analyzer",
+            "advanced_metrics",
         ]
-        
+
         for attr in expected_attributes:
             assert hasattr(export_service, attr), f"Missing attribute: {attr}"
 
     def test_export_methods_exist(self, export_service):
         """Test that expected export methods exist."""
-        expected_methods = [
-            'export_metrics_to_csv',
-            'export_single_metric'
-        ]
-        
+        expected_methods = ["export_metrics_to_csv", "export_single_metric"]
+
         for method in expected_methods:
             assert hasattr(export_service, method), f"Missing method: {method}"
             assert callable(getattr(export_service, method)), f"Method {method} is not callable"

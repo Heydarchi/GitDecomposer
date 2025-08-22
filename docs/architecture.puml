@@ -1,17 +1,33 @@
 @startuml GitDecomposer Architecture
 !theme vibrant
 
-title GitDecomposer - Comprehensive Git Repository Analysis Tool
+title GitDecomposer - Service-Oriented Git Repository Analysis Tool
 
 package "User Interface Layer" {
   component "CLI Interface" as CLI
   note right of CLI : Command-line entry point\nArgument parsing and validation
 }
 
-package "Core Analysis Engine" {
+package "Application Interface Layer" {
   component "GitMetrics" as GM
-  note right of GM : Main orchestrator\nCoordinates all analyzers
+  note right of GM : Simplified API facade\nBackward compatibility
+}
+
+package "Service Layer" {
+  component "DataAggregator" as DA
+  component "DashboardGenerator" as DG
+  component "ReportGenerator" as RG
+  component "ExportService" as ES
+  component "AdvancedAnalytics" as AA
   
+  note right of DA : Data consolidation\nRepository summaries
+  note right of DG : Interactive dashboards\nVisualization creation
+  note right of RG : HTML report generation\nNavigation between reports
+  note right of ES : CSV export\nData serialization
+  note right of AA : Advanced metrics\nPredictive analytics
+}
+
+package "Core Analysis Engine" {
   component "GitRepository" as GR
   note right of GR : Git data abstraction\nRepository operations
 }
@@ -32,42 +48,56 @@ package "Specialized Analyzers" {
 
 package "Data Models" {
   component "Analysis Models" as Models
-  component "Commit Model" as CM
-  component "File Model" as FM
-  component "Contributor Model" as CRM
-  component "Branch Model" as BM
+  component "Repository Models" as RM
+  component "Metrics Models" as MM
   
-  note right of Models : Data structures\nMetrics definitions
+  note right of Models : Structured data types\nAnalysis results
+  note right of RM : Repository information\nSummary structures
+  note right of MM : Performance metrics\nQuality indicators
 }
 
-package "Visualization & Export" {
+package "Visualization Engine" {
   component "VisualizationEngine" as VE
-  component "HTML Generator" as HG
-  component "CSV Exporter" as CE
   component "Chart Factory" as CF
   
   note right of VE : Interactive dashboards\nPlot generation
-  note right of HG : Report templates\nHTML output
+  note right of CF : Chart creation\nCustomization
 }
 
 package "Output Layer" {
   file "HTML Reports" as HTML
   file "CSV Data" as CSV
   file "Console Output" as Console
+  file "Interactive Dashboards" as Dashboards
 }
 
 ' User interactions
-CLI --> GM : initialize analysis
+CLI --> GM : simplified interface
+CLI --> DA : direct service access
 CLI --> Console : display results
 
-' Core engine relationships
-GM --> GR : repository access
-GM --> CA : commit analysis
-GM --> FA : file analysis  
-GM --> CRA : contributor analysis
-GM --> BA : branch analysis
-GM --> AM : advanced metrics
-GM --> VE : visualization requests
+' Application interface
+GM --> DA : data aggregation
+GM --> DG : dashboard creation
+GM --> RG : report generation
+GM --> ES : data export
+
+' Service layer relationships
+DA --> GR : repository access
+DA --> CA : commit analysis
+DA --> FA : file analysis  
+DA --> CRA : contributor analysis
+DA --> BA : branch analysis
+DA --> AM : advanced metrics
+
+DG --> DA : aggregated data
+DG --> VE : visualization requests
+RG --> DG : dashboard integration
+RG --> HTML : report generation
+ES --> DA : data extraction
+ES --> CSV : data export
+AA --> DA : data access
+AA --> AM : advanced calculations
 
 ' Analyzer dependencies
 CA --> GR : git data access
@@ -77,27 +107,27 @@ BA --> GR : git data access
 AM --> GR : git data access
 
 ' Data model usage
-CA --> CM : commit data structures
-FA --> FM : file data structures
-CRA --> CRM : contributor data structures
-BA --> BM : branch data structures
-CA --> Models : analysis results
-FA --> Models : analysis results
-CRA --> Models : analysis results
-BA --> Models : analysis results
+DA --> Models : structured results
+DA --> RM : repository summaries
+AA --> MM : metrics models
+CA --> Models : commit data
+FA --> Models : file data
+CRA --> Models : contributor data
+BA --> Models : branch data
 
 ' Visualization pipeline
-GM --> VE : analysis data
+DG --> VE : analysis data
 VE --> CF : chart generation
-VE --> HG : HTML templating
-VE --> CE : CSV export
-CF --> HTML : interactive charts
-HG --> HTML : formatted reports
-CE --> CSV : structured data
+CF --> Dashboards : interactive charts
+RG --> HTML : comprehensive reports
+ES --> CSV : structured exports
 
 ' External dependencies
 note top of GR : Dependencies:\n- GitPython\n- Git CLI
-note top of VE : Dependencies:\n- Plotly\n- Matplotlib\n- Seaborn
-note top of Models : Dependencies:\n- Pandas\n- NumPy
+note top of VE : Dependencies:\n- Plotly (primary)\n- Interactive charts
+note top of Models : Dependencies:\n- Pandas\n- NumPy\n- Dataclasses
+
+' Service layer benefits
+note bottom of DA : Service Benefits:\n- Clean separation of concerns\n- Testable components\n- Modular architecture\n- Easy to extend
 
 @enduml

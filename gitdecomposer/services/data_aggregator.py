@@ -320,7 +320,7 @@ class DataAggregator:
                 results["commit_analysis"] = self.commit_analyzer.get_commit_stats()
                 results["contributor_analysis"] = self.contributor_analyzer.get_contributor_statistics()
             # For CUSTOM, handle via custom_metrics if needed
-            
+
             return {
                 "config": config,
                 "results": results,
