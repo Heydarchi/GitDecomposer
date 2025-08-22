@@ -139,7 +139,7 @@ class CLI:
             "Contributor Analysis": (self.metrics.create_contributor_analysis_charts, "contributor_analysis.html"),
             "File Analysis": (self.metrics.create_file_analysis_visualization, "file_analysis.html"),
             "Enhanced File Analysis": (self.metrics.create_enhanced_file_analysis_dashboard, "enhanced_file_analysis.html"),
-            "Comprehensive Report": (self.metrics.create_comprehensive_report, "comprehensive_report.html"),
+            "Executive Summary": (self.metrics.create_executive_summary_report, "executive_summary.html"),
         }
 
         with Progress(
@@ -158,6 +158,14 @@ class CLI:
                 except Exception as e:
                     self.console.print(f"  ✗ Failed to create {name}: [red]{e}[/red]")
                 progress.update(task, advance=1)
+        
+        # Generate the index page that links to all reports
+        try:
+            self.metrics.create_index_page_only(str(self.output_dir))
+            index_path = self.output_dir / "index.html"
+            self.console.print(f"  ✓ Created: [link=file://{index_path.resolve()}]index.html[/link] (Main Dashboard)")
+        except Exception as e:
+            self.console.print(f"  ✗ Failed to create index page: [red]{e}[/red]")
 
     def _display_recommendations(self, summary):
         """Display branching model recommendations."""

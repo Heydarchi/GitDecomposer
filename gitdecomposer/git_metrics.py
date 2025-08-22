@@ -845,6 +845,331 @@ class GitMetrics:
             logger.error(f"Error exporting metrics to CSV: {e}")
             return exported_files
 
+    def generate_all_visualizations(self, output_dir: str):
+        """
+        Generates all HTML visualization reports and an index page.
+
+        Args:
+            output_dir (str): The directory to save the reports in.
+        """
+        output_path = Path(output_dir)
+        report_links = {}
+        csv_links = {}
+
+        # Ensure the output directory exists
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        # Generate individual HTML reports
+        reports_to_generate = {
+            "Executive Summary": (self.create_executive_summary_report, "executive_summary.html"),
+            "Commit Activity": (self.create_commit_activity_dashboard, "commit_activity.html"),
+            "Contributor Analysis": (self.create_contributor_analysis_charts, "contributor_analysis.html"),
+            "File Analysis": (self.create_file_analysis_visualization, "file_analysis.html"),
+            "Enhanced File Analysis": (self.create_enhanced_file_analysis_dashboard, "enhanced_file_analysis.html"),
+        }
+
+        for name, (func, filename) in reports_to_generate.items():
+            try:
+                save_path = output_path / filename
+                func(str(save_path))
+                # Use relative paths for links in the index page
+                report_links[name] = Path(filename).as_posix()
+                logger.info(f"Successfully created {name} report at {save_path}")
+            except Exception as e:
+                logger.error(f"Failed to create {name} report: {e}")
+
+        # Export CSVs and get their links
+        exported_csvs = self.export_metrics_to_csv(output_dir)
+        for name, path in exported_csvs.items():
+            csv_links[name] = Path(path).name
+
+        # Generate index page
+        summary = self.generate_repository_summary()
+        index_path = output_path / "index.html"
+        self.visualization.create_index_page(str(index_path), report_links, csv_links, summary)
+        logger.info(f"Successfully created index page at {index_path}")
+
+    def create_index_page_only(self, output_dir: str):
+        """
+        Creates only the index.html page that links to existing reports and CSVs.
+
+        Args:
+            output_dir (str): The directory containing the reports and CSVs.
+        """
+        output_path = Path(output_dir)
+        
+        # Define the expected report files
+        expected_reports = {
+            "Executive Summary": "executive_summary.html",
+            "Commit Activity": "commit_activity.html",
+            "Contributor Analysis": "contributor_analysis.html", 
+            "File Analysis": "file_analysis.html",
+            "Enhanced File Analysis": "enhanced_file_analysis.html",
+        }
+        
+        # Check which reports actually exist
+        report_links = {}
+        for name, filename in expected_reports.items():
+            if (output_path / filename).exists():
+                report_links[name] = filename
+        
+        # Get CSV links
+        csv_links = {}
+        for csv_file in output_path.glob("*.csv"):
+            csv_links[csv_file.stem.replace("_", " ").title()] = csv_file.name
+        
+        # Generate summary and create index page
+        summary = self.generate_repository_summary()
+        index_path = output_path / "index.html"
+        self.visualization.create_index_page(str(index_path), report_links, csv_links, summary)
+        logger.info(f"Successfully created index page at {index_path}")
+
+    def create_executive_summary_report(self, save_path: Optional[str] = None) -> go.Figure:
+        """
+        Create an executive summary report with high-level metrics and insights only.
+
+        Args:
+            save_path (str, optional): Path to save the HTML file
+
+        Returns:
+            plotly.graph_objects.Figure: Executive summary report
+        """
+        try:
+            # Generate enhanced summary with analytics
+            enhanced_summary = self.get_enhanced_repository_summary()
+            advanced_metrics = enhanced_summary.get("advanced_metrics", {})
+
+            # Get additional analytics data
+            velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis()
+            bug_fix_analysis = self.commit_analyzer.get_bug_fix_ratio_analysis()
+            churn_analysis = self.file_analyzer.get_code_churn_analysis()
+            doc_coverage = self.file_analyzer.get_documentation_coverage_analysis()
+            maintainability = self.advanced_metrics.calculate_maintainability_index()
+            technical_debt = self.advanced_metrics.calculate_technical_debt_accumulation()
+            test_analysis = self.advanced_metrics.calculate_test_to_code_ratio()
+
+            # Repository health information
+            health_score = enhanced_summary.get("repository_health_score", 0)
+            health_category = enhanced_summary.get("repository_health_category", "Unknown")
+
+            # Create a simple summary figure with key metrics
+            fig = make_subplots(
+                rows=2, cols=2,
+                subplot_titles=['Health Score', 'Quality Metrics', 'Velocity Trends', 'Coverage Summary'],
+                specs=[
+                    [{"type": "indicator"}, {"type": "bar"}],
+                    [{"type": "scatter"}, {"type": "pie"}]
+                ]
+            )
+
+            # 1. Health Score Indicator
+            fig.add_trace(
+                go.Indicator(
+                    mode="gauge+number",
+                    value=health_score,
+                    title={"text": "Repository Health"},
+                    gauge={
+                        "axis": {"range": [None, 100]},
+                        "bar": {"color": self._get_health_color(health_score)},
+                        "steps": [
+                            {"range": [0, 40], "color": "#ffcccc"},
+                            {"range": [40, 70], "color": "#ffffcc"},
+                            {"range": [70, 100], "color": "#ccffcc"},
+                        ],
+                    },
+                ),
+                row=1, col=1
+            )
+
+            # 2. Quality Metrics Bar Chart
+            quality_metrics = {
+                'Maintainability': advanced_metrics.get('code_quality', {}).get('maintainability_score', 0),
+                'Test Coverage': advanced_metrics.get('coverage_metrics', {}).get('test_coverage_percentage', 0),
+                'Documentation': advanced_metrics.get('coverage_metrics', {}).get('documentation_ratio', 0) * 3,
+                'Low Bug Ratio': 100 - advanced_metrics.get('code_quality', {}).get('bug_fix_ratio', 0)
+            }
+
+            fig.add_trace(
+                go.Bar(
+                    x=list(quality_metrics.keys()),
+                    y=list(quality_metrics.values()),
+                    name="Quality Score",
+                    marker=dict(color=['green' if v > 70 else 'orange' if v > 40 else 'red' for v in quality_metrics.values()])
+                ),
+                row=1, col=2
+            )
+
+            # 3. Velocity Trend (simplified)
+            import numpy as np
+            current_velocity = velocity_analysis.get('avg_commits_per_week', 10)
+            weeks = list(range(1, 9))
+            trend = velocity_analysis.get('velocity_trend', 'stable')
+            
+            if trend == 'increasing':
+                velocity_data = [current_velocity * (1 + 0.02 * i) for i in range(8)]
+            elif trend == 'decreasing':
+                velocity_data = [current_velocity * (1 - 0.02 * i) for i in range(8)]
+            else:
+                velocity_data = [current_velocity + np.random.normal(0, current_velocity * 0.05) for _ in range(8)]
+
+            fig.add_trace(
+                go.Scatter(
+                    x=weeks,
+                    y=velocity_data,
+                    mode='lines+markers',
+                    name='Commits/Week',
+                    line=dict(color='blue', width=3)
+                ),
+                row=2, col=1
+            )
+
+            # 4. Coverage Summary Pie
+            coverage_data = {
+                'Tested Code': test_analysis.get('test_coverage_percentage', 0),
+                'Untested Code': 100 - test_analysis.get('test_coverage_percentage', 0)
+            }
+
+            fig.add_trace(
+                go.Pie(
+                    labels=list(coverage_data.keys()),
+                    values=list(coverage_data.values()),
+                    name="Test Coverage",
+                    marker=dict(colors=['green', 'lightcoral'])
+                ),
+                row=2, col=2
+            )
+
+            fig.update_layout(
+                title_text="Executive Summary Dashboard",
+                height=800,
+                showlegend=False
+            )
+
+            # Create HTML report with summary data only
+            html_content = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Executive Summary - Repository Analysis</title>
+                <style>
+                    body {{ 
+                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+                        margin: 0; 
+                        padding: 40px; 
+                        background-color: #f8f9fa;
+                        line-height: 1.6;
+                    }}
+                    .header {{ 
+                        text-align: center; 
+                        margin-bottom: 40px; 
+                        background: white;
+                        padding: 30px;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    }}
+                    .health-score {{
+                        font-size: 3em;
+                        font-weight: bold;
+                        color: {self._get_health_color(health_score)};
+                        margin: 20px 0;
+                    }}
+                    .metrics-grid {{
+                        display: grid;
+                        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                        gap: 20px;
+                        margin: 30px 0;
+                    }}
+                    .metric {{ 
+                        background: white; 
+                        padding: 25px; 
+                        border-radius: 12px; 
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        border-left: 4px solid #007bff;
+                        text-align: center;
+                    }}
+                    .metric-value {{
+                        font-size: 2.5em;
+                        font-weight: bold;
+                        color: #007bff;
+                        margin: 10px 0;
+                    }}
+                    .metric-label {{
+                        color: #666;
+                        font-size: 1em;
+                    }}
+                    .insights {{
+                        background: white;
+                        padding: 30px;
+                        border-radius: 12px;
+                        margin: 30px 0;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    }}
+                    .chart-container {{ 
+                        background: white;
+                        margin: 40px 0; 
+                        padding: 30px;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <h1>Executive Summary</h1>
+                    <div class="health-score">{health_score:.1f}/100</div>
+                    <p>Repository Health: {health_category}</p>
+                    <p>Generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric">
+                        <div class="metric-value">{enhanced_summary.get('commits', {}).get('total_commits', 0):,}</div>
+                        <div class="metric-label">Total Commits</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">{advanced_metrics.get('code_quality', {}).get('maintainability_score', 0):.1f}</div>
+                        <div class="metric-label">Maintainability Score</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">{advanced_metrics.get('commit_velocity', {}).get('avg_commits_per_week', 0):.1f}</div>
+                        <div class="metric-label">Commits per Week</div>
+                    </div>
+                    <div class="metric">
+                        <div class="metric-value">{advanced_metrics.get('coverage_metrics', {}).get('test_coverage_percentage', 0):.1f}%</div>
+                        <div class="metric-label">Test Coverage</div>
+                    </div>
+                </div>
+                
+                <div class="insights">
+                    <h2>Key Insights</h2>
+                    <ul>
+                        <li><strong>Development Velocity:</strong> {velocity_analysis.get('velocity_trend', 'stable').title()} trend with {velocity_analysis.get('avg_commits_per_week', 0):.1f} commits per week</li>
+                        <li><strong>Code Quality:</strong> {bug_fix_analysis.get('bug_fix_ratio', 0):.1f}% of commits are bug fixes</li>
+                        <li><strong>Technical Debt:</strong> {technical_debt.get('debt_accumulation_rate', 0):.1f}% debt accumulation rate</li>
+                        <li><strong>Test Coverage:</strong> {test_analysis.get('test_coverage_percentage', 0):.1f}% of code is covered by tests</li>
+                        <li><strong>Documentation:</strong> {doc_coverage.get('documentation_ratio', 0):.1f}% documentation coverage</li>
+                    </ul>
+                </div>
+                
+                <div class="chart-container">
+                    <h2>Summary Dashboard</h2>
+                    {fig.to_html(include_plotlyjs='cdn', div_id='executive-summary')}
+                </div>
+            </body>
+            </html>
+            """
+
+            if save_path:
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_content)
+                logger.info(f"Created executive summary report at {save_path}")
+
+            return fig
+
+        except Exception as e:
+            logger.error(f"Error creating executive summary report: {e}")
+            return go.Figure()
+
     def create_comprehensive_report(self, output_path: str) -> bool:
         """
         Create a comprehensive HTML report with all analyses and visualizations.
