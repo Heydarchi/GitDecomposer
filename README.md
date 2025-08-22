@@ -1,6 +1,7 @@
-# GitDecomposer
+# <img src="docs/GitComposer.png" width="128"/>GitDecomposer 
 
 A comprehensive Python toolkit for analyzing Git repositories. GitDecomposer provides detailed insights into commit patterns, contributor behavior, file changes, branch strategies, and overall repository health through an intuitive class-based API and interactive visualizations.
+
 
 ## Features
 
@@ -93,6 +94,8 @@ See the [`examples/`](examples/) directory for detailed usage examples:
 ## Architecture
 
 See the [Architecture Diagram](docs/architecture.puml) for system design and component relationships.
+
+<img src="docs/GitComposer-Class-Level.png" width="800"/>
 
 ## Documentation
 
