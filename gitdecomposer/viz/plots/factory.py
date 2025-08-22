@@ -81,7 +81,7 @@ def generate_all_reports_with_new_interface(metrics_coordinator, output_dir: str
                 "file_path": str(save_path),
                 "success": True,
             }
-            print(f"✓ Generated {plotter.title}: {save_path}")
+            print(f"Generated {plotter.title}: {save_path}")
 
         except Exception as e:
             report_info[name] = {
@@ -90,6 +90,6 @@ def generate_all_reports_with_new_interface(metrics_coordinator, output_dir: str
                 "error": str(e),
                 "success": False,
             }
-            print(f"✗ Failed to generate {plotter.title}: {e}")
+            print(f"Failed to generate {plotter.title}: {e}")
 
     return report_info

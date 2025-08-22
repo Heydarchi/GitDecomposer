@@ -186,7 +186,7 @@ if __name__ == "__main__":
     success = run_tests()
 
     if success:
-        print("\n✅ All tests passed!")
+        print("\nAll tests passed!")
     else:
         print("\n❌ Some tests failed!")
         sys.exit(1)

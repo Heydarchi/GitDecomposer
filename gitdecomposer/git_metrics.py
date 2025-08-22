@@ -179,9 +179,9 @@ class GitMetrics:
             logger.info("Starting repository summary generation...")
             try:
                 repo_stats = self.git_repo.get_repository_stats()
-                logger.info(f"✓ Repository stats retrieved: {type(repo_stats)}")
+                logger.info(f"Repository stats retrieved: {type(repo_stats)}")
             except Exception as e:
-                logger.error(f"✗ Error in get_repository_stats: {e}")
+                logger.error(f"Error in get_repository_stats: {e}")
                 import traceback
 
                 traceback.print_exc()
@@ -201,9 +201,9 @@ class GitMetrics:
             logger.info("Getting contributor statistics...")
             try:
                 contributor_stats = self.contributor_analyzer.get_contributor_statistics()
-                logger.info(f"✓ Contributor stats retrieved: {type(contributor_stats)}")
+                logger.info(f"Contributor stats retrieved: {type(contributor_stats)}")
             except Exception as e:
-                logger.error(f"✗ Error in get_contributor_statistics: {e}")
+                logger.error(f"Error in get_contributor_statistics: {e}")
                 import traceback
 
                 traceback.print_exc()
@@ -216,9 +216,9 @@ class GitMetrics:
             logger.info("Getting file extensions...")
             try:
                 file_extensions = self.file_analyzer.get_file_extensions_distribution()
-                logger.info(f"✓ File extensions retrieved: {type(file_extensions)}")
+                logger.info(f"File extensions retrieved: {type(file_extensions)}")
             except Exception as e:
-                logger.error(f"✗ Error in get_file_extensions_distribution: {e}")
+                logger.error(f"Error in get_file_extensions_distribution: {e}")
                 import traceback
 
                 traceback.print_exc()
@@ -229,9 +229,9 @@ class GitMetrics:
             logger.info("Getting most changed files...")
             try:
                 most_changed_files = self.file_analyzer.get_most_changed_files(10)
-                logger.info(f"✓ Most changed files retrieved: {type(most_changed_files)}")
+                logger.info(f"Most changed files retrieved: {type(most_changed_files)}")
             except Exception as e:
-                logger.error(f"✗ Error in get_most_changed_files: {e}")
+                logger.error(f"Error in get_most_changed_files: {e}")
                 import traceback
 
                 traceback.print_exc()
@@ -243,9 +243,9 @@ class GitMetrics:
             logger.info("Getting commit messages analysis...")
             try:
                 commit_messages = self.commit_analyzer.get_commit_messages_analysis()
-                logger.info(f"✓ Commit messages retrieved: {type(commit_messages)}")
+                logger.info(f"Commit messages retrieved: {type(commit_messages)}")
             except Exception as e:
-                logger.error(f"✗ Error in get_commit_messages_analysis: {e}")
+                logger.error(f"Error in get_commit_messages_analysis: {e}")
                 import traceback
 
                 traceback.print_exc()
@@ -256,9 +256,9 @@ class GitMetrics:
             logger.info("Getting merge commit analysis...")
             try:
                 merge_analysis = self.commit_analyzer.get_merge_commit_analysis()
-                logger.info(f"✓ Merge analysis retrieved: {type(merge_analysis)}")
+                logger.info(f"Merge analysis retrieved: {type(merge_analysis)}")
             except Exception as e:
-                logger.error(f"✗ Error in get_merge_commit_analysis: {e}")
+                logger.error(f"Error in get_merge_commit_analysis: {e}")
                 import traceback
 
                 traceback.print_exc()
@@ -270,9 +270,9 @@ class GitMetrics:
             logger.info("Getting branch statistics...")
             try:
                 branch_stats = self.branch_analyzer.get_branch_statistics()
-                logger.info(f"✓ Branch stats retrieved: {type(branch_stats)}")
+                logger.info(f"Branch stats retrieved: {type(branch_stats)}")
             except Exception as e:
-                logger.error(f"✗ Error in get_branch_statistics: {e}")
+                logger.error(f"Error in get_branch_statistics: {e}")
                 import traceback
 
                 traceback.print_exc()
@@ -283,9 +283,9 @@ class GitMetrics:
             logger.info("Getting branching strategy insights...")
             try:
                 branching_insights = self.branch_analyzer.get_branching_strategy_insights()
-                logger.info(f"✓ Branching insights retrieved: {type(branching_insights)}")
+                logger.info(f"Branching insights retrieved: {type(branching_insights)}")
             except Exception as e:
-                logger.error(f"✗ Error in get_branching_strategy_insights: {e}")
+                logger.error(f"Error in get_branching_strategy_insights: {e}")
                 import traceback
 
                 traceback.print_exc()

@@ -186,7 +186,7 @@ class CommitVelocity:
     @property
     def trend_indicator(self) -> str:
         """Get trend indicator symbol."""
-        return {"increasing": "↑", "decreasing": "↓", "stable": "→"}.get(self.trend, "?")
+        return {"increasing": "up", "decreasing": "down", "stable": "stable"}.get(self.trend, "unknown")
 
     @property
     def is_consistent(self) -> bool:
