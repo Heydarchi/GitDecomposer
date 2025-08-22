@@ -9,11 +9,11 @@ import logging
 from typing import Any, Dict, Optional
 
 from ..analyzers import (
-    AdvancedMetrics,
     BranchAnalyzer,
     CommitAnalyzer,
     ContributorAnalyzer,
     FileAnalyzer,
+    advanced_metrics,
 )
 from ..core import GitRepository
 from ..models.analysis import AnalysisConfig, AnalysisResults, AnalysisType
@@ -42,7 +42,7 @@ class DataAggregator:
         self.file_analyzer = FileAnalyzer(git_repo)
         self.contributor_analyzer = ContributorAnalyzer(git_repo)
         self.branch_analyzer = BranchAnalyzer(git_repo)
-        self.advanced_metrics = AdvancedMetrics(git_repo)
+        # Advanced metrics can be accessed via advanced_metrics.create_metric_analyzer()
 
         logger.info("DataAggregator initialized with all analyzers")
 

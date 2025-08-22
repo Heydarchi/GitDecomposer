@@ -23,11 +23,11 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from gitdecomposer.analyzers import (
-    AdvancedMetrics,
     BranchAnalyzer,
     CommitAnalyzer,
     ContributorAnalyzer,
     FileAnalyzer,
+    advanced_metrics,
 )
 from gitdecomposer.core.git_repository import GitRepository
 

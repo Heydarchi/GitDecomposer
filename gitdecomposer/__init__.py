@@ -9,11 +9,11 @@ __version__ = "1.0.0"
 __author__ = "GitDecomposer Team"
 
 from .analyzers import (
-    AdvancedMetrics,
     BranchAnalyzer,
     CommitAnalyzer,
     ContributorAnalyzer,
     FileAnalyzer,
+    advanced_metrics,
 )
 from .core import GitRepository
 from .git_metrics import GitMetrics
@@ -26,6 +26,6 @@ __all__ = [
     "ContributorAnalyzer",
     "BranchAnalyzer",
     "GitMetrics",
-    "AdvancedMetrics",
+    "advanced_metrics",
     "VisualizationEngine",
 ]

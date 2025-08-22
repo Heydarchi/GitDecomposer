@@ -13,11 +13,11 @@ from typing import Dict
 import pandas as pd
 
 from ..analyzers import (
-    AdvancedMetrics,
     BranchAnalyzer,
     CommitAnalyzer,
     ContributorAnalyzer,
     FileAnalyzer,
+    advanced_metrics,
 )
 from ..core import GitRepository
 
@@ -44,7 +44,7 @@ class ExportService:
         self.file_analyzer = FileAnalyzer(git_repo)
         self.contributor_analyzer = ContributorAnalyzer(git_repo)
         self.branch_analyzer = BranchAnalyzer(git_repo)
-        self.advanced_metrics = AdvancedMetrics(git_repo)
+        # Advanced metrics can be accessed via advanced_metrics.create_metric_analyzer()
 
         logger.info("ExportService initialized with all analyzers")
 

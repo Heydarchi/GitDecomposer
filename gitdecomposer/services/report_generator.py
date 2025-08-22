@@ -13,11 +13,11 @@ from typing import Dict, Optional
 import plotly.graph_objects as go
 
 from ..analyzers import (
-    AdvancedMetrics,
     BranchAnalyzer,
     CommitAnalyzer,
     ContributorAnalyzer,
     FileAnalyzer,
+    advanced_metrics,
 )
 from ..core import GitRepository
 from ..viz import VisualizationEngine
@@ -45,7 +45,7 @@ class ReportGenerator:
         self.file_analyzer = FileAnalyzer(git_repo)
         self.contributor_analyzer = ContributorAnalyzer(git_repo)
         self.branch_analyzer = BranchAnalyzer(git_repo)
-        self.advanced_metrics = AdvancedMetrics(git_repo)
+        # Advanced metrics can be accessed via advanced_metrics.create_metric_analyzer()
         # Initialize visualization engine with self as metrics coordinator
         self.visualization = VisualizationEngine(git_repo, self)
 
