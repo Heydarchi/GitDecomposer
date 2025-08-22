@@ -18,6 +18,7 @@ recursive-include scripts *.sh
 
 # Include test files
 recursive-include tests *.py
+recursive-include tests *.sh
 
 # Exclude compiled Python files and cache directories
 global-exclude *.pyc
