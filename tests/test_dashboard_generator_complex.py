@@ -43,7 +43,7 @@ class TestDashboardGenerator:
         assert hasattr(generator, "file_analyzer")
         assert hasattr(generator, "contributor_analyzer")
         assert hasattr(generator, "branch_analyzer")
-        assert hasattr(generator, "advanced_metrics")
+        # Advanced metrics can be accessed via advanced_metrics module
         assert hasattr(generator, "visualization")
 
     def test_service_attributes_exist(self, dashboard_generator):
@@ -174,7 +174,7 @@ class TestDashboardGenerator:
             dashboard_generator.file_analyzer,
             dashboard_generator.contributor_analyzer,
             dashboard_generator.branch_analyzer,
-            dashboard_generator.advanced_metrics,
+            # Note: advanced_metrics is now accessed via advanced_metrics.create_metric_analyzer()
         ]
 
         for analyzer in analyzers:

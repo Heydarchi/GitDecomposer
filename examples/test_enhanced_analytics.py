@@ -189,7 +189,7 @@ if __name__ == "__main__":
     success2 = test_individual_analytics()
 
     if success1 and success2:
-        print("\n🎉 All enhanced analytics tests passed!")
+        print("\nAll enhanced analytics tests passed!")
     else:
-        print("\n❌ Some tests failed. Check the output above.")
+        print("\nSome tests failed. Check the output above.")
         sys.exit(1)

@@ -44,7 +44,8 @@ class ExportService:
         self.file_analyzer = FileAnalyzer(git_repo)
         self.contributor_analyzer = ContributorAnalyzer(git_repo)
         self.branch_analyzer = BranchAnalyzer(git_repo)
-        # Advanced metrics can be accessed via advanced_metrics.create_metric_analyzer()
+        # Advanced metrics module for creating metric analyzers
+        self.advanced_metrics = advanced_metrics
 
         logger.info("ExportService initialized with all analyzers")
 

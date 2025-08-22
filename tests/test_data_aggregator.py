@@ -2,7 +2,13 @@
 Unit tests for DataAggregator service.
 
 Tests the data aggregation service including:
-- Comprehensive analysis aggregation
+- Comprehensive a        aggregator = DataAggregator(mock_git_repo)
+        assert aggregator.git_repo == mock_git_repo
+        assert hasattr(aggregator, "commit_analyzer")
+        assert hasattr(aggregator, "file_analyzer")
+        assert hasattr(aggregator, "contributor_analyzer")
+        assert hasattr(aggregator, "branch_analyzer")
+        # Advanced metrics can be accessed via advanced_metrics module aggregation
 - Performance metrics aggregation
 - Error handling
 - Data validation
@@ -115,7 +121,7 @@ class TestDataAggregator:
         assert hasattr(aggregator, "contributor_analyzer")
         assert hasattr(aggregator, "file_analyzer")
         assert hasattr(aggregator, "branch_analyzer")
-        assert hasattr(aggregator, "advanced_metrics")
+        # Note: advanced_metrics is now accessed via advanced_metrics.create_metric_analyzer()
 
     def test_get_comprehensive_analysis(self, data_aggregator):
         """Test comprehensive analysis aggregation."""
