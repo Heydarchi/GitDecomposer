@@ -866,6 +866,10 @@ class GitMetrics:
             "Contributor Analysis": (self.create_contributor_analysis_charts, "contributor_analysis.html"),
             "File Analysis": (self.create_file_analysis_visualization, "file_analysis.html"),
             "Enhanced File Analysis": (self.create_enhanced_file_analysis_dashboard, "enhanced_file_analysis.html"),
+            "Technical Debt": (self.create_technical_debt_dashboard, "technical_debt.html"),
+            "Repository Health": (self.create_repository_health_dashboard, "repository_health.html"),
+            "Predictive Maintenance": (self.create_predictive_maintenance_report, "predictive_maintenance.html"),
+            "Velocity Forecasting": (self.create_velocity_forecasting_dashboard, "velocity_forecasting.html"),
         }
 
         for name, (func, filename) in reports_to_generate.items():
@@ -905,6 +909,10 @@ class GitMetrics:
             "Contributor Analysis": "contributor_analysis.html", 
             "File Analysis": "file_analysis.html",
             "Enhanced File Analysis": "enhanced_file_analysis.html",
+            "Technical Debt": "technical_debt.html",
+            "Repository Health": "repository_health.html",
+            "Predictive Maintenance": "predictive_maintenance.html",
+            "Velocity Forecasting": "velocity_forecasting.html",
         }
         
         # Check which reports actually exist
@@ -1024,20 +1032,33 @@ class GitMetrics:
             )
 
             # 4. Coverage Summary Pie
+            test_coverage = max(0, min(100, test_analysis.get('test_coverage_percentage', 0)))
             coverage_data = {
-                'Tested Code': test_analysis.get('test_coverage_percentage', 0),
-                'Untested Code': 100 - test_analysis.get('test_coverage_percentage', 0)
+                'Tested Code': test_coverage,
+                'Untested Code': 100 - test_coverage
             }
 
-            fig.add_trace(
-                go.Pie(
-                    labels=list(coverage_data.keys()),
-                    values=list(coverage_data.values()),
-                    name="Test Coverage",
-                    marker=dict(colors=['green', 'lightcoral'])
-                ),
-                row=2, col=2
-            )
+            # Only add pie chart if there's meaningful data
+            if test_coverage > 0:
+                fig.add_trace(
+                    go.Pie(
+                        labels=list(coverage_data.keys()),
+                        values=list(coverage_data.values()),
+                        name="Test Coverage",
+                        marker=dict(colors=['green', 'lightcoral']),
+                        hole=0.3
+                    ),
+                    row=2, col=2
+                )
+            else:
+                # Show a message when no test data is available
+                fig.add_annotation(
+                    text="No test coverage<br>data available",
+                    x=0.875, y=0.25,  # Position for row=2, col=2
+                    xref="paper", yref="paper",
+                    showarrow=False,
+                    font=dict(size=14, color="gray")
+                )
 
             fig.update_layout(
                 title_text="Executive Summary Dashboard",

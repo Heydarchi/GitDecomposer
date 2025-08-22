@@ -135,11 +135,15 @@ class CLI:
         self.console.print(Rule("[bold]Visualizations[/bold]"))
         
         visualizations_to_create = {
+            "Executive Summary": (self.metrics.create_executive_summary_report, "executive_summary.html"),
             "Commit Activity": (self.metrics.create_commit_activity_dashboard, "commit_activity.html"),
             "Contributor Analysis": (self.metrics.create_contributor_analysis_charts, "contributor_analysis.html"),
             "File Analysis": (self.metrics.create_file_analysis_visualization, "file_analysis.html"),
             "Enhanced File Analysis": (self.metrics.create_enhanced_file_analysis_dashboard, "enhanced_file_analysis.html"),
-            "Executive Summary": (self.metrics.create_executive_summary_report, "executive_summary.html"),
+            "Technical Debt": (self.metrics.create_technical_debt_dashboard, "technical_debt.html"),
+            "Repository Health": (self.metrics.create_repository_health_dashboard, "repository_health.html"),
+            "Predictive Maintenance": (self.metrics.create_predictive_maintenance_report, "predictive_maintenance.html"),
+            "Velocity Forecasting": (self.metrics.create_velocity_forecasting_dashboard, "velocity_forecasting.html"),
         }
 
         with Progress(
