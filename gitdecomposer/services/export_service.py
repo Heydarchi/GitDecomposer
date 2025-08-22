@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class ExportService:
     """
     Service for exporting repository analysis data to various formats.
-    
+
     This class handles all data export responsibilities previously managed
     by GitMetrics, providing clean separation of concerns.
     """
@@ -64,13 +64,13 @@ class ExportService:
         try:
             # Export basic metrics
             self._export_basic_metrics(output_dir, exported_files)
-            
+
             # Export enhanced file analysis
             self._export_enhanced_file_analysis(output_dir, exported_files)
-            
+
             # Export enhanced commit analysis
             self._export_enhanced_commit_analysis(output_dir, exported_files)
-            
+
             # Export advanced metrics
             self._export_advanced_metrics(output_dir, exported_files)
 
@@ -222,7 +222,7 @@ class ExportService:
         """
         try:
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
-            
+
             # Map metric names to their data sources
             metric_exporters = {
                 "contributor_statistics": lambda: self.contributor_analyzer.get_contributor_statistics(),
@@ -231,7 +231,9 @@ class ExportService:
                 "most_changed_files": lambda: self.file_analyzer.get_most_changed_files(50),
                 "branch_statistics": lambda: self.branch_analyzer.get_branch_statistics(),
                 "file_hotspots": lambda: self.file_analyzer.get_file_hotspots_analysis(),
-                "code_churn": lambda: self.file_analyzer.get_code_churn_analysis().get("file_churn_rates", pd.DataFrame()),
+                "code_churn": lambda: self.file_analyzer.get_code_churn_analysis().get(
+                    "file_churn_rates", pd.DataFrame()
+                ),
             }
 
             if metric_name not in metric_exporters:
@@ -239,7 +241,7 @@ class ExportService:
                 return False
 
             data = metric_exporters[metric_name]()
-            
+
             if isinstance(data, pd.DataFrame) and not data.empty:
                 data.to_csv(output_path, index=False)
                 logger.info(f"Exported {metric_name} to {output_path}")

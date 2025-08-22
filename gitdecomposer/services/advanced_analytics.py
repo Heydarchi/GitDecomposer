@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 class AdvancedAnalytics:
     """
     Service for advanced analytics and predictive metrics.
-    
+
     This class handles advanced analytics responsibilities previously managed
     by GitMetrics, providing clean separation of concerns.
     """
@@ -94,7 +94,8 @@ class AdvancedAnalytics:
                         name="Debt Trend",
                         line=dict(color="red", width=3),
                     ),
-                    row=1, col=1
+                    row=1,
+                    col=1,
                 )
 
             # Maintainability indicator
@@ -119,7 +120,8 @@ class AdvancedAnalytics:
                         },
                     },
                 ),
-                row=1, col=2
+                row=1,
+                col=2,
             )
 
             # Test coverage pie chart
@@ -132,7 +134,8 @@ class AdvancedAnalytics:
                     name="Test Coverage",
                     marker_colors=["green", "red"],
                 ),
-                row=2, col=1
+                row=2,
+                col=1,
             )
 
             # Code churn analysis
@@ -145,7 +148,8 @@ class AdvancedAnalytics:
                         name="Churn Rate",
                         marker_color="orange",
                     ),
-                    row=2, col=2
+                    row=2,
+                    col=2,
                 )
 
             # Debt distribution by file type
@@ -158,7 +162,8 @@ class AdvancedAnalytics:
                         name="Debt by Type",
                         marker_color="purple",
                     ),
-                    row=3, col=1
+                    row=3,
+                    col=1,
                 )
 
             # Overall risk indicator
@@ -180,7 +185,8 @@ class AdvancedAnalytics:
                         ],
                     },
                 ),
-                row=3, col=2
+                row=3,
+                col=2,
             )
 
             # Update layout
@@ -248,7 +254,8 @@ class AdvancedAnalytics:
                         name="Velocity",
                         line=dict(color="blue"),
                     ),
-                    row=1, col=1
+                    row=1,
+                    col=1,
                 )
 
             # Bug fix ratio indicator
@@ -269,7 +276,8 @@ class AdvancedAnalytics:
                         ],
                     },
                 ),
-                row=1, col=2
+                row=1,
+                col=2,
             )
 
             # Test coverage indicator
@@ -290,7 +298,8 @@ class AdvancedAnalytics:
                         ],
                     },
                 ),
-                row=1, col=3
+                row=1,
+                col=3,
             )
 
             # Documentation ratio indicator
@@ -311,7 +320,8 @@ class AdvancedAnalytics:
                         ],
                     },
                 ),
-                row=2, col=1
+                row=2,
+                col=1,
             )
 
             # Maintainability trend (if available)
@@ -326,7 +336,8 @@ class AdvancedAnalytics:
                         name="Maintainability",
                         line=dict(color="darkgreen"),
                     ),
-                    row=2, col=2
+                    row=2,
+                    col=2,
                 )
 
             # Overall health score
@@ -351,7 +362,8 @@ class AdvancedAnalytics:
                         ],
                     },
                 ),
-                row=2, col=3
+                row=2,
+                col=3,
             )
 
             # Update layout
@@ -413,13 +425,22 @@ class AdvancedAnalytics:
                     # Historical data
                     fig.add_trace(
                         go.Scatter(
-                            x=velocity_data.index if hasattr(velocity_data, "index") else list(range(len(velocity_data))),
-                            y=velocity_data["commits"] if "commits" in velocity_data.columns else [0] * len(velocity_data),
+                            x=(
+                                velocity_data.index
+                                if hasattr(velocity_data, "index")
+                                else list(range(len(velocity_data)))
+                            ),
+                            y=(
+                                velocity_data["commits"]
+                                if "commits" in velocity_data.columns
+                                else [0] * len(velocity_data)
+                            ),
                             mode="lines+markers",
                             name="Historical Velocity",
                             line=dict(color="blue"),
                         ),
-                        row=1, col=1
+                        row=1,
+                        col=1,
                     )
 
                     # Forecast
@@ -431,7 +452,8 @@ class AdvancedAnalytics:
                             name="Forecast",
                             line=dict(color="red", dash="dash"),
                         ),
-                        row=1, col=1
+                        row=1,
+                        col=1,
                     )
 
             # Debt accumulation prediction
@@ -448,7 +470,8 @@ class AdvancedAnalytics:
                     name="Debt Forecast",
                     line=dict(color="orange"),
                 ),
-                row=1, col=2
+                row=1,
+                col=2,
             )
 
             # High-risk files
@@ -461,21 +484,25 @@ class AdvancedAnalytics:
                         name="Risk Score",
                         marker_color="red",
                     ),
-                    row=2, col=1
+                    row=2,
+                    col=1,
                 )
 
             # Maintenance recommendations (text summary)
             recommendations = self._generate_maintenance_recommendations(
                 velocity_analysis, debt_analysis, churn_analysis
             )
-            
+
             fig.add_annotation(
                 text=recommendations,
-                xref="x domain", yref="y domain",
-                x=0.5, y=0.5,
+                xref="x domain",
+                yref="y domain",
+                x=0.5,
+                y=0.5,
                 showarrow=False,
                 font=dict(size=12),
-                row=2, col=2
+                row=2,
+                col=2,
             )
 
             # Update layout
@@ -509,7 +536,7 @@ class AdvancedAnalytics:
         try:
             # Get velocity data
             velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis()
-            
+
             # Create velocity dashboard
             fig = make_subplots(
                 rows=2,
@@ -524,7 +551,7 @@ class AdvancedAnalytics:
 
             # Simple implementation for velocity forecasting
             # In a real implementation, this would use more sophisticated forecasting models
-            
+
             fig.update_layout(
                 title="Velocity Forecasting Dashboard",
                 showlegend=True,
@@ -553,7 +580,7 @@ class AdvancedAnalytics:
             Dict[str, str]: Mapping of report names to file paths
         """
         import os
-        
+
         os.makedirs(output_dir, exist_ok=True)
         generated_files = {}
 
@@ -562,8 +589,16 @@ class AdvancedAnalytics:
             reports = [
                 ("technical_debt", "technical_debt_dashboard.html", self.create_technical_debt_dashboard),
                 ("repository_health", "repository_health_dashboard.html", self.create_repository_health_dashboard),
-                ("predictive_maintenance", "predictive_maintenance_report.html", self.create_predictive_maintenance_report),
-                ("velocity_forecasting", "velocity_forecasting_dashboard.html", self.create_velocity_forecasting_dashboard),
+                (
+                    "predictive_maintenance",
+                    "predictive_maintenance_report.html",
+                    self.create_predictive_maintenance_report,
+                ),
+                (
+                    "velocity_forecasting",
+                    "velocity_forecasting_dashboard.html",
+                    self.create_velocity_forecasting_dashboard,
+                ),
             ]
 
             for report_name, filename, generator_func in reports:
@@ -582,7 +617,9 @@ class AdvancedAnalytics:
             logger.error(f"Error generating advanced reports: {e}")
             return generated_files
 
-    def _calculate_health_score(self, bug_ratio: float, test_coverage: float, doc_ratio: float, maintainability: float) -> Dict[str, float]:
+    def _calculate_health_score(
+        self, bug_ratio: float, test_coverage: float, doc_ratio: float, maintainability: float
+    ) -> Dict[str, float]:
         """Calculate health score factors."""
         return {
             "low_bug_ratio": max(0, (20 - bug_ratio) / 20),  # Lower bug ratio is better
@@ -591,29 +628,31 @@ class AdvancedAnalytics:
             "maintainability": maintainability / 100,
         }
 
-    def _generate_maintenance_recommendations(self, velocity_analysis: dict, debt_analysis: dict, churn_analysis: dict) -> str:
+    def _generate_maintenance_recommendations(
+        self, velocity_analysis: dict, debt_analysis: dict, churn_analysis: dict
+    ) -> str:
         """Generate maintenance recommendations based on analysis."""
         recommendations = []
-        
+
         # Velocity recommendations
         velocity_trend = velocity_analysis.get("velocity_trend", "stable")
         if velocity_trend == "declining":
             recommendations.append("• Consider team capacity planning")
-            
+
         # Debt recommendations
         debt_rate = debt_analysis.get("debt_accumulation_rate", 0)
         if debt_rate > 10:
             recommendations.append("• Schedule technical debt reduction")
-            
+
         # Churn recommendations
         high_churn_files = churn_analysis.get("high_churn_files", [])
         if len(high_churn_files) > 5:
             recommendations.append("• Review high-churn files for refactoring")
-            
+
         if not recommendations:
             recommendations.append("• Repository health is good")
             recommendations.append("• Continue current practices")
-            
+
         return "\n".join(recommendations)
 
     def _create_error_figure(self, error_message: str) -> go.Figure:
@@ -621,10 +660,12 @@ class AdvancedAnalytics:
         fig = go.Figure()
         fig.add_annotation(
             text=error_message,
-            xref="paper", yref="paper",
-            x=0.5, y=0.5,
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
             showarrow=False,
-            font=dict(size=16, color="red")
+            font=dict(size=16, color="red"),
         )
         fig.update_layout(
             title="Advanced Analytics Error",

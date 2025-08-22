@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 class DataAggregator:
     """
     Service for aggregating data from various analyzers and generating repository summaries.
-    
+
     This class consolidates data collection responsibilities previously handled
     by GitMetrics, providing clean separation of concerns.
     """
@@ -193,9 +193,17 @@ class DataAggregator:
                 },
                 "commits": {
                     "total_commits": repo_stats.get("total_commits", 0),
-                    "avg_commits_per_day": getattr(commit_stats, 'avg_commit_size', 0) / 7 if hasattr(commit_stats, 'avg_commit_size') else 0,
-                    "avg_commits_per_week": getattr(commit_stats, 'total_commits', 0) / 52 if hasattr(commit_stats, 'total_commits') else 0,
-                    "avg_commits_per_month": getattr(commit_stats, 'total_commits', 0) / 12 if hasattr(commit_stats, 'total_commits') else 0,
+                    "avg_commits_per_day": (
+                        getattr(commit_stats, "avg_commit_size", 0) / 7
+                        if hasattr(commit_stats, "avg_commit_size")
+                        else 0
+                    ),
+                    "avg_commits_per_week": (
+                        getattr(commit_stats, "total_commits", 0) / 52 if hasattr(commit_stats, "total_commits") else 0
+                    ),
+                    "avg_commits_per_month": (
+                        getattr(commit_stats, "total_commits", 0) / 12 if hasattr(commit_stats, "total_commits") else 0
+                    ),
                     "commit_frequency_data": commit_data,
                 },
                 "contributors": {
@@ -237,7 +245,7 @@ class DataAggregator:
         """
         try:
             repo_stats = self.git_repo.get_repository_stats()
-            
+
             return RepositoryInfo(
                 name=getattr(self.git_repo.repo, "name", "Unknown"),
                 path=str(self.git_repo.repo_path),
@@ -295,17 +303,17 @@ class DataAggregator:
 
         try:
             results = {}
-            
+
             # Run requested analyses
             if AnalysisType.COMMIT_ANALYSIS in config.analysis_types:
                 results["commit_analysis"] = self.commit_analyzer.get_commit_stats()
-                
+
             if AnalysisType.CONTRIBUTOR_ANALYSIS in config.analysis_types:
                 results["contributor_analysis"] = self.contributor_analyzer.get_contributor_statistics()
-                
+
             if AnalysisType.FILE_ANALYSIS in config.analysis_types:
                 results["file_analysis"] = self.file_analyzer.get_most_changed_files()
-                
+
             if AnalysisType.BRANCH_ANALYSIS in config.analysis_types:
                 results["branch_analysis"] = self.branch_analyzer.get_branch_statistics()
 

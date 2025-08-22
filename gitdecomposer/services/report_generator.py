@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 class ReportGenerator:
     """
     Service for generating comprehensive HTML reports and documentation.
-    
+
     This class handles report generation responsibilities previously managed
     by GitMetrics, providing clean separation of concerns.
     """
@@ -63,7 +63,7 @@ class ReportGenerator:
         """
         os.makedirs(output_dir, exist_ok=True)
         os.makedirs(os.path.join(output_dir, "HTML"), exist_ok=True)
-        
+
         generated_files = {}
 
         try:
@@ -72,7 +72,11 @@ class ReportGenerator:
                 ("commit_activity", "commit_analysis.html", self._create_commit_activity_dashboard),
                 ("contributor_analysis", "contributor_analysis.html", self._create_contributor_analysis_charts),
                 ("file_analysis", "file_analysis.html", self._create_file_analysis_visualization),
-                ("enhanced_file_analysis", "enhanced_file_analysis.html", self._create_enhanced_file_analysis_dashboard),
+                (
+                    "enhanced_file_analysis",
+                    "enhanced_file_analysis.html",
+                    self._create_enhanced_file_analysis_dashboard,
+                ),
                 ("executive_summary", "executive_summary.html", self._create_executive_summary_report),
             ]
 
@@ -120,7 +124,7 @@ class ReportGenerator:
 
             # Generate index HTML
             index_html = self._generate_index_html(output_dir, report_files)
-            
+
             # Save index page
             index_path = os.path.join(output_dir, "index.html")
             with open(index_path, "w", encoding="utf-8") as f:
@@ -160,7 +164,7 @@ class ReportGenerator:
 
             # Generate CSV data page HTML
             csv_html = self._generate_csv_data_html(output_dir, csv_files)
-            
+
             # Save CSV data page
             csv_page_path = os.path.join(output_dir, "csv_data.html")
             with open(csv_page_path, "w", encoding="utf-8") as f:
@@ -184,7 +188,7 @@ class ReportGenerator:
         """
         csv_dir = os.path.join(output_dir, "CSV")
         existing_files = []
-        
+
         # Check which CSV files actually exist
         for filename, title, description in csv_files:
             file_path = os.path.join(csv_dir, filename)
@@ -356,6 +360,7 @@ class ReportGenerator:
         try:
             # Get summary data
             from .data_aggregator import DataAggregator
+
             aggregator = DataAggregator(self.git_repo)
             enhanced_summary = aggregator.get_enhanced_repository_summary()
             basic_summary = aggregator.generate_repository_summary()
@@ -389,14 +394,15 @@ class ReportGenerator:
         try:
             # Get all analysis data
             from .data_aggregator import DataAggregator
+
             aggregator = DataAggregator(self.git_repo)
-            
+
             enhanced_summary = aggregator.get_enhanced_repository_summary()
             basic_summary = aggregator.generate_repository_summary()
 
             # Create comprehensive HTML content
             html_content = self._generate_comprehensive_html(enhanced_summary, basic_summary)
-            
+
             # Save the report
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
             with open(output_path, "w", encoding="utf-8") as f:
@@ -412,24 +418,28 @@ class ReportGenerator:
     def _create_commit_activity_dashboard(self, save_path: str) -> None:
         """Create commit activity dashboard."""
         from .dashboard_generator import DashboardGenerator
+
         dashboard = DashboardGenerator(self.git_repo)
         dashboard.create_commit_activity_dashboard(save_path)
 
     def _create_contributor_analysis_charts(self, save_path: str) -> None:
         """Create contributor analysis charts."""
         from .dashboard_generator import DashboardGenerator
+
         dashboard = DashboardGenerator(self.git_repo)
         dashboard.create_contributor_analysis_charts(save_path)
 
     def _create_file_analysis_visualization(self, save_path: str) -> None:
         """Create file analysis visualization."""
         from .dashboard_generator import DashboardGenerator
+
         dashboard = DashboardGenerator(self.git_repo)
         dashboard.create_file_analysis_visualization(save_path)
 
     def _create_enhanced_file_analysis_dashboard(self, save_path: str) -> None:
         """Create enhanced file analysis dashboard."""
         from .dashboard_generator import DashboardGenerator
+
         dashboard = DashboardGenerator(self.git_repo)
         dashboard.create_enhanced_file_analysis_dashboard(save_path)
 
@@ -514,34 +524,36 @@ class ReportGenerator:
         """Create executive summary figure."""
         # Create a simple metrics figure
         fig = go.Figure()
-        
+
         # Add key metrics as annotations
         health_score = enhanced_summary.get("repository_health_score", 0)
         total_commits = basic_summary.get("commits", {}).get("total_commits", 0)
         total_contributors = basic_summary.get("contributors", {}).get("total_contributors", 0)
-        
+
         fig.add_annotation(
             text=f"Repository Health Score: {health_score:.1f}/100<br>"
-                 f"Total Commits: {total_commits:,}<br>"
-                 f"Total Contributors: {total_contributors}",
-            xref="paper", yref="paper",
-            x=0.5, y=0.5,
+            f"Total Commits: {total_commits:,}<br>"
+            f"Total Contributors: {total_contributors}",
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
             showarrow=False,
-            font=dict(size=16)
+            font=dict(size=16),
         )
-        
+
         fig.update_layout(
             title="Executive Summary",
             template="plotly_white",
         )
-        
+
         return fig
 
     def _generate_executive_summary_html(self, enhanced_summary: dict, basic_summary: dict, fig: go.Figure) -> str:
         """Generate executive summary HTML content."""
         health_score = enhanced_summary.get("repository_health_score", 0)
         health_category = enhanced_summary.get("repository_health_category", "Unknown")
-        
+
         html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -607,17 +619,21 @@ class ReportGenerator:
         """Generate comprehensive report HTML content."""
         # This would be a much more detailed HTML report
         # For now, return a simplified version
-        return self._generate_executive_summary_html(enhanced_summary, basic_summary, self._create_executive_summary_figure(enhanced_summary, basic_summary))
+        return self._generate_executive_summary_html(
+            enhanced_summary, basic_summary, self._create_executive_summary_figure(enhanced_summary, basic_summary)
+        )
 
     def _create_error_figure(self, error_message: str) -> go.Figure:
         """Create a simple error figure when visualization fails."""
         fig = go.Figure()
         fig.add_annotation(
             text=error_message,
-            xref="paper", yref="paper",
-            x=0.5, y=0.5,
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
             showarrow=False,
-            font=dict(size=16, color="red")
+            font=dict(size=16, color="red"),
         )
         fig.update_layout(
             title="Report Generation Error",

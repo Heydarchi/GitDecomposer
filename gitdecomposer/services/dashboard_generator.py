@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 class DashboardGenerator:
     """
     Service for generating interactive dashboard visualizations.
-    
+
     This class handles dashboard creation responsibilities previously managed
     by GitMetrics, providing clean separation of concerns.
     """
@@ -122,7 +122,8 @@ class DashboardGenerator:
                         values=extensions_dist["count"],
                         name="File Extensions",
                     ),
-                    row=1, col=1
+                    row=1,
+                    col=1,
                 )
 
             # Most changed files bar chart
@@ -134,7 +135,8 @@ class DashboardGenerator:
                         name="Changes",
                         marker_color="lightblue",
                     ),
-                    row=1, col=2
+                    row=1,
+                    col=2,
                 )
 
             # Directory activity
@@ -147,7 +149,8 @@ class DashboardGenerator:
                         name="File Count",
                         marker_color="lightgreen",
                     ),
-                    row=2, col=1
+                    row=2,
+                    col=1,
                 )
 
             # File change patterns (timeline)
@@ -156,13 +159,22 @@ class DashboardGenerator:
                 if not file_timeline.empty:
                     fig.add_trace(
                         go.Scatter(
-                            x=file_timeline["file_path"][:10] if "file_path" in file_timeline.columns else file_timeline.index[:10],
-                            y=file_timeline["change_intensity"][:10] if "change_intensity" in file_timeline.columns else file_timeline["commit_count"][:10],
+                            x=(
+                                file_timeline["file_path"][:10]
+                                if "file_path" in file_timeline.columns
+                                else file_timeline.index[:10]
+                            ),
+                            y=(
+                                file_timeline["change_intensity"][:10]
+                                if "change_intensity" in file_timeline.columns
+                                else file_timeline["commit_count"][:10]
+                            ),
                             mode="lines+markers",
                             name="Files Changed",
                             line=dict(color="orange"),
                         ),
-                        row=2, col=2
+                        row=2,
+                        col=2,
                     )
             except Exception as e:
                 logger.warning(f"Could not add file change timeline: {e}")
@@ -225,19 +237,32 @@ class DashboardGenerator:
             if not hotspots.empty:
                 fig.add_trace(
                     go.Scatter(
-                        x=hotspots["total_lines_changed"][:15] if "total_lines_changed" in hotspots.columns else range(len(hotspots[:15])),
-                        y=hotspots["hotspot_score"][:15] if "hotspot_score" in hotspots.columns else hotspots.index[:15],
+                        x=(
+                            hotspots["total_lines_changed"][:15]
+                            if "total_lines_changed" in hotspots.columns
+                            else range(len(hotspots[:15]))
+                        ),
+                        y=(
+                            hotspots["hotspot_score"][:15]
+                            if "hotspot_score" in hotspots.columns
+                            else hotspots.index[:15]
+                        ),
                         mode="markers",
                         marker=dict(
                             size=hotspots["commit_count"][:15] if "commit_count" in hotspots.columns else 10,
-                            color=hotspots["total_lines_changed"][:15] if "total_lines_changed" in hotspots.columns else range(len(hotspots[:15])),
+                            color=(
+                                hotspots["total_lines_changed"][:15]
+                                if "total_lines_changed" in hotspots.columns
+                                else range(len(hotspots[:15]))
+                            ),
                             colorscale="Reds",
                             showscale=True,
                         ),
                         text=hotspots.index[:15],  # Use index as file names
                         name="Hotspots",
                     ),
-                    row=1, col=1
+                    row=1,
+                    col=1,
                 )
 
             # Code churn rate
@@ -250,7 +275,8 @@ class DashboardGenerator:
                         name="Churn Rate",
                         marker_color="coral",
                     ),
-                    row=1, col=2
+                    row=1,
+                    col=2,
                 )
 
             # Commit size distribution
@@ -264,7 +290,8 @@ class DashboardGenerator:
                         name="Size Distribution",
                         marker_color="lightblue",
                     ),
-                    row=2, col=1
+                    row=2,
+                    col=1,
                 )
 
             # Documentation coverage
@@ -276,7 +303,8 @@ class DashboardGenerator:
                     values=[doc_ratio, code_ratio],
                     name="Doc Coverage",
                 ),
-                row=2, col=2
+                row=2,
+                col=2,
             )
 
             # File change frequency
@@ -290,7 +318,8 @@ class DashboardGenerator:
                             name="Change Frequency",
                             marker_color="purple",
                         ),
-                        row=3, col=1
+                        row=3,
+                        col=1,
                     )
             except Exception as e:
                 logger.warning(f"Could not add file change frequency: {e}")
@@ -309,7 +338,8 @@ class DashboardGenerator:
                             text=dir_stats["directory"][:10],
                             name="Directory Health",
                         ),
-                        row=3, col=2
+                        row=3,
+                        col=2,
                     )
             except Exception as e:
                 logger.warning(f"Could not add directory health: {e}")
@@ -346,14 +376,14 @@ class DashboardGenerator:
             # Get branch data
             branch_stats = self.branch_analyzer.get_branch_statistics()
             active_branches = self.branch_analyzer.get_branch_statistics()
-            
+
             # Create basic branch visualization
             fig = make_subplots(
                 rows=2,
                 cols=2,
                 subplot_titles=[
                     "Branch Activity",
-                    "Branch Age Distribution", 
+                    "Branch Age Distribution",
                     "Commits per Branch",
                     "Branch Status",
                 ],
@@ -368,7 +398,8 @@ class DashboardGenerator:
                         name="Commits",
                         marker_color="skyblue",
                     ),
-                    row=1, col=1
+                    row=1,
+                    col=1,
                 )
 
             fig.update_layout(
@@ -393,10 +424,12 @@ class DashboardGenerator:
         fig = go.Figure()
         fig.add_annotation(
             text=error_message,
-            xref="paper", yref="paper",
-            x=0.5, y=0.5,
+            xref="paper",
+            yref="paper",
+            x=0.5,
+            y=0.5,
             showarrow=False,
-            font=dict(size=16, color="red")
+            font=dict(size=16, color="red"),
         )
         fig.update_layout(
             title="Visualization Error",
