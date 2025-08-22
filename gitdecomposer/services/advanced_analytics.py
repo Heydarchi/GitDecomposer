@@ -415,26 +415,18 @@ class AdvancedAnalytics:
             # Velocity forecast (simplified)
             if "weekly_velocity" in velocity_analysis and not velocity_analysis["weekly_velocity"].empty:
                 velocity_data = velocity_analysis["weekly_velocity"]
-                # Simple trend prediction
+                # Use correct columns: 'week_start' and 'commit_count'
                 recent_weeks = velocity_data.tail(4)
                 if not recent_weeks.empty:
-                    avg_velocity = recent_weeks["commits"].mean() if "commits" in recent_weeks.columns else 0
+                    avg_velocity = recent_weeks["commit_count"].mean() if "commit_count" in recent_weeks.columns else 0
                     forecast_weeks = list(range(len(velocity_data), len(velocity_data) + 4))
                     forecast_values = [avg_velocity] * 4
 
                     # Historical data
                     fig.add_trace(
                         go.Scatter(
-                            x=(
-                                velocity_data.index
-                                if hasattr(velocity_data, "index")
-                                else list(range(len(velocity_data)))
-                            ),
-                            y=(
-                                velocity_data["commits"]
-                                if "commits" in velocity_data.columns
-                                else [0] * len(velocity_data)
-                            ),
+                            x=velocity_data["week_start"] if "week_start" in velocity_data.columns else list(range(len(velocity_data))),
+                            y=velocity_data["commit_count"] if "commit_count" in velocity_data.columns else [0] * len(velocity_data),
                             mode="lines+markers",
                             name="Historical Velocity",
                             line=dict(color="blue"),
@@ -523,51 +515,7 @@ class AdvancedAnalytics:
             logger.error(f"Error creating predictive maintenance report: {e}")
             return self._create_error_figure("Error creating predictive maintenance report")
 
-    def create_velocity_forecasting_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
-        """
-        Create a velocity forecasting dashboard.
 
-        Args:
-            save_path (str, optional): Path to save the HTML file
-
-        Returns:
-            plotly.graph_objects.Figure: Velocity forecasting dashboard
-        """
-        try:
-            # Get velocity data
-            velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis()
-
-            # Create velocity dashboard
-            fig = make_subplots(
-                rows=2,
-                cols=2,
-                subplot_titles=[
-                    "Historical Velocity",
-                    "Velocity Trend",
-                    "Sprint Predictions",
-                    "Capacity Planning",
-                ],
-            )
-
-            # Simple implementation for velocity forecasting
-            # In a real implementation, this would use more sophisticated forecasting models
-
-            fig.update_layout(
-                title="Velocity Forecasting Dashboard",
-                showlegend=True,
-                height=800,
-                template="plotly_white",
-            )
-
-            if save_path:
-                fig.write_html(save_path)
-                logger.info(f"Velocity forecasting dashboard saved to {save_path}")
-
-            return fig
-
-        except Exception as e:
-            logger.error(f"Error creating velocity forecasting dashboard: {e}")
-            return self._create_error_figure("Error creating velocity forecasting dashboard")
 
     def generate_all_advanced_reports(self, output_dir: str = "advanced_reports") -> Dict[str, str]:
         """
@@ -585,58 +533,73 @@ class AdvancedAnalytics:
         generated_files = {}
 
         try:
-            # Generate advanced reports
-            reports = [
-                ("technical_debt", "technical_debt_dashboard.html", self.create_technical_debt_dashboard),
-                ("repository_health", "repository_health_dashboard.html", self.create_repository_health_dashboard),
-                (
-                    "predictive_maintenance",
-                    "predictive_maintenance_report.html",
-                    self.create_predictive_maintenance_report,
-                ),
-                (
-                    "velocity_forecasting",
-                    "velocity_forecasting_dashboard.html",
-                    self.create_velocity_forecasting_dashboard,
-                ),
-            ]
+            # Get predictive data for all available weeks
+            velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis(weeks_back=52)
+            churn_analysis = self.file_analyzer.get_code_churn_analysis()
+            debt_analysis = self.advanced_metrics.calculate_technical_debt_accumulation()
 
-            for report_name, filename, generator_func in reports:
-                try:
-                    file_path = os.path.join(output_dir, filename)
-                    generator_func(file_path)
-                    generated_files[report_name] = file_path
-                    logger.info(f"Generated {report_name} report: {file_path}")
-                except Exception as e:
-                    logger.error(f"Error generating {report_name} report: {e}")
+            # Create predictive dashboard
+            fig = make_subplots(
+                rows=2,
+                cols=2,
+                subplot_titles=[
+                    "Velocity Forecast",
+                    "Debt Accumulation Prediction",
+                    "High-Risk Files",
+                    "Maintenance Recommendations",
+                ],
+            )
 
-            logger.info(f"Generated {len(generated_files)} advanced reports in {output_dir}")
-            return generated_files
+            # Velocity forecast (show all available weeks)
+            if "weekly_velocity" in velocity_analysis and not velocity_analysis["weekly_velocity"].empty:
+                velocity_data = velocity_analysis["weekly_velocity"]
+                # Use last 4 weeks for forecast
+                recent_weeks = velocity_data.tail(4)
+                if not recent_weeks.empty:
+                    avg_velocity = recent_weeks["commit_count"].mean() if "commit_count" in recent_weeks.columns else 0
+                    forecast_weeks = list(range(len(velocity_data), len(velocity_data) + 4))
+                    forecast_values = [avg_velocity] * 4
+
+                # Historical data (all weeks)
+                fig.add_trace(
+                    go.Scatter(
+                        x=velocity_data["week_start"] if "week_start" in velocity_data.columns else list(range(len(velocity_data))),
+                        y=velocity_data["commit_count"] if "commit_count" in velocity_data.columns else [0] * len(velocity_data),
+                        mode="lines+markers",
+                        name="Historical Velocity",
+                        line=dict(color="blue"),
+                    ),
+                    row=1,
+                    col=1,
+                )
+
+                # Forecast (if available)
+                if not recent_weeks.empty:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=forecast_weeks,
+                            y=forecast_values,
+                            mode="lines+markers",
+                            name="Forecast",
+                            line=dict(color="red", dash="dash"),
+                        ),
+                        row=1,
+                        col=1,
+                    )
 
         except Exception as e:
-            logger.error(f"Error generating advanced reports: {e}")
-            return generated_files
-
-    def _calculate_health_score(
-        self, bug_ratio: float, test_coverage: float, doc_ratio: float, maintainability: float
-    ) -> Dict[str, float]:
-        """Calculate health score factors."""
-        return {
-            "low_bug_ratio": max(0, (20 - bug_ratio) / 20),  # Lower bug ratio is better
-            "test_coverage": min(test_coverage / 100, 1.0),
-            "documentation": min(doc_ratio / 50, 1.0),  # 50% doc ratio = perfect
-            "maintainability": maintainability / 100,
-        }
+            logger.error(f"Error creating predictive maintenance dashboard: {e}")
+            return self._create_error_figure("Error creating predictive maintenance dashboard")
 
     def _generate_maintenance_recommendations(
         self, velocity_analysis: dict, debt_analysis: dict, churn_analysis: dict
     ) -> str:
-        """Generate maintenance recommendations based on analysis."""
+        """Generate maintenance recommendations based on analysis data."""
         recommendations = []
 
         # Velocity recommendations
-        velocity_trend = velocity_analysis.get("velocity_trend", "stable")
-        if velocity_trend == "declining":
+        avg_velocity = velocity_analysis.get("average_velocity", 0)
+        if avg_velocity < 1:
             recommendations.append("• Consider team capacity planning")
 
         # Debt recommendations
@@ -654,6 +617,161 @@ class AdvancedAnalytics:
             recommendations.append("• Continue current practices")
 
         return "\n".join(recommendations)
+
+    def _calculate_health_score(
+        self, bug_ratio: float, test_coverage: float, doc_ratio: float, maintainability: float
+    ) -> dict:
+        """Calculate repository health score based on various factors."""
+        health_factors = {}
+        
+        # Bug ratio score (lower is better)
+        health_factors["bug_ratio"] = max(0, 1 - bug_ratio)
+        
+        # Test coverage score
+        health_factors["test_coverage"] = test_coverage / 100.0
+        
+        # Documentation ratio score
+        health_factors["documentation"] = doc_ratio / 100.0
+        
+        # Maintainability score
+        health_factors["maintainability"] = maintainability / 100.0
+        
+        return health_factors
+
+    def create_velocity_forecasting_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
+        """
+        Create a velocity forecasting dashboard with predictive analytics.
+
+        Args:
+            save_path (str, optional): Path to save the HTML file
+
+        Returns:
+            plotly.graph_objects.Figure: Velocity forecasting dashboard
+        """
+        try:
+            # Get velocity data
+            velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis(weeks_back=12)
+            
+            # Create forecasting dashboard
+            fig = make_subplots(
+                rows=2,
+                cols=2,
+                subplot_titles=[
+                    "Velocity Trend",
+                    "Velocity Distribution",
+                    "Team Productivity",
+                    "Forecasting"
+                ],
+                specs=[
+                    [{"secondary_y": False}, {"type": "histogram"}],
+                    [{"type": "indicator"}, {"secondary_y": False}],
+                ],
+            )
+
+            # Velocity trend over time
+            if "velocity_trend" in velocity_analysis:
+                trend_data = velocity_analysis["velocity_trend"]
+                # Check if trend_data is a DataFrame and not empty
+                if hasattr(trend_data, 'empty') and not trend_data.empty:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=trend_data.index if hasattr(trend_data, 'index') else list(range(len(trend_data))),
+                            y=trend_data.values if hasattr(trend_data, 'values') else trend_data,
+                            mode="lines+markers",
+                            name="Velocity Trend",
+                            line=dict(color="blue", width=2),
+                        ),
+                        row=1,
+                        col=1,
+                    )
+                elif isinstance(trend_data, (list, tuple)) and len(trend_data) > 0:
+                    fig.add_trace(
+                        go.Scatter(
+                            x=list(range(len(trend_data))),
+                            y=trend_data,
+                            mode="lines+markers",
+                            name="Velocity Trend",
+                            line=dict(color="blue", width=2),
+                        ),
+                        row=1,
+                        col=1,
+                    )
+
+            # Velocity distribution
+            velocity_values = velocity_analysis.get("velocity_values", [1, 2, 3, 4, 5])
+            fig.add_trace(
+                go.Histogram(
+                    x=velocity_values,
+                    name="Velocity Distribution",
+                    marker_color="lightblue",
+                ),
+                row=1,
+                col=2,
+            )
+
+            # Team productivity metrics
+            avg_velocity = velocity_analysis.get("average_velocity", 0)
+            productivity_score = min(100, avg_velocity * 20)  # Convert to 0-100 scale
+            
+            fig.add_trace(
+                go.Indicator(
+                    mode="gauge+number",
+                    value=productivity_score,
+                    domain={"x": [0, 1], "y": [0, 1]},
+                    title={"text": "Productivity Score"},
+                    gauge={
+                        "axis": {"range": [None, 100]},
+                        "bar": {"color": "green"},
+                        "steps": [
+                            {"range": [0, 50], "color": "red"},
+                            {"range": [50, 80], "color": "yellow"},
+                            {"range": [80, 100], "color": "green"},
+                        ],
+                    },
+                ),
+                row=2,
+                col=1,
+            )
+
+            # Simple forecasting (linear trend)
+            if len(velocity_values) > 2:
+                # Create simple forecast
+                forecast_weeks = list(range(len(velocity_values), len(velocity_values) + 4))
+                if len(velocity_values) >= 2:
+                    trend = velocity_values[-1] - velocity_values[-2]
+                    forecast_values = [velocity_values[-1] + trend * i for i in range(1, 5)]
+                else:
+                    forecast_values = [avg_velocity] * 4
+
+                fig.add_trace(
+                    go.Scatter(
+                        x=forecast_weeks,
+                        y=forecast_values,
+                        mode="lines+markers",
+                        name="Forecast",
+                        line=dict(color="red", dash="dash"),
+                    ),
+                    row=2,
+                    col=2,
+                )
+
+            # Update layout
+            fig.update_layout(
+                title="Velocity Forecasting Dashboard",
+                showlegend=True,
+                height=800,
+                template="plotly_white",
+            )
+
+            if save_path:
+                fig.write_html(save_path)
+                logger.info(f"Velocity forecasting dashboard saved to {save_path}")
+
+            return fig
+
+        except Exception as e:
+            logger.error(f"Error creating velocity forecasting dashboard: {e}")
+            return self._create_error_figure("Error creating velocity forecasting dashboard")
 
     def _create_error_figure(self, error_message: str) -> go.Figure:
         """Create a simple error figure when visualization fails."""
