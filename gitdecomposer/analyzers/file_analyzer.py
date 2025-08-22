@@ -12,9 +12,18 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 import pandas as pd
 
 from ..core.git_repository import GitRepository
-from ..models.file import (ChangeType, CodeOwnership, CodeQuality,
-                           DirectoryStats, FileChange, FileInfo, FileNetwork,
-                           FileStats, FileType, HotspotFile)
+from ..models.file import (
+    ChangeType,
+    CodeOwnership,
+    CodeQuality,
+    DirectoryStats,
+    FileChange,
+    FileInfo,
+    FileNetwork,
+    FileStats,
+    FileType,
+    HotspotFile,
+)
 
 logger = logging.getLogger(__name__)
 

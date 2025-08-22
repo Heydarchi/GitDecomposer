@@ -108,7 +108,13 @@ class VisualizationEngine:
         """
         return create_technical_debt_dashboard(self.metrics, save_path)
 
-    def create_index_page(self, output_path: str, report_links: Dict[str, str], csv_links: Dict[str, str], summary: Dict):
+    def create_index_page(
+        self,
+        output_path: str,
+        report_links: Dict[str, str],
+        csv_links: Dict[str, str],
+        summary: Dict,
+    ):
         """
         Creates a main index.html page with links to all reports and CSVs.
 

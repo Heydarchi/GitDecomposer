@@ -60,11 +60,15 @@ class CLI:
         """Validate repository path and set up output directory."""
         self.repo_path = Path(self.args.repository).resolve()
         if not self.repo_path.exists():
-            self.console.print(f"[bold red]Error: Repository path '{self.repo_path}' does not exist[/bold red]")
+            self.console.print(
+                f"[bold red]Error: Repository path '{self.repo_path}' does not exist[/bold red]"
+            )
             sys.exit(1)
 
         if not (self.repo_path / ".git").exists():
-            self.console.print(f"[bold red]Error: '{self.repo_path}' is not a Git repository[/bold red]")
+            self.console.print(
+                f"[bold red]Error: '{self.repo_path}' is not a Git repository[/bold red]"
+            )
             sys.exit(1)
 
         self.output_dir = Path(self.args.output)
@@ -87,8 +91,14 @@ class CLI:
                 self.console.print(f"Summary result type: {type(summary)}, value: {summary}")
 
             if not summary or "error" in summary:
-                error_msg = summary.get("error", "Unknown error") if summary else "Summary generation failed"
-                self.console.print(f"[bold red]Error generating repository summary: {error_msg}[/bold red]")
+                error_msg = (
+                    summary.get("error", "Unknown error")
+                    if summary
+                    else "Summary generation failed"
+                )
+                self.console.print(
+                    f"[bold red]Error generating repository summary: {error_msg}[/bold red]"
+                )
                 return
 
             self._display_summary(summary)
@@ -102,12 +112,14 @@ class CLI:
 
             self._display_recommendations(summary)
 
-            self.console.print(f"\n[bold green]Analysis complete! Results saved to: {self.output_dir.resolve()}[/bold green]")
+            self.console.print(
+                f"\n[bold green]Analysis complete! Results saved to: {self.output_dir.resolve()}[/bold green]"
+            )
 
     def _display_summary(self, summary):
         """Display the repository summary in a panel."""
         self.console.print(Rule("[bold]Repository Analysis Summary[/bold]"))
-        
+
         repo_info = summary.get("repository_info", {})
         commits_info = summary.get("commits", {})
         contributors_info = summary.get("contributors", {})
@@ -116,13 +128,13 @@ class CLI:
         table = Table(show_header=False, box=None, padding=(0, 2))
         table.add_column(style="cyan")
         table.add_column()
-        table.add_row("Repository:", str(repo_info.get('path', 'Unknown')))
-        table.add_row("Active Branch:", repo_info.get('active_branch', 'Unknown'))
-        table.add_row("Total Commits:", str(commits_info.get('total_commits', 0)))
-        table.add_row("Contributors:", str(contributors_info.get('total_contributors', 0)))
-        table.add_row("Branches:", str(branches_info.get('total_branches', 0)))
-        table.add_row("Branching Model:", branches_info.get('branching_model', 'Unknown'))
-        
+        table.add_row("Repository:", str(repo_info.get("path", "Unknown")))
+        table.add_row("Active Branch:", repo_info.get("active_branch", "Unknown"))
+        table.add_row("Total Commits:", str(commits_info.get("total_commits", 0)))
+        table.add_row("Contributors:", str(contributors_info.get("total_contributors", 0)))
+        table.add_row("Branches:", str(branches_info.get("total_branches", 0)))
+        table.add_row("Branching Model:", branches_info.get("branching_model", "Unknown"))
+
         self.console.print(Panel(table, expand=False))
 
     def _export_csv(self):
@@ -135,20 +147,44 @@ class CLI:
     def _create_visualizations(self):
         """Create and save HTML visualizations."""
         self.console.print(Rule("[bold]Visualizations[/bold]"))
-        
+
         html_dir = self.output_dir / "HTML"
         html_dir.mkdir(parents=True, exist_ok=True)
-        
+
         visualizations_to_create = {
-            "Executive Summary": (self.metrics.create_executive_summary_report, "executive_summary.html"),
-            "Commit Activity": (self.metrics.create_commit_activity_dashboard, "commit_activity.html"),
-            "Contributor Analysis": (self.metrics.create_contributor_analysis_charts, "contributor_analysis.html"),
-            "File Analysis": (self.metrics.create_file_analysis_visualization, "file_analysis.html"),
-            "Enhanced File Analysis": (self.metrics.create_enhanced_file_analysis_dashboard, "enhanced_file_analysis.html"),
+            "Executive Summary": (
+                self.metrics.create_executive_summary_report,
+                "executive_summary.html",
+            ),
+            "Commit Activity": (
+                self.metrics.create_commit_activity_dashboard,
+                "commit_activity.html",
+            ),
+            "Contributor Analysis": (
+                self.metrics.create_contributor_analysis_charts,
+                "contributor_analysis.html",
+            ),
+            "File Analysis": (
+                self.metrics.create_file_analysis_visualization,
+                "file_analysis.html",
+            ),
+            "Enhanced File Analysis": (
+                self.metrics.create_enhanced_file_analysis_dashboard,
+                "enhanced_file_analysis.html",
+            ),
             "Technical Debt": (self.metrics.create_technical_debt_dashboard, "technical_debt.html"),
-            "Repository Health": (self.metrics.create_repository_health_dashboard, "repository_health.html"),
-            "Predictive Maintenance": (self.metrics.create_predictive_maintenance_report, "predictive_maintenance.html"),
-            "Velocity Forecasting": (self.metrics.create_velocity_forecasting_dashboard, "velocity_forecasting.html"),
+            "Repository Health": (
+                self.metrics.create_repository_health_dashboard,
+                "repository_health.html",
+            ),
+            "Predictive Maintenance": (
+                self.metrics.create_predictive_maintenance_report,
+                "predictive_maintenance.html",
+            ),
+            "Velocity Forecasting": (
+                self.metrics.create_velocity_forecasting_dashboard,
+                "velocity_forecasting.html",
+            ),
         }
 
         with Progress(
@@ -157,7 +193,9 @@ class CLI:
             TextColumn("[progress.description]{task.description}"),
             transient=True,
         ) as progress:
-            task = progress.add_task("Creating visualizations...", total=len(visualizations_to_create))
+            task = progress.add_task(
+                "Creating visualizations...", total=len(visualizations_to_create)
+            )
             for name, (func, filename) in visualizations_to_create.items():
                 progress.update(task, description=f"Creating {name}...")
                 try:
@@ -167,12 +205,14 @@ class CLI:
                 except Exception as e:
                     self.console.print(f"  ✗ Failed to create {name}: [red]{e}[/red]")
                 progress.update(task, advance=1)
-        
+
         # Generate the index page that links to all reports
         try:
             self.metrics.create_index_page_only(str(self.output_dir))
             index_path = self.output_dir / "index.html"
-            self.console.print(f"  ✓ Created: [link=file://{index_path.resolve()}]index.html[/link] (Main Dashboard)")
+            self.console.print(
+                f"  ✓ Created: [link=file://{index_path.resolve()}]index.html[/link] (Main Dashboard)"
+            )
             self.console.print(f"✓ HTML reports saved to {html_dir}")
         except Exception as e:
             self.console.print(f"  ✗ Failed to create index page: [red]{e}[/red]")

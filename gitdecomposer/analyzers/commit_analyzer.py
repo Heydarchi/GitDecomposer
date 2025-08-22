@@ -12,9 +12,15 @@ import pandas as pd
 from git.objects import Commit
 
 from ..core.git_repository import GitRepository
-from ..models.commit import (CommitFrequency, CommitInfo, CommitPattern,
-                             CommitQuality, CommitStats, CommitType,
-                             CommitVelocity)
+from ..models.commit import (
+    CommitFrequency,
+    CommitInfo,
+    CommitPattern,
+    CommitQuality,
+    CommitStats,
+    CommitType,
+    CommitVelocity,
+)
 
 logger = logging.getLogger(__name__)
 

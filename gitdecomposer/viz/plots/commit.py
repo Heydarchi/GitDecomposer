@@ -1,6 +1,7 @@
 """
 Plotting functions for commit-related visualizations.
 """
+
 from typing import Optional
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -9,33 +10,33 @@ from .base import BasePlotter
 
 class CommitPlotter(BasePlotter):
     """Plotter for commit-related visualizations."""
-    
+
     @property
     def title(self) -> str:
         return "Commit Activity Analysis"
-    
+
     @property
     def description(self) -> str:
         return "Comprehensive analysis of commit patterns, timing, and distribution across the repository."
-    
-    def get_subplot_descriptions(self, visualization_type: str = 'default') -> dict[str, str]:
+
+    def get_subplot_descriptions(self, visualization_type: str = "default") -> dict[str, str]:
         """
         Returns a dictionary of subplot titles and their descriptions.
         """
         return {
-            'Commits Over Time': 'This chart shows the number of commits made to the repository over time. It helps to identify periods of high and low activity, development cycles, and project milestones.',
-            'Commits by Hour of Day': 'This chart shows the distribution of commits by the hour of the day. It can help to understand the daily workflow patterns of the development team and identify peak productivity hours.',
-            'Commits by Day of Week': 'This chart shows the distribution of commits by the day of the week. It can help to understand the weekly workflow patterns and identify whether development follows business days or extends to weekends.',
-            'Commit Size Distribution': 'This chart shows the distribution of commit sizes, based on the number of files changed in each commit. It can help to identify large commits that may need to be broken down for better code review and maintenance.'
+            "Commits Over Time": "This chart shows the number of commits made to the repository over time. It helps to identify periods of high and low activity, development cycles, and project milestones.",
+            "Commits by Hour of Day": "This chart shows the distribution of commits by the hour of the day. It can help to understand the daily workflow patterns of the development team and identify peak productivity hours.",
+            "Commits by Day of Week": "This chart shows the distribution of commits by the day of the week. It can help to understand the weekly workflow patterns and identify whether development follows business days or extends to weekends.",
+            "Commit Size Distribution": "This chart shows the distribution of commit sizes, based on the number of files changed in each commit. It can help to identify large commits that may need to be broken down for better code review and maintenance.",
         }
-    
+
     def create_visualization(self, save_path: Optional[str] = None) -> go.Figure:
         """
         Create comprehensive commit activity dashboard.
-        
+
         Args:
             save_path (Optional[str]): Path to save the dashboard HTML file
-            
+
         Returns:
             go.Figure: Plotly figure object
         """
@@ -44,68 +45,89 @@ class CommitPlotter(BasePlotter):
         commits_by_hour = self.metrics_coordinator.commit_analyzer.get_commits_by_hour()
         commits_by_weekday = self.metrics_coordinator.commit_analyzer.get_commits_by_weekday()
         commit_sizes = self.metrics_coordinator.commit_analyzer.get_commit_size_distribution()
-        
+
         # Create subplots
         fig = make_subplots(
-            rows=2, cols=2,
-            subplot_titles=('Commits Over Time', 'Commits by Hour of Day', 
-                          'Commits by Day of Week', 'Commit Size Distribution'),
-            specs=[[{"secondary_y": False}, {"secondary_y": False}],
-                   [{"secondary_y": False}, {"secondary_y": False}]]
+            rows=2,
+            cols=2,
+            subplot_titles=(
+                "Commits Over Time",
+                "Commits by Hour of Day",
+                "Commits by Day of Week",
+                "Commit Size Distribution",
+            ),
+            specs=[
+                [{"secondary_y": False}, {"secondary_y": False}],
+                [{"secondary_y": False}, {"secondary_y": False}],
+            ],
         )
-        
+
         # Commits over time
         if not commits_by_date.empty:
             fig.add_trace(
-                go.Scatter(x=commits_by_date['date'], y=commits_by_date['commit_count'], 
-                          mode='lines+markers', name='Daily Commits'),
-                row=1, col=1
+                go.Scatter(
+                    x=commits_by_date["date"],
+                    y=commits_by_date["commit_count"],
+                    mode="lines+markers",
+                    name="Daily Commits",
+                ),
+                row=1,
+                col=1,
             )
-        
+
         # Commits by hour
         if not commits_by_hour.empty:
             fig.add_trace(
-                go.Bar(x=commits_by_hour['hour'], y=commits_by_hour['commit_count'], 
-                      name='Hourly Distribution'),
-                row=1, col=2
+                go.Bar(
+                    x=commits_by_hour["hour"],
+                    y=commits_by_hour["commit_count"],
+                    name="Hourly Distribution",
+                ),
+                row=1,
+                col=2,
             )
-        
+
         # Commits by weekday
         if not commits_by_weekday.empty:
             fig.add_trace(
-                go.Bar(x=commits_by_weekday['weekday'], y=commits_by_weekday['commit_count'], 
-                      name='Weekly Distribution'),
-                row=2, col=1
+                go.Bar(
+                    x=commits_by_weekday["weekday"],
+                    y=commits_by_weekday["commit_count"],
+                    name="Weekly Distribution",
+                ),
+                row=2,
+                col=1,
             )
-        
+
         # Commit size distribution
         if not commit_sizes.empty:
             fig.add_trace(
-                go.Histogram(x=commit_sizes['files_changed'], name='Size Distribution'),
-                row=2, col=2
+                go.Histogram(x=commit_sizes["files_changed"], name="Size Distribution"),
+                row=2,
+                col=2,
             )
-        
+
         fig.update_layout(
-            title='Repository Commit Activity Dashboard',
-            height=800,
-            showlegend=False
+            title="Repository Commit Activity Dashboard", height=800, showlegend=False
         )
-        
+
         if save_path:
             self.save_html(fig, save_path)
-        
+
         return fig
 
 
 # Backwards compatibility function
-def create_commit_activity_dashboard(metrics_coordinator, save_path: Optional[str] = None) -> go.Figure:
+def create_commit_activity_dashboard(
+    metrics_coordinator, save_path: Optional[str] = None
+) -> go.Figure:
     """
     Backwards compatibility function for commit activity dashboard.
-    
+
     Args:
         metrics_coordinator: GitMetrics instance for data access.
         save_path (Optional[str]): Path to save the dashboard HTML file
-        
+
     Returns:
         go.Figure: Plotly figure object
     """

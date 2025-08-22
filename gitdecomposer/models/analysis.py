@@ -10,18 +10,23 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
-from .branch import (BranchCollaboration, BranchingStrategy, BranchStats,
-                     MergeAnalysis)
-from .commit import (CommitFrequency, CommitPattern, CommitQuality,
-                     CommitStats, CommitVelocity)
-from .contributor import (ContributorActivity, ContributorCollaboration,
-                          ContributorStats, TeamDynamics)
-from .file import (CodeOwnership, CodeQuality, DirectoryStats, FileNetwork,
-                   FileStats, HotspotFile)
-from .metrics import (CollaborationMetrics, MetricsDashboard,
-                      ProductivityMetrics, QualityMetrics, TechnicalMetrics)
-from .repository import (AdvancedRepositorySummary, RepositoryInfo,
-                         RepositorySummary)
+from .branch import BranchCollaboration, BranchingStrategy, BranchStats, MergeAnalysis
+from .commit import CommitFrequency, CommitPattern, CommitQuality, CommitStats, CommitVelocity
+from .contributor import (
+    ContributorActivity,
+    ContributorCollaboration,
+    ContributorStats,
+    TeamDynamics,
+)
+from .file import CodeOwnership, CodeQuality, DirectoryStats, FileNetwork, FileStats, HotspotFile
+from .metrics import (
+    CollaborationMetrics,
+    MetricsDashboard,
+    ProductivityMetrics,
+    QualityMetrics,
+    TechnicalMetrics,
+)
+from .repository import AdvancedRepositorySummary, RepositoryInfo, RepositorySummary
 
 
 class AnalysisType(Enum):

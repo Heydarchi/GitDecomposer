@@ -1,6 +1,7 @@
 """
 Base class for all plotting modules in GitDecomposer.
 """
+
 from abc import ABC, abstractmethod
 from typing import Optional
 import plotly.graph_objects as go
@@ -9,43 +10,45 @@ import plotly.graph_objects as go
 class BasePlotter(ABC):
     """
     Abstract base class for all plotting modules.
-    
+
     This class defines the common interface that all plotting classes should implement.
     """
-    
+
     def __init__(self, metrics_coordinator):
         """
         Initialize the plotter with a metrics coordinator.
-        
+
         Args:
             metrics_coordinator: GitMetrics instance for data access.
         """
         self.metrics_coordinator = metrics_coordinator
-    
+
     @abstractmethod
     def create_visualization(self, save_path: Optional[str] = None) -> go.Figure:
         """
         Create the main visualization for this plotter.
-        
+
         Args:
             save_path (Optional[str]): Path to save the HTML file
-            
+
         Returns:
             go.Figure: Plotly figure object
         """
         pass
-    
-    def save_html(self, fig: go.Figure, save_path: str, visualization_type: str = 'default') -> None:
+
+    def save_html(
+        self, fig: go.Figure, save_path: str, visualization_type: str = "default"
+    ) -> None:
         """
         Save the figure as an HTML file with an explanation section.
-        
+
         Args:
             fig (go.Figure): The plotly figure to save
             save_path (str): Path to save the HTML file
             visualization_type (str): The type of visualization to get descriptions for.
         """
-        html = fig.to_html(full_html=True, include_plotlyjs='cdn')
-        
+        html = fig.to_html(full_html=True, include_plotlyjs="cdn")
+
         # Create the explanation HTML
         descriptions = self.get_subplot_descriptions(visualization_type)
         if descriptions:
@@ -61,13 +64,13 @@ class BasePlotter(ABC):
                 </div>
                 """
             explanation_html += "</div>"
-            
+
             # Inject the explanation before the closing body tag
             if "</body>" in html:
                 html = html.replace("</body>", explanation_html + "</body>")
             else:
                 html += explanation_html
-            
+
         with open(save_path, "w", encoding="utf-8") as f:
             f.write(html)
 
@@ -76,7 +79,7 @@ class BasePlotter(ABC):
     def title(self) -> str:
         """Return the title of this visualization."""
         pass
-    
+
     @property
     @abstractmethod
     def description(self) -> str:

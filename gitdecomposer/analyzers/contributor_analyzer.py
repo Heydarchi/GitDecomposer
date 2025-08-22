@@ -10,11 +10,16 @@ from typing import Any, Dict, List, Optional, Set, Tuple
 import pandas as pd
 
 from ..core.git_repository import GitRepository
-from ..models.contributor import (ActivityLevel, ContributorActivity,
-                                  ContributorCollaboration,
-                                  ContributorExpertise, ContributorInfo,
-                                  ContributorRole, ContributorStats,
-                                  TeamDynamics)
+from ..models.contributor import (
+    ActivityLevel,
+    ContributorActivity,
+    ContributorCollaboration,
+    ContributorExpertise,
+    ContributorInfo,
+    ContributorRole,
+    ContributorStats,
+    TeamDynamics,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -63,10 +68,16 @@ class ContributorAnalyzer:
 
             contributor_stats[author]["commits"] += 1
 
-            if contributor_stats[author]["first_commit"] is None or commit_date < contributor_stats[author]["first_commit"]:
+            if (
+                contributor_stats[author]["first_commit"] is None
+                or commit_date < contributor_stats[author]["first_commit"]
+            ):
                 contributor_stats[author]["first_commit"] = commit_date
 
-            if contributor_stats[author]["last_commit"] is None or commit_date > contributor_stats[author]["last_commit"]:
+            if (
+                contributor_stats[author]["last_commit"] is None
+                or commit_date > contributor_stats[author]["last_commit"]
+            ):
                 contributor_stats[author]["last_commit"] = commit_date
 
             try:
@@ -86,18 +97,20 @@ class ContributorAnalyzer:
                 activity_span = (stats["last_commit"] - stats["first_commit"]).days
                 avg_commits_per_day = stats["commits"] / max(activity_span, 1)
 
-            data.append({
-                "author": author,
-                "total_commits": stats["commits"],
-                "total_insertions": stats["total_insertions"],
-                "total_deletions": stats["total_deletions"],
-                "net_lines": stats["total_insertions"] - stats["total_deletions"],
-                "files_touched": len(stats["files_modified"]),
-                "first_commit_date": stats["first_commit"],
-                "last_commit_date": stats["last_commit"],
-                "activity_span_days": activity_span,
-                "avg_commits_per_day": avg_commits_per_day,
-            })
+            data.append(
+                {
+                    "author": author,
+                    "total_commits": stats["commits"],
+                    "total_insertions": stats["total_insertions"],
+                    "total_deletions": stats["total_deletions"],
+                    "net_lines": stats["total_insertions"] - stats["total_deletions"],
+                    "files_touched": len(stats["files_modified"]),
+                    "first_commit_date": stats["first_commit"],
+                    "last_commit_date": stats["last_commit"],
+                    "activity_span_days": activity_span,
+                    "avg_commits_per_day": avg_commits_per_day,
+                }
+            )
 
         df = pd.DataFrame(data)
         if not df.empty:

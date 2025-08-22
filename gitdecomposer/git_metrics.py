@@ -14,13 +14,17 @@ import plotly.graph_objects as go
 import seaborn as sns
 from plotly.subplots import make_subplots
 
-from .analyzers import (AdvancedMetrics, BranchAnalyzer, CommitAnalyzer,
-                        ContributorAnalyzer, FileAnalyzer)
+from .analyzers import (
+    AdvancedMetrics,
+    BranchAnalyzer,
+    CommitAnalyzer,
+    ContributorAnalyzer,
+    FileAnalyzer,
+)
 from .core import GitRepository
 from .models.analysis import AnalysisConfig, AnalysisResults, AnalysisType
 from .models.metrics import MetricsDashboard
-from .models.repository import (AdvancedRepositorySummary, RepositoryInfo,
-                                RepositorySummary)
+from .models.repository import AdvancedRepositorySummary, RepositoryInfo, RepositorySummary
 from .viz import VisualizationEngine
 
 logger = logging.getLogger(__name__)
@@ -867,13 +871,28 @@ class GitMetrics:
         reports_to_generate = {
             "Executive Summary": (self.create_executive_summary_report, "executive_summary.html"),
             "Commit Activity": (self.create_commit_activity_dashboard, "commit_activity.html"),
-            "Contributor Analysis": (self.create_contributor_analysis_charts, "contributor_analysis.html"),
+            "Contributor Analysis": (
+                self.create_contributor_analysis_charts,
+                "contributor_analysis.html",
+            ),
             "File Analysis": (self.create_file_analysis_visualization, "file_analysis.html"),
-            "Enhanced File Analysis": (self.create_enhanced_file_analysis_dashboard, "enhanced_file_analysis.html"),
+            "Enhanced File Analysis": (
+                self.create_enhanced_file_analysis_dashboard,
+                "enhanced_file_analysis.html",
+            ),
             "Technical Debt": (self.create_technical_debt_dashboard, "technical_debt.html"),
-            "Repository Health": (self.create_repository_health_dashboard, "repository_health.html"),
-            "Predictive Maintenance": (self.create_predictive_maintenance_report, "predictive_maintenance.html"),
-            "Velocity Forecasting": (self.create_velocity_forecasting_dashboard, "velocity_forecasting.html"),
+            "Repository Health": (
+                self.create_repository_health_dashboard,
+                "repository_health.html",
+            ),
+            "Predictive Maintenance": (
+                self.create_predictive_maintenance_report,
+                "predictive_maintenance.html",
+            ),
+            "Velocity Forecasting": (
+                self.create_velocity_forecasting_dashboard,
+                "velocity_forecasting.html",
+            ),
         }
 
         for name, (func, filename) in reports_to_generate.items():
@@ -909,12 +928,12 @@ class GitMetrics:
         output_path = Path(output_dir)
         html_dir = output_path / "HTML"
         csv_dir = output_path / "CSV"
-        
+
         # Define the expected report files
         expected_reports = {
             "Executive Summary": "executive_summary.html",
             "Commit Activity": "commit_activity.html",
-            "Contributor Analysis": "contributor_analysis.html", 
+            "Contributor Analysis": "contributor_analysis.html",
             "File Analysis": "file_analysis.html",
             "Enhanced File Analysis": "enhanced_file_analysis.html",
             "Technical Debt": "technical_debt.html",
@@ -922,7 +941,7 @@ class GitMetrics:
             "Predictive Maintenance": "predictive_maintenance.html",
             "Velocity Forecasting": "velocity_forecasting.html",
         }
-        
+
         # Check which reports actually exist in HTML folder
         report_links = {}
         for name, filename in expected_reports.items():
@@ -930,7 +949,7 @@ class GitMetrics:
                 report_links[name] = f"HTML/{filename}"
             elif (output_path / filename).exists():  # Fallback for old structure
                 report_links[name] = filename
-        
+
         # Get CSV links from CSV folder
         csv_links = {}
         if csv_dir.exists():
@@ -940,7 +959,7 @@ class GitMetrics:
             # Fallback for old structure
             for csv_file in output_path.glob("*.csv"):
                 csv_links[csv_file.stem.replace("_", " ").title()] = csv_file.name
-        
+
         # Generate summary and create index page
         summary = self.generate_repository_summary()
         index_path = output_path / "index.html"
@@ -977,12 +996,18 @@ class GitMetrics:
 
             # Create a simple summary figure with key metrics
             fig = make_subplots(
-                rows=2, cols=2,
-                subplot_titles=['Health Score', 'Quality Metrics', 'Velocity Trends', 'Coverage Summary'],
+                rows=2,
+                cols=2,
+                subplot_titles=[
+                    "Health Score",
+                    "Quality Metrics",
+                    "Velocity Trends",
+                    "Coverage Summary",
+                ],
                 specs=[
                     [{"type": "indicator"}, {"type": "bar"}],
-                    [{"type": "scatter"}, {"type": "pie"}]
-                ]
+                    [{"type": "scatter"}, {"type": "pie"}],
+                ],
             )
 
             # 1. Health Score Indicator
@@ -1001,15 +1026,24 @@ class GitMetrics:
                         ],
                     },
                 ),
-                row=1, col=1
+                row=1,
+                col=1,
             )
 
             # 2. Quality Metrics Bar Chart
             quality_metrics = {
-                'Maintainability': advanced_metrics.get('code_quality', {}).get('maintainability_score', 0),
-                'Test Coverage': advanced_metrics.get('coverage_metrics', {}).get('test_coverage_percentage', 0),
-                'Documentation': advanced_metrics.get('coverage_metrics', {}).get('documentation_ratio', 0) * 3,
-                'Low Bug Ratio': 100 - advanced_metrics.get('code_quality', {}).get('bug_fix_ratio', 0)
+                "Maintainability": advanced_metrics.get("code_quality", {}).get(
+                    "maintainability_score", 0
+                ),
+                "Test Coverage": advanced_metrics.get("coverage_metrics", {}).get(
+                    "test_coverage_percentage", 0
+                ),
+                "Documentation": advanced_metrics.get("coverage_metrics", {}).get(
+                    "documentation_ratio", 0
+                )
+                * 3,
+                "Low Bug Ratio": 100
+                - advanced_metrics.get("code_quality", {}).get("bug_fix_ratio", 0),
             }
 
             fig.add_trace(
@@ -1017,41 +1051,49 @@ class GitMetrics:
                     x=list(quality_metrics.keys()),
                     y=list(quality_metrics.values()),
                     name="Quality Score",
-                    marker=dict(color=['green' if v > 70 else 'orange' if v > 40 else 'red' for v in quality_metrics.values()])
+                    marker=dict(
+                        color=[
+                            "green" if v > 70 else "orange" if v > 40 else "red"
+                            for v in quality_metrics.values()
+                        ]
+                    ),
                 ),
-                row=1, col=2
+                row=1,
+                col=2,
             )
 
             # 3. Velocity Trend (simplified)
             import numpy as np
-            current_velocity = velocity_analysis.get('avg_commits_per_week', 10)
+
+            current_velocity = velocity_analysis.get("avg_commits_per_week", 10)
             weeks = list(range(1, 9))
-            trend = velocity_analysis.get('velocity_trend', 'stable')
-            
-            if trend == 'increasing':
+            trend = velocity_analysis.get("velocity_trend", "stable")
+
+            if trend == "increasing":
                 velocity_data = [current_velocity * (1 + 0.02 * i) for i in range(8)]
-            elif trend == 'decreasing':
+            elif trend == "decreasing":
                 velocity_data = [current_velocity * (1 - 0.02 * i) for i in range(8)]
             else:
-                velocity_data = [current_velocity + np.random.normal(0, current_velocity * 0.05) for _ in range(8)]
+                velocity_data = [
+                    current_velocity + np.random.normal(0, current_velocity * 0.05)
+                    for _ in range(8)
+                ]
 
             fig.add_trace(
                 go.Scatter(
                     x=weeks,
                     y=velocity_data,
-                    mode='lines+markers',
-                    name='Commits/Week',
-                    line=dict(color='blue', width=3)
+                    mode="lines+markers",
+                    name="Commits/Week",
+                    line=dict(color="blue", width=3),
                 ),
-                row=2, col=1
+                row=2,
+                col=1,
             )
 
             # 4. Coverage Summary Pie
-            test_coverage = max(0, min(100, test_analysis.get('test_coverage_percentage', 0)))
-            coverage_data = {
-                'Tested Code': test_coverage,
-                'Untested Code': 100 - test_coverage
-            }
+            test_coverage = max(0, min(100, test_analysis.get("test_coverage_percentage", 0)))
+            coverage_data = {"Tested Code": test_coverage, "Untested Code": 100 - test_coverage}
 
             # Only add pie chart if there's meaningful data
             if test_coverage > 0:
@@ -1060,25 +1102,26 @@ class GitMetrics:
                         labels=list(coverage_data.keys()),
                         values=list(coverage_data.values()),
                         name="Test Coverage",
-                        marker=dict(colors=['green', 'lightcoral']),
-                        hole=0.3
+                        marker=dict(colors=["green", "lightcoral"]),
+                        hole=0.3,
                     ),
-                    row=2, col=2
+                    row=2,
+                    col=2,
                 )
             else:
                 # Show a message when no test data is available
                 fig.add_annotation(
                     text="No test coverage<br>data available",
-                    x=0.875, y=0.25,  # Position for row=2, col=2
-                    xref="paper", yref="paper",
+                    x=0.875,
+                    y=0.25,  # Position for row=2, col=2
+                    xref="paper",
+                    yref="paper",
                     showarrow=False,
-                    font=dict(size=14, color="gray")
+                    font=dict(size=14, color="gray"),
                 )
 
             fig.update_layout(
-                title_text="Executive Summary Dashboard",
-                height=800,
-                showlegend=False
+                title_text="Executive Summary Dashboard", height=800, showlegend=False
             )
 
             # Create HTML report with summary data only
@@ -1575,17 +1618,17 @@ class GitMetrics:
     def _add_explanations_to_html(self, html_content: str, explanations: dict) -> str:
         """
         Add explanations section to HTML content.
-        
+
         Args:
             html_content (str): Original HTML content
             explanations (dict): Dictionary of chart titles and their explanations
-            
+
         Returns:
             str: HTML content with explanations added
         """
         if not explanations:
             return html_content
-            
+
         explanation_html = """
         <div style="font-family: sans-serif; padding: 20px; margin: 20px; border: 1px solid #ddd; border-radius: 5px;">
             <h2 style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">Chart Explanations</h2>
@@ -1598,13 +1641,13 @@ class GitMetrics:
             </div>
             """
         explanation_html += "</div>"
-        
+
         # Inject the explanation before the closing body tag
         if "</body>" in html_content:
             html_content = html_content.replace("</body>", explanation_html + "</body>")
         else:
             html_content += explanation_html
-            
+
         return html_content
 
     def create_technical_debt_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
@@ -1782,13 +1825,13 @@ class GitMetrics:
                     "Maintainability vs Debt Correlation": "Illustrates the relationship between code maintainability scores and technical debt levels. Lower maintainability typically correlates with higher debt.",
                     "Debt Hotspots (Top 10 Files)": "Identifies the files with the highest technical debt scores, helping teams focus their refactoring efforts on the most problematic areas.",
                     "Monthly Debt Rate": "Shows the monthly accumulation rate of technical debt, helping to track whether debt is being addressed or growing over time.",
-                    "Debt Resolution Priority Matrix": "Provides a prioritization framework for addressing technical debt based on impact and effort required for resolution."
+                    "Debt Resolution Priority Matrix": "Provides a prioritization framework for addressing technical debt based on impact and effort required for resolution.",
                 }
-                
+
                 # Generate HTML with explanations
-                html_content = fig.to_html(full_html=True, include_plotlyjs='cdn')
+                html_content = fig.to_html(full_html=True, include_plotlyjs="cdn")
                 html_with_explanations = self._add_explanations_to_html(html_content, explanations)
-                
+
                 with open(save_path, "w", encoding="utf-8") as f:
                     f.write(html_with_explanations)
                 logger.info(f"Saved technical debt dashboard to {save_path}")
@@ -1986,13 +2029,13 @@ class GitMetrics:
                     "Velocity Trend": "Shows the development velocity over time, helping to identify trends in productivity and potential bottlenecks in the development process.",
                     "Commit Activity Heatmap": "Displays commit frequency patterns across different time periods, revealing team productivity patterns and potential workflow issues.",
                     "Code Quality Distribution": "Breakdown of code quality scores across different components, helping to identify areas that need attention or refactoring.",
-                    "Health Factors": "Pie chart showing the relative contribution of different factors to the overall repository health score."
+                    "Health Factors": "Pie chart showing the relative contribution of different factors to the overall repository health score.",
                 }
-                
+
                 # Generate HTML with explanations
-                html_content = fig.to_html(full_html=True, include_plotlyjs='cdn')
+                html_content = fig.to_html(full_html=True, include_plotlyjs="cdn")
                 html_with_explanations = self._add_explanations_to_html(html_content, explanations)
-                
+
                 with open(save_path, "w", encoding="utf-8") as f:
                     f.write(html_with_explanations)
                 logger.info(f"Saved repository health dashboard to {save_path}")
@@ -2190,13 +2233,13 @@ class GitMetrics:
                     "Maintenance Effort Forecast (6 months)": "Predicts the amount of maintenance work required over the next 6 months based on current code quality trends and technical debt accumulation.",
                     "Quality Degradation Risk": "Identifies files and components at risk of quality degradation, helping teams proactively address potential issues before they become critical.",
                     "Resource Requirement Projection": "Estimates the team size and effort required to maintain current quality levels and address accumulating technical debt.",
-                    "Intervention Recommendations": "Prioritized list of recommended actions to prevent quality degradation and optimize maintenance efforts based on predictive analysis."
+                    "Intervention Recommendations": "Prioritized list of recommended actions to prevent quality degradation and optimize maintenance efforts based on predictive analysis.",
                 }
-                
+
                 # Generate HTML with explanations
-                html_content = fig.to_html(full_html=True, include_plotlyjs='cdn')
+                html_content = fig.to_html(full_html=True, include_plotlyjs="cdn")
                 html_with_explanations = self._add_explanations_to_html(html_content, explanations)
-                
+
                 with open(save_path, "w", encoding="utf-8") as f:
                     f.write(html_with_explanations)
                 logger.info(f"Saved predictive maintenance report to {save_path}")
@@ -2358,13 +2401,13 @@ class GitMetrics:
                     "Velocity Forecast (12 weeks)": "Predicts development velocity over the next 12 weeks based on historical patterns, helping with sprint planning and resource allocation.",
                     "Sprint Performance Prediction": "Estimates sprint completion rates and potential delivery risks based on current team performance and historical data.",
                     "Team Productivity Distribution": "Shows the distribution of productivity across different team members or components, helping identify high performers and areas for improvement.",
-                    "Bottleneck Analysis": "Identifies potential bottlenecks in the development process that could impact future velocity and delivery timelines."
+                    "Bottleneck Analysis": "Identifies potential bottlenecks in the development process that could impact future velocity and delivery timelines.",
                 }
-                
+
                 # Generate HTML with explanations
-                html_content = fig.to_html(full_html=True, include_plotlyjs='cdn')
+                html_content = fig.to_html(full_html=True, include_plotlyjs="cdn")
                 html_with_explanations = self._add_explanations_to_html(html_content, explanations)
-                
+
                 with open(save_path, "w", encoding="utf-8") as f:
                     f.write(html_with_explanations)
                 logger.info(f"Saved velocity forecasting dashboard to {save_path}")
