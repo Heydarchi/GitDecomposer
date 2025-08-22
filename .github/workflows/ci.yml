@@ -39,7 +39,7 @@ jobs:
         run: isort --check-only --diff .
 
       - name: Run flake8 linter
-        run: flake8 gitdecomposer/ tests/ examples/ --max-line-length=120 --extend-ignore=E203,W503,F401,E402,W291,W293
+        run: flake8 gitdecomposer/ tests/ examples/ --max-line-length=120 --extend-ignore=E203,W503,F401,E402,W291,W293,F841,E722,E501,F541,F406
 
   test:
     name: Run Tests

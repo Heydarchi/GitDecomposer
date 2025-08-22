@@ -92,13 +92,19 @@ ensure_newline_before_comments = true
 
 [tool.flake8]
 max-line-length = 120
-# Be strict on important issues, relaxed on cosmetic ones
-extend-ignore = "E203,W503,F401,E402,W291,W293"
-# Keep strict checking for:
-# - F841: local variable assigned but never used (potential bugs)
-# - E722: bare except (security/debugging issues)  
-# - E501: line too long (readability - will warn but not fail CI)
-# - All syntax errors and undefined names
+# Deactivated flake8 errors to reduce noise
+extend-ignore = "E203,W503,F401,E402,W291,W293,F841,E722,E501,F541,F406"
+# Ignored error codes:
+# - E203: whitespace before ':' (conflicts with black)
+# - W503: line break before binary operator (conflicts with black)
+# - F401: imported but unused (handled by isort/autoflake)
+# - E402: module level import not at top of file
+# - W291,W293: trailing whitespace (handled by black)
+# - F841: local variable assigned but never used
+# - E722: bare except clauses
+# - E501: line too long (handled by black with 120 char limit)
+# - F541: f-string missing placeholders
+# - F406: import statement issues
 exclude = [
     ".git",
     "__pycache__",

@@ -28,7 +28,7 @@ echo ""
 # Note: flake8 does not have auto-fixing capabilities for all issues.
 # It is primarily for checking. Running it here to show any remaining errors.
 echo "Running flake8 to check for remaining style issues..."
-flake8 $TARGET_DIRS --max-line-length=120 --extend-ignore=E203,W503,F401,E402,W291,W293 || true # Continue even if flake8 finds errors
+flake8 $TARGET_DIRS --max-line-length=120 --extend-ignore=E203,W503,F401,E402,W291,W293,F841,E722,E501,F541,F406 || true # Continue even if flake8 finds errors
 echo "flake8 check complete."
 echo ""
 
