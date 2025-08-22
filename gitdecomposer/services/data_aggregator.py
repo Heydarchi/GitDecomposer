@@ -251,9 +251,8 @@ class DataAggregator:
                 path=str(self.git_repo.repo_path),
                 total_commits=repo_stats.get("total_commits", 0),
                 total_contributors=repo_stats.get("total_contributors", 0),
-                first_commit_date=repo_stats.get("first_commit_date", "Unknown"),
-                last_commit_date=repo_stats.get("last_commit_date", "Unknown"),
-                repository_age_days=repo_stats.get("repository_age_days", 0),
+                created_date=repo_stats.get("first_commit_date"),
+                last_commit_date=repo_stats.get("last_commit_date"),
             )
         except Exception as e:
             logger.error(f"Error getting repository info: {e}")
@@ -262,9 +261,6 @@ class DataAggregator:
                 path=str(self.git_repo.repo_path),
                 total_commits=0,
                 total_contributors=0,
-                first_commit_date="Unknown",
-                last_commit_date="Unknown",
-                repository_age_days=0,
             )
 
     def get_repository_summary(self) -> RepositorySummary:
@@ -276,19 +272,29 @@ class DataAggregator:
         """
         try:
             summary_data = self.generate_repository_summary()
-            return RepositorySummary(**summary_data)
+            # Only use summary_data if it doesn't contain error
+            if "error" not in summary_data:
+                return RepositorySummary(
+                    repository_info=self.get_repository_info(),
+                    commit_summary=summary_data.get("commits", {}),
+                    contributor_summary=summary_data.get("contributors", {}),
+                    file_summary=summary_data.get("files", {}),
+                    branch_summary=summary_data.get("branches", {}),
+                )
+            else:
+                raise Exception(summary_data["error"])
         except Exception as e:
             logger.error(f"Error creating repository summary model: {e}")
             # Return minimal summary on error
             return RepositorySummary(
-                repository=self.get_repository_info(),
-                commits={},
-                contributors={},
-                files={},
-                branches={},
+                repository_info=self.get_repository_info(),
+                commit_summary={},
+                contributor_summary={},
+                file_summary={},
+                branch_summary={},
             )
 
-    def get_comprehensive_analysis(self, config: Optional[AnalysisConfig] = None) -> AnalysisResults:
+    def get_comprehensive_analysis(self, config: Optional[AnalysisConfig] = None) -> Dict[str, Any]:
         """
         Perform comprehensive analysis based on configuration.
 
@@ -296,39 +302,37 @@ class DataAggregator:
             config: Analysis configuration (optional)
 
         Returns:
-            AnalysisResults: Complete analysis results
+            Dict[str, Any]: Complete analysis results
         """
         if config is None:
-            config = AnalysisConfig()
+            config = AnalysisConfig(analysis_type=AnalysisType.COMPREHENSIVE)
 
         try:
             results = {}
 
-            # Run requested analyses
-            if AnalysisType.COMMIT_ANALYSIS in config.analysis_types:
+            # Run analyses based on configuration
+            if config.analysis_type in [AnalysisType.COMPREHENSIVE, AnalysisType.ADVANCED]:
                 results["commit_analysis"] = self.commit_analyzer.get_commit_stats()
-
-            if AnalysisType.CONTRIBUTOR_ANALYSIS in config.analysis_types:
                 results["contributor_analysis"] = self.contributor_analyzer.get_contributor_statistics()
-
-            if AnalysisType.FILE_ANALYSIS in config.analysis_types:
                 results["file_analysis"] = self.file_analyzer.get_most_changed_files()
-
-            if AnalysisType.BRANCH_ANALYSIS in config.analysis_types:
                 results["branch_analysis"] = self.branch_analyzer.get_branch_statistics()
-
-            return AnalysisResults(
-                config=config,
-                results=results,
-                summary=self.get_repository_summary(),
-            )
+            elif config.analysis_type == AnalysisType.BASIC:
+                results["commit_analysis"] = self.commit_analyzer.get_commit_stats()
+                results["contributor_analysis"] = self.contributor_analyzer.get_contributor_statistics()
+            # For CUSTOM, handle via custom_metrics if needed
+            
+            return {
+                "config": config,
+                "results": results,
+                "summary": self.get_repository_summary(),
+            }
         except Exception as e:
             logger.error(f"Error in comprehensive analysis: {e}")
-            return AnalysisResults(
-                config=config,
-                results={"error": str(e)},
-                summary=self.get_repository_summary(),
-            )
+            return {
+                "config": config,
+                "results": {"error": str(e)},
+                "summary": self.get_repository_summary(),
+            }
 
     def _calculate_health_factors(
         self, maintainability, test_ratio, doc_coverage, bug_fix_analysis, technical_debt, churn_analysis
