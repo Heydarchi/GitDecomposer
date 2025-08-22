@@ -18,17 +18,6 @@ class CommitPlotter(BasePlotter):
     def description(self) -> str:
         return "Comprehensive analysis of commit patterns, timing, and distribution across the repository."
     
-    def get_subplot_descriptions(self, visualization_type: str = 'default') -> dict[str, str]:
-        """
-        Returns a dictionary of subplot titles and their descriptions.
-        """
-        return {
-            'Commits Over Time': 'This chart shows the number of commits made to the repository over time. It helps to identify periods of high and low activity, development cycles, and project milestones.',
-            'Commits by Hour of Day': 'This chart shows the distribution of commits by the hour of the day. It can help to understand the daily workflow patterns of the development team and identify peak productivity hours.',
-            'Commits by Day of Week': 'This chart shows the distribution of commits by the day of the week. It can help to understand the weekly workflow patterns and identify whether development follows business days or extends to weekends.',
-            'Commit Size Distribution': 'This chart shows the distribution of commit sizes, based on the number of files changed in each commit. It can help to identify large commits that may need to be broken down for better code review and maintenance.'
-        }
-    
     def create_visualization(self, save_path: Optional[str] = None) -> go.Figure:
         """
         Create comprehensive commit activity dashboard.
@@ -43,10 +32,6 @@ class CommitPlotter(BasePlotter):
         commits_by_date = self.metrics_coordinator.commit_analyzer.get_commit_activity_by_date()
         commits_by_hour = self.metrics_coordinator.commit_analyzer.get_commits_by_hour()
         commits_by_weekday = self.metrics_coordinator.commit_analyzer.get_commits_by_weekday()
-        commit_sizes = self.metrics_coordinator.commit_analyzer.get_commit_size_distribution()
-        
-        # Create subplots
-        fig = make_subplots(
             rows=2, cols=2,
             subplot_titles=('Commits Over Time', 'Commits by Hour of Day', 
                           'Commits by Day of Week', 'Commit Size Distribution'),

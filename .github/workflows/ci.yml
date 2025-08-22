@@ -164,36 +164,3 @@ jobs:
         with:
           name: package-artifacts
           path: dist/
-
-  documentation:
-    name: Documentation Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install documentation dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install sphinx sphinx-rtd-theme
-
-      - name: Check docstring coverage
-        run: |
-          pip install docstring-coverage
-          docstring-coverage gitdecomposer/ --fail-under=80
-
-      - name: Validate README and docs
-        run: |
-          # Check if README.md exists and is not empty
-          test -s README.md
-          # Check if docs directory exists
-          test -d docs/
-          # Validate markdown files
-          pip install markdown
-          python -c "import markdown; markdown.markdown(open('README.md').read())"

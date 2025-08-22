@@ -127,12 +127,17 @@ class CLI:
 
     def _export_csv(self):
         """Export metrics to CSV files."""
-        csv_files = self.metrics.export_metrics_to_csv(str(self.output_dir))
-        self.console.print(f"✓ Exported {len(csv_files)} CSV files")
+        csv_dir = self.output_dir / "CSV"
+        csv_dir.mkdir(parents=True, exist_ok=True)
+        csv_files = self.metrics.export_metrics_to_csv(str(csv_dir))
+        self.console.print(f"✓ Exported {len(csv_files)} CSV files to {csv_dir}")
 
     def _create_visualizations(self):
         """Create and save HTML visualizations."""
         self.console.print(Rule("[bold]Visualizations[/bold]"))
+        
+        html_dir = self.output_dir / "HTML"
+        html_dir.mkdir(parents=True, exist_ok=True)
         
         visualizations_to_create = {
             "Executive Summary": (self.metrics.create_executive_summary_report, "executive_summary.html"),
@@ -156,7 +161,7 @@ class CLI:
             for name, (func, filename) in visualizations_to_create.items():
                 progress.update(task, description=f"Creating {name}...")
                 try:
-                    path = self.output_dir / filename
+                    path = html_dir / filename
                     func(str(path))
                     self.console.print(f"  ✓ Created: [link=file://{path.resolve()}]{path}[/link]")
                 except Exception as e:
@@ -168,6 +173,7 @@ class CLI:
             self.metrics.create_index_page_only(str(self.output_dir))
             index_path = self.output_dir / "index.html"
             self.console.print(f"  ✓ Created: [link=file://{index_path.resolve()}]index.html[/link] (Main Dashboard)")
+            self.console.print(f"✓ HTML reports saved to {html_dir}")
         except Exception as e:
             self.console.print(f"  ✗ Failed to create index page: [red]{e}[/red]")
 

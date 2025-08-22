@@ -18,19 +18,6 @@ class FilePlotter(BasePlotter):
     def description(self) -> str:
         return "Analysis of file patterns, extensions, changes, and churn across the repository."
     
-    def get_subplot_descriptions(self, visualization_type: str = 'default') -> dict[str, str]:
-        """
-        Returns a dictionary of subplot titles and their descriptions.
-        """
-        return {
-            'File Extensions Distribution': 'Shows the distribution of different file types in the repository, helping to understand the technology stack and codebase composition.',
-            'Most Changed Files': 'Identifies files that have been modified most frequently, which may indicate areas of high maintenance or potential refactoring candidates.',
-            'File Change Frequency Over Time': 'Displays how file modification patterns have changed over time, revealing development focus areas and project evolution.',
-            'Lines of Code by File Type': 'Compares the amount of code across different file types, providing insights into the relative size and importance of different components.',
-            'Code Churn Analysis': 'Shows the rate of code changes (additions and deletions) over time, helping to identify periods of intense development or refactoring.',
-            'File Size Distribution': 'Displays the distribution of file sizes in the repository, helping to identify potentially oversized files that might need refactoring.'
-        }
-    
     def create_visualization(self, save_path: Optional[str] = None) -> go.Figure:
         """
         Create file analysis visualization.

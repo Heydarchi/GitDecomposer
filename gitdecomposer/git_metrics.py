@@ -853,11 +853,15 @@ class GitMetrics:
             output_dir (str): The directory to save the reports in.
         """
         output_path = Path(output_dir)
+        html_dir = output_path / "HTML"
+        csv_dir = output_path / "CSV"
         report_links = {}
         csv_links = {}
 
-        # Ensure the output directory exists
+        # Ensure the output directories exist
         output_path.mkdir(parents=True, exist_ok=True)
+        html_dir.mkdir(parents=True, exist_ok=True)
+        csv_dir.mkdir(parents=True, exist_ok=True)
 
         # Generate individual HTML reports
         reports_to_generate = {
@@ -874,24 +878,26 @@ class GitMetrics:
 
         for name, (func, filename) in reports_to_generate.items():
             try:
-                save_path = output_path / filename
+                save_path = html_dir / filename
                 func(str(save_path))
                 # Use relative paths for links in the index page
-                report_links[name] = Path(filename).as_posix()
+                report_links[name] = f"HTML/{filename}"
                 logger.info(f"Successfully created {name} report at {save_path}")
             except Exception as e:
                 logger.error(f"Failed to create {name} report: {e}")
 
         # Export CSVs and get their links
-        exported_csvs = self.export_metrics_to_csv(output_dir)
+        exported_csvs = self.export_metrics_to_csv(str(csv_dir))
         for name, path in exported_csvs.items():
-            csv_links[name] = Path(path).name
+            csv_links[name] = f"CSV/{Path(path).name}"
 
         # Generate index page
         summary = self.generate_repository_summary()
         index_path = output_path / "index.html"
         self.visualization.create_index_page(str(index_path), report_links, csv_links, summary)
         logger.info(f"Successfully created index page at {index_path}")
+        logger.info(f"HTML reports saved to: {html_dir}")
+        logger.info(f"CSV files saved to: {csv_dir}")
 
     def create_index_page_only(self, output_dir: str):
         """
@@ -901,6 +907,8 @@ class GitMetrics:
             output_dir (str): The directory containing the reports and CSVs.
         """
         output_path = Path(output_dir)
+        html_dir = output_path / "HTML"
+        csv_dir = output_path / "CSV"
         
         # Define the expected report files
         expected_reports = {
@@ -915,16 +923,23 @@ class GitMetrics:
             "Velocity Forecasting": "velocity_forecasting.html",
         }
         
-        # Check which reports actually exist
+        # Check which reports actually exist in HTML folder
         report_links = {}
         for name, filename in expected_reports.items():
-            if (output_path / filename).exists():
+            if (html_dir / filename).exists():
+                report_links[name] = f"HTML/{filename}"
+            elif (output_path / filename).exists():  # Fallback for old structure
                 report_links[name] = filename
         
-        # Get CSV links
+        # Get CSV links from CSV folder
         csv_links = {}
-        for csv_file in output_path.glob("*.csv"):
-            csv_links[csv_file.stem.replace("_", " ").title()] = csv_file.name
+        if csv_dir.exists():
+            for csv_file in csv_dir.glob("*.csv"):
+                csv_links[csv_file.stem.replace("_", " ").title()] = f"CSV/{csv_file.name}"
+        else:
+            # Fallback for old structure
+            for csv_file in output_path.glob("*.csv"):
+                csv_links[csv_file.stem.replace("_", " ").title()] = csv_file.name
         
         # Generate summary and create index page
         summary = self.generate_repository_summary()
@@ -1557,6 +1572,41 @@ class GitMetrics:
 
     # ===== ADVANCED REPORTING CAPABILITIES =====
 
+    def _add_explanations_to_html(self, html_content: str, explanations: dict) -> str:
+        """
+        Add explanations section to HTML content.
+        
+        Args:
+            html_content (str): Original HTML content
+            explanations (dict): Dictionary of chart titles and their explanations
+            
+        Returns:
+            str: HTML content with explanations added
+        """
+        if not explanations:
+            return html_content
+            
+        explanation_html = """
+        <div style="font-family: sans-serif; padding: 20px; margin: 20px; border: 1px solid #ddd; border-radius: 5px;">
+            <h2 style="border-bottom: 1px solid #ddd; padding-bottom: 10px;">Chart Explanations</h2>
+        """
+        for title, desc in explanations.items():
+            explanation_html += f"""
+            <div style="margin-bottom: 15px;">
+                <h3 style="color: #333;">{title}</h3>
+                <p style="color: #555;">{desc}</p>
+            </div>
+            """
+        explanation_html += "</div>"
+        
+        # Inject the explanation before the closing body tag
+        if "</body>" in html_content:
+            html_content = html_content.replace("</body>", explanation_html + "</body>")
+        else:
+            html_content += explanation_html
+            
+        return html_content
+
     def create_technical_debt_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
         """
         Create a comprehensive technical debt analysis dashboard.
@@ -1725,6 +1775,24 @@ class GitMetrics:
             fig.update_yaxes(title_text="Business Impact", row=3, col=2)
 
             if save_path:
+                # Generate explanations for technical debt dashboard
+                explanations = {
+                    "Debt Accumulation Trend": "Shows how technical debt has accumulated over time in the repository. Rising trends indicate areas where code quality may be declining and require attention.",
+                    "Debt Distribution by Type": "Displays the breakdown of different types of technical debt (e.g., complexity, duplication, maintainability issues) to help prioritize refactoring efforts.",
+                    "Maintainability vs Debt Correlation": "Illustrates the relationship between code maintainability scores and technical debt levels. Lower maintainability typically correlates with higher debt.",
+                    "Debt Hotspots (Top 10 Files)": "Identifies the files with the highest technical debt scores, helping teams focus their refactoring efforts on the most problematic areas.",
+                    "Monthly Debt Rate": "Shows the monthly accumulation rate of technical debt, helping to track whether debt is being addressed or growing over time.",
+                    "Debt Resolution Priority Matrix": "Provides a prioritization framework for addressing technical debt based on impact and effort required for resolution."
+                }
+                
+                # Generate HTML with explanations
+                html_content = fig.to_html(full_html=True, include_plotlyjs='cdn')
+                html_with_explanations = self._add_explanations_to_html(html_content, explanations)
+                
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_with_explanations)
+                logger.info(f"Saved technical debt dashboard to {save_path}")
+            else:
                 fig.write_html(save_path)
                 logger.info(f"Saved technical debt dashboard to {save_path}")
 
@@ -1911,6 +1979,24 @@ class GitMetrics:
             )
 
             if save_path:
+                # Generate explanations for repository health dashboard
+                explanations = {
+                    "Overall Health Score": "A composite metric (0-100) that summarizes the overall health of your repository based on code quality, maintenance practices, and development velocity.",
+                    "Quality Metrics Radar": "Visual representation of different quality dimensions including maintainability, test coverage, documentation quality, and code complexity.",
+                    "Velocity Trend": "Shows the development velocity over time, helping to identify trends in productivity and potential bottlenecks in the development process.",
+                    "Commit Activity Heatmap": "Displays commit frequency patterns across different time periods, revealing team productivity patterns and potential workflow issues.",
+                    "Code Quality Distribution": "Breakdown of code quality scores across different components, helping to identify areas that need attention or refactoring.",
+                    "Health Factors": "Pie chart showing the relative contribution of different factors to the overall repository health score."
+                }
+                
+                # Generate HTML with explanations
+                html_content = fig.to_html(full_html=True, include_plotlyjs='cdn')
+                html_with_explanations = self._add_explanations_to_html(html_content, explanations)
+                
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_with_explanations)
+                logger.info(f"Saved repository health dashboard to {save_path}")
+            else:
                 fig.write_html(save_path)
                 logger.info(f"Saved repository health dashboard to {save_path}")
 
@@ -2099,6 +2185,22 @@ class GitMetrics:
             fig.update_xaxes(title_text="Priority Score", row=2, col=2)
 
             if save_path:
+                # Generate explanations for predictive maintenance report
+                explanations = {
+                    "Maintenance Effort Forecast (6 months)": "Predicts the amount of maintenance work required over the next 6 months based on current code quality trends and technical debt accumulation.",
+                    "Quality Degradation Risk": "Identifies files and components at risk of quality degradation, helping teams proactively address potential issues before they become critical.",
+                    "Resource Requirement Projection": "Estimates the team size and effort required to maintain current quality levels and address accumulating technical debt.",
+                    "Intervention Recommendations": "Prioritized list of recommended actions to prevent quality degradation and optimize maintenance efforts based on predictive analysis."
+                }
+                
+                # Generate HTML with explanations
+                html_content = fig.to_html(full_html=True, include_plotlyjs='cdn')
+                html_with_explanations = self._add_explanations_to_html(html_content, explanations)
+                
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_with_explanations)
+                logger.info(f"Saved predictive maintenance report to {save_path}")
+            else:
                 fig.write_html(save_path)
                 logger.info(f"Saved predictive maintenance report to {save_path}")
 
@@ -2251,6 +2353,22 @@ class GitMetrics:
             fig.update_xaxes(title_text="Impact Score", row=2, col=2)
 
             if save_path:
+                # Generate explanations for velocity forecasting dashboard
+                explanations = {
+                    "Velocity Forecast (12 weeks)": "Predicts development velocity over the next 12 weeks based on historical patterns, helping with sprint planning and resource allocation.",
+                    "Sprint Performance Prediction": "Estimates sprint completion rates and potential delivery risks based on current team performance and historical data.",
+                    "Team Productivity Distribution": "Shows the distribution of productivity across different team members or components, helping identify high performers and areas for improvement.",
+                    "Bottleneck Analysis": "Identifies potential bottlenecks in the development process that could impact future velocity and delivery timelines."
+                }
+                
+                # Generate HTML with explanations
+                html_content = fig.to_html(full_html=True, include_plotlyjs='cdn')
+                html_with_explanations = self._add_explanations_to_html(html_content, explanations)
+                
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_with_explanations)
+                logger.info(f"Saved velocity forecasting dashboard to {save_path}")
+            else:
                 fig.write_html(save_path)
                 logger.info(f"Saved velocity forecasting dashboard to {save_path}")
 
