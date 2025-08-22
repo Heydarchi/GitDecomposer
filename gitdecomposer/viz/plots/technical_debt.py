@@ -3,9 +3,11 @@ Plotting functions for technical debt visualizations.
 """
 
 from typing import Optional
+
+import pandas as pd
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import pandas as pd
+
 from .base import BasePlotter
 
 

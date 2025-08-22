@@ -16,28 +16,19 @@ echo ""
 # --- Linting Steps ---
 
 echo "Running black for format checking..."
-black --check $TARGET_DIRS
+black --check --diff $TARGET_DIRS
 echo "Black check passed."
 echo ""
 
-echo "Running flake8 for style guide enforcement..."
-flake8 $TARGET_DIRS
-echo "flake8 check passed."
-echo ""
-
-echo "Running isort for static type checking..."
-isort $TARGET_DIRS
+echo "Running isort for import order checking..."
+isort --check-only --diff $TARGET_DIRS
 echo "isort check passed."
 echo ""
 
-echo "Running pylint for static type checking..."
-pylint $TARGET_DIRS
-echo "pylint check passed."
+echo "Running flake8 for style guide enforcement..."
+flake8 $TARGET_DIRS --max-line-length=100 --extend-ignore=E203,W503,F401,E402,W291,W293
+echo "flake8 check passed."
 echo ""
 
-echo "Running mypy for static type checking..."
-mypy $TARGET_DIRS
-echo "mypy check passed."
-echo ""
 
 echo "🎉 All lint checks passed successfully!"

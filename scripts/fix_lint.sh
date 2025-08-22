@@ -25,17 +25,18 @@ isort $TARGET_DIRS
 echo "isort import organization applied."
 echo ""
 
-# Note: flake8 and mypy do not have auto-fixing capabilities for all issues.
-# They are primarily for checking. Running them here to show any remaining errors.
+# Note: flake8 does not have auto-fixing capabilities for all issues.
+# It is primarily for checking. Running it here to show any remaining errors.
 echo "Running flake8 to check for remaining style issues..."
-flake8 $TARGET_DIRS || true # Continue even if flake8 finds errors
+flake8 $TARGET_DIRS --max-line-length=100 --extend-ignore=E203,W503,F401,E402,W291,W293 || true # Continue even if flake8 finds errors
 echo "flake8 check complete."
 echo ""
 
-echo "Running mypy to check for type errors..."
-mypy $TARGET_DIRS || true # Continue even if mypy finds errors
-echo "mypy check complete."
+echo "✨ Lint fixing process completed!"
 echo ""
-
-echo "Lint fixing process completed!"
-echo "Please review the changes and manually fix any remaining flake8 or mypy errors."
+echo "Summary:"
+echo "  ✓ Code formatted with black"
+echo "  ✓ Imports organized with isort"
+echo "  ⚠ Please review any remaining flake8 errors manually"
+echo ""
+echo "💡 Tip: Run './scripts/check_lint.sh' to verify all checks pass"

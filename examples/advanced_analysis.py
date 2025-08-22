@@ -13,8 +13,7 @@ from pathlib import Path
 # Add the package to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from gitdecomposer import (CommitAnalyzer, ContributorAnalyzer, FileAnalyzer,
-                           GitRepository)
+from gitdecomposer import CommitAnalyzer, ContributorAnalyzer, FileAnalyzer, GitRepository
 
 
 def advanced_analysis(repo_path: str):

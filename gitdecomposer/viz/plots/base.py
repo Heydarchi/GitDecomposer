@@ -4,6 +4,7 @@ Base class for all plotting modules in GitDecomposer.
 
 from abc import ABC, abstractmethod
 from typing import Optional
+
 import plotly.graph_objects as go
 
 

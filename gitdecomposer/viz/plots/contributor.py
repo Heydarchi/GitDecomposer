@@ -3,8 +3,10 @@ Plotting functions for contributor-related visualizations.
 """
 
 from typing import Optional
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+
 from .base import BasePlotter
 
 

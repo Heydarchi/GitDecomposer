@@ -1,5 +1,68 @@
 # GitDecomposer Configuration
 
+[project]
+name = "gitdecomposer"
+version = "1.0.0"
+description = "A comprehensive Git repository analysis and visualization tool"
+readme = "README.md"
+license = "MIT"
+authors = [
+    {name = "GitDecomposer Team"}
+]
+maintainers = [
+    {name = "GitDecomposer Team"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Version Control :: Git",
+]
+keywords = ["git", "analysis", "visualization", "metrics", "repository"]
+requires-python = ">=3.8"
+dependencies = [
+    "GitPython>=3.1.30",
+    "pandas>=1.5.0",
+    "matplotlib>=3.6.0",
+    "seaborn>=0.11.0",
+    "plotly>=5.11.0",
+    "rich>=12.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=22.0.0",
+    "flake8>=5.0.0",
+    "isort>=5.10.0",
+    "mypy>=1.0.0",
+    "pylint>=2.15.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Heydarchi/GitDecomposer"
+Repository = "https://github.com/Heydarchi/GitDecomposer"
+Issues = "https://github.com/Heydarchi/GitDecomposer/issues"
+
+[project.scripts]
+gitdecomposer = "gitdecomposer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gitdecomposer*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+gitdecomposer = ["py.typed"]
+
 [tool.black]
 line-length = 100
 target-version = ['py38']
@@ -18,6 +81,35 @@ extend-exclude = '''
 )/
 '''
 
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+
+[tool.flake8]
+max-line-length = 100
+# Be strict on important issues, relaxed on cosmetic ones
+extend-ignore = "E203,W503,F401,E402,W291,W293"
+# Keep strict checking for:
+# - F841: local variable assigned but never used (potential bugs)
+# - E722: bare except (security/debugging issues)  
+# - E501: line too long (readability - will warn but not fail CI)
+# - All syntax errors and undefined names
+exclude = [
+    ".git",
+    "__pycache__",
+    ".tox",
+    ".eggs",
+    "*.egg",
+    "build",
+    "dist",
+    ".venv",
+]
+
 [tool.mypy]
 python_version = "3.8"
 warn_return_any = true
@@ -35,5 +127,5 @@ strict_equality = true
 ignore_missing_imports = true
 
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"

@@ -5,8 +5,8 @@ Command Line Interface for GitDecomposer.
 import argparse
 import os
 import sys
-from pathlib import Path
 import warnings
+from pathlib import Path
 
 # Suppress FutureWarning from plotly
 warnings.filterwarnings("ignore", category=FutureWarning)
@@ -15,10 +15,10 @@ warnings.filterwarnings("ignore", category=FutureWarning)
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from rich.console import Console
-from rich.table import Table
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 from rich.rule import Rule
+from rich.table import Table
 from rich.traceback import install as rich_traceback_install
 
 # Install rich traceback handler

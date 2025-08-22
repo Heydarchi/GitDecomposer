@@ -15,8 +15,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from gitdecomposer import (
-    BranchAnalyzer, CommitAnalyzer, ContributorAnalyzer, FileAnalyzer,
-    GitMetrics, GitRepository)
+    BranchAnalyzer,
+    CommitAnalyzer,
+    ContributorAnalyzer,
+    FileAnalyzer,
+    GitMetrics,
+    GitRepository,
+)
 
 # Configure logging
 logging.basicConfig(
