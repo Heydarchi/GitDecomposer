@@ -8,6 +8,10 @@ include README.md
 # Include documentation
 recursive-include docs *.md
 recursive-include docs *.puml
+recursive-include docs *.png
+
+# Include screenshots
+recursive-include screenshots *.png
 
 # Include examples
 recursive-include examples *.md
