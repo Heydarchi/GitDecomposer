@@ -16,13 +16,21 @@ A comprehensive Python toolkit for analyzing Git repositories. GitDecomposer pro
 ### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/Heydarchi/GitDecomposer.git
+cd GitDecomposer
+
 # Create virtual environment (recommended)
 python -m venv gitdecomposer-env
-gitdecomposer-env\Scripts\activate  # Windows
-# source gitdecomposer-env/bin/activate  # macOS/Linux
 
-# Install dependencies
-pip install -r requirements.txt
+# Activate virtual environment
+# Windows:
+gitdecomposer-env\Scripts\activate
+# macOS/Linux:
+# source gitdecomposer-env/bin/activate
+
+# Install in development mode
+pip install -e .
 ```
 
 ### Basic Usage
@@ -54,23 +62,22 @@ metrics.create_comprehensive_report("full_report.html")
 
 ### Command Line Interface
 
-**Option 1: Direct script execution (recommended for development):**
-
 ```bash
 # Analyze current directory
-python gitdecomposer/cli.py .
+gitdecomposer .
 
 # Analyze specific repository
-python gitdecomposer/cli.py /path/to/repository
+gitdecomposer /path/to/repository
 
 # Specify output directory
-python gitdecomposer/cli.py /path/to/repository --output ./my_analysis
+gitdecomposer /path/to/repository --output ./my_analysis
 ```
 
-**Option 2: After installing as package (`pip install -e .`):**
+**Alternative: Direct script execution:**
 
 ```bash
-gitdecomposer /path/to/repository --output ./my_analysis
+# For development/testing
+python gitdecomposer/cli.py /path/to/repository --output ./analysis_output
 ```
 
 ## Examples
@@ -80,48 +87,69 @@ See the [`examples/`](examples/) directory for detailed usage examples:
 - **[Basic Analysis](examples/basic_analysis.py)** - Simple repository analysis
 - **[Advanced Analysis](examples/advanced_analysis.py)** - Using individual analyzers  
 - **[Comprehensive Analysis](examples/comprehensive_analysis.py)** - Full-featured analysis
+- **[Enhanced Analytics](examples/enhanced_analytics.py)** - Advanced metrics and visualizations
+- **[Advanced Reporting Demo](examples/advanced_reporting_demo.py)** - Comprehensive reporting features
+
+## Architecture
+
+See the [Architecture Diagram](docs/architecture.puml) for system design and component relationships.
 
 ## Documentation
 
-- **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions
-- **[Features & Capabilities](docs/FEATURES.md)** - Complete feature overview
-- **[API Reference](docs/API_REFERENCE.md)** - Class documentation and examples
+For detailed documentation, see:
+- **[Documentation](docs/README.md)** - Complete guide and API reference
+- **[Examples README](examples/README.md)** - Example usage patterns
 
-## License
+## Testing
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-python gitdecomposer/cli.py /path/to/repository
-
-# Specify output directory
-python gitdecomposer/cli.py /path/to/repository --output ./my_analysis
-
-# Export only CSV files
-python gitdecomposer/cli.py /path/to/repository --format csv
-
-# Skip visualizations (faster)
-python gitdecomposer/cli.py /path/to/repository --no-visualizations
-```
-
-**Option 2: After installing as package (`pip install -e .`):**
+Run the test suite:
 
 ```bash
-gitdecomposer /path/to/repository --output ./my_analysis
+# Run all tests
+python -m pytest tests/ -v
+
+# Run specific test file
+python tests/run_tests.py
 ```
 
-## Examples
+## Development
 
-See the [`examples/`](examples/) directory for detailed usage examples:
+### Code Quality
 
-- **[Basic Analysis](examples/basic_analysis.py)** - Simple repository analysis
-- **[Advanced Analysis](examples/advanced_analysis.py)** - Using individual analyzers  
-- **[Comprehensive Analysis](examples/comprehensive_analysis.py)** - Full-featured analysis
+```bash
+# Check code formatting and style
+source scripts/check_lint.sh
 
-## Documentation
+# Auto-fix formatting issues
+source scripts/fix_lint.sh
+```
 
-- **[Installation Guide](docs/INSTALLATION.md)** - Detailed setup instructions
-- **[Features & Capabilities](docs/FEATURES.md)** - Complete feature overview
-- **[API Reference](docs/API_REFERENCE.md)** - Class documentation and examples
+### Project Structure
+
+```
+GitDecomposer/
+├── gitdecomposer/          # Main package
+│   ├── analyzers/          # Analysis modules
+│   ├── core/              # Core functionality
+│   ├── models/            # Data models
+│   └── viz/               # Visualization components
+├── examples/              # Usage examples
+├── tests/                 # Test suite
+├── docs/                  # Documentation
+└── scripts/               # Development scripts
+```
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Make your changes
+4. Run tests (`python -m pytest tests/ -v`)
+5. Run linting (`source scripts/check_lint.sh`)
+6. Commit your changes (`git commit -m 'Add amazing feature'`)
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
