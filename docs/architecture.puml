@@ -1,0 +1,103 @@
+@startuml GitDecomposer Architecture
+!theme vibrant
+
+title GitDecomposer - Comprehensive Git Repository Analysis Tool
+
+package "User Interface Layer" {
+  component "CLI Interface" as CLI
+  note right of CLI : Command-line entry point\nArgument parsing and validation
+}
+
+package "Core Analysis Engine" {
+  component "GitMetrics" as GM
+  note right of GM : Main orchestrator\nCoordinates all analyzers
+  
+  component "GitRepository" as GR
+  note right of GR : Git data abstraction\nRepository operations
+}
+
+package "Specialized Analyzers" {
+  component "CommitAnalyzer" as CA
+  component "FileAnalyzer" as FA  
+  component "ContributorAnalyzer" as CRA
+  component "BranchAnalyzer" as BA
+  component "AdvancedMetrics" as AM
+  
+  note right of CA : Commit patterns\nFrequency analysis
+  note right of FA : File changes\nHotspot detection
+  note right of CRA : Developer activity\nCollaboration patterns
+  note right of BA : Branch strategies\nLifecycle analysis
+  note right of AM : Quality metrics\nTechnical debt
+}
+
+package "Data Models" {
+  component "Analysis Models" as Models
+  component "Commit Model" as CM
+  component "File Model" as FM
+  component "Contributor Model" as CRM
+  component "Branch Model" as BM
+  
+  note right of Models : Data structures\nMetrics definitions
+}
+
+package "Visualization & Export" {
+  component "VisualizationEngine" as VE
+  component "HTML Generator" as HG
+  component "CSV Exporter" as CE
+  component "Chart Factory" as CF
+  
+  note right of VE : Interactive dashboards\nPlot generation
+  note right of HG : Report templates\nHTML output
+}
+
+package "Output Layer" {
+  file "HTML Reports" as HTML
+  file "CSV Data" as CSV
+  file "Console Output" as Console
+}
+
+' User interactions
+CLI --> GM : initialize analysis
+CLI --> Console : display results
+
+' Core engine relationships
+GM --> GR : repository access
+GM --> CA : commit analysis
+GM --> FA : file analysis  
+GM --> CRA : contributor analysis
+GM --> BA : branch analysis
+GM --> AM : advanced metrics
+GM --> VE : visualization requests
+
+' Analyzer dependencies
+CA --> GR : git data access
+FA --> GR : git data access
+CRA --> GR : git data access
+BA --> GR : git data access
+AM --> GR : git data access
+
+' Data model usage
+CA --> CM : commit data structures
+FA --> FM : file data structures
+CRA --> CRM : contributor data structures
+BA --> BM : branch data structures
+CA --> Models : analysis results
+FA --> Models : analysis results
+CRA --> Models : analysis results
+BA --> Models : analysis results
+
+' Visualization pipeline
+GM --> VE : analysis data
+VE --> CF : chart generation
+VE --> HG : HTML templating
+VE --> CE : CSV export
+CF --> HTML : interactive charts
+HG --> HTML : formatted reports
+CE --> CSV : structured data
+
+' External dependencies
+note top of GR : Dependencies:\n- GitPython\n- Git CLI
+note top of VE : Dependencies:\n- Plotly\n- Matplotlib\n- Seaborn
+note top of Models : Dependencies:\n- Pandas\n- NumPy
+
+@enduml

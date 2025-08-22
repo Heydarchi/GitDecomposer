@@ -1,0 +1,29 @@
+# Include root level files
+include *.sh
+include *.txt
+include Makefile
+include LICENSE
+include README.md
+
+# Include documentation
+recursive-include docs *.md
+recursive-include docs *.puml
+
+# Include examples
+recursive-include examples *.md
+recursive-include examples *.py
+
+# Include scripts
+recursive-include scripts *.sh
+
+# Include test files
+recursive-include tests *.py
+recursive-include tests *.sh
+
+# Exclude compiled Python files and cache directories
+global-exclude *.pyc
+global-exclude __pycache__
+global-exclude *.pyo
+global-exclude *.pyd
+global-exclude .git*
+global-exclude .DS_Store

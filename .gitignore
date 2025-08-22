@@ -135,6 +135,7 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+gitdecomposer-env/
 
 # Spyder project settings
 .spyderproject
@@ -169,3 +170,11 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# GitDecomposer specific output directories and files
+analysis_output/
+gitdecomposer_output/
+*_dashboard.html
+*_analysis.html
+*_report.html
+comprehensive_report.html
