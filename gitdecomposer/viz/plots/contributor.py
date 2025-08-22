@@ -19,7 +19,6 @@ def create_contributor_analysis_charts(metrics_coordinator, save_path: Optional[
     """
     # Get data from metrics coordinator
     contributors = metrics_coordinator.contributor_analyzer.get_top_contributors()
-    contributor_activity = metrics_coordinator.contributor_analyzer.get_contributor_activity_over_time()
     
     # Create subplots
     fig = make_subplots(
@@ -53,15 +52,21 @@ def create_contributor_analysis_charts(metrics_coordinator, save_path: Optional[
             row=2, col=2
         )
     
-    if not contributor_activity.empty:
-        for author in contributor_activity['author'].unique()[:5]:
-            author_data = contributor_activity[contributor_activity['author'] == author]
+    # Activity over time for top 5 contributors
+    if not contributors.empty:
+        top_5_contributors = contributors.head(5)
+        for index, author_data in top_5_contributors.iterrows():
+            author = author_data['author']
+            first_commit = author_data['first_commit_date']
+            last_commit = author_data['last_commit_date']
+            
             fig.add_trace(
                 go.Scatter(
-                    x=[author_data['first_commit_date'].iloc[0], author_data['last_commit_date'].iloc[0]], 
+                    x=[first_commit, last_commit], 
                     y=[author, author], 
                     mode='lines+markers', 
-                    name=author
+                    name=author,
+                    showlegend=False  # Avoid cluttering legend
                 ),
                 row=2, col=1
             )
@@ -69,7 +74,8 @@ def create_contributor_analysis_charts(metrics_coordinator, save_path: Optional[
     fig.update_layout(
         title='Repository Contributor Analysis',
         height=800,
-        showlegend=True
+        showlegend=True,
+        yaxis2=dict(title_text="Contributor") # Label for the activity timeline
     )
     
     if save_path:

@@ -54,7 +54,6 @@ class ContributorAnalyzer:
                 "files_modified": set(),
                 "first_commit": None,
                 "last_commit": None,
-                "commit_dates": [],
             }
         )
 
@@ -63,65 +62,46 @@ class ContributorAnalyzer:
             commit_date = datetime.fromtimestamp(commit.committed_date)
 
             contributor_stats[author]["commits"] += 1
-            contributor_stats[author]["commit_dates"].append(commit_date)
 
-            # Update first and last commit dates
-            if (
-                contributor_stats[author]["first_commit"] is None
-                or commit_date < contributor_stats[author]["first_commit"]
-            ):
+            if contributor_stats[author]["first_commit"] is None or commit_date < contributor_stats[author]["first_commit"]:
                 contributor_stats[author]["first_commit"] = commit_date
 
-            if (
-                contributor_stats[author]["last_commit"] is None
-                or commit_date > contributor_stats[author]["last_commit"]
-            ):
+            if contributor_stats[author]["last_commit"] is None or commit_date > contributor_stats[author]["last_commit"]:
                 contributor_stats[author]["last_commit"] = commit_date
 
-            # Get commit statistics
             try:
                 stats = commit.stats
                 contributor_stats[author]["total_insertions"] += stats.total["insertions"]
                 contributor_stats[author]["total_deletions"] += stats.total["deletions"]
-
-                # Track files modified
                 changed_files = self.git_repo.get_changed_files(commit.hexsha)
                 contributor_stats[author]["files_modified"].update(changed_files.keys())
-
             except Exception as e:
                 logger.warning(f"Error processing commit stats for {commit.hexsha}: {e}")
 
-        # Convert to DataFrame
         data = []
         for author, stats in contributor_stats.items():
-            if stats["commit_dates"]:
-                activity_span = (
-                    (stats["last_commit"] - stats["first_commit"]).days
-                    if stats["first_commit"] != stats["last_commit"]
-                    else 0
-                )
+            activity_span = 0
+            avg_commits_per_day = 0
+            if stats["first_commit"] and stats["last_commit"]:
+                activity_span = (stats["last_commit"] - stats["first_commit"]).days
                 avg_commits_per_day = stats["commits"] / max(activity_span, 1)
-            else:
-                activity_span = 0
-                avg_commits_per_day = 0
 
-            data.append(
-                {
-                    "author": author,
-                    "total_commits": stats["commits"],
-                    "total_insertions": stats["total_insertions"],
-                    "total_deletions": stats["total_deletions"],
-                    "net_lines": stats["total_insertions"] - stats["total_deletions"],
-                    "files_touched": len(stats["files_modified"]),
-                    "first_commit_date": stats["first_commit"],
-                    "last_commit_date": stats["last_commit"],
-                    "activity_span_days": activity_span,
-                    "avg_commits_per_day": avg_commits_per_day,
-                }
-            )
+            data.append({
+                "author": author,
+                "total_commits": stats["commits"],
+                "total_insertions": stats["total_insertions"],
+                "total_deletions": stats["total_deletions"],
+                "net_lines": stats["total_insertions"] - stats["total_deletions"],
+                "files_touched": len(stats["files_modified"]),
+                "first_commit_date": stats["first_commit"],
+                "last_commit_date": stats["last_commit"],
+                "activity_span_days": activity_span,
+                "avg_commits_per_day": avg_commits_per_day,
+            })
 
         df = pd.DataFrame(data)
-        df = df.sort_values("total_commits", ascending=False)
+        if not df.empty:
+            df = df.sort_values("total_commits", ascending=False)
 
         logger.info(f"Analyzed statistics for {len(df)} contributors")
         return df
