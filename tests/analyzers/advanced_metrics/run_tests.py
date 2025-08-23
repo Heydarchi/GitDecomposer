@@ -59,14 +59,14 @@ class MockRepository:
     def get_all_commits(self, branch=None, max_count=None):
         """Return all commits (compatible with GitRepository interface)."""
         filtered_commits = self.commits.copy()
-        
+
         if branch:
             # Filter by branch if specified (simplified)
-            filtered_commits = [c for c in filtered_commits if hasattr(c, 'branch') and c.branch == branch]
-        
+            filtered_commits = [c for c in filtered_commits if hasattr(c, "branch") and c.branch == branch]
+
         if max_count:
             filtered_commits = filtered_commits[:max_count]
-            
+
         return filtered_commits
 
     def get_branches(self):
