@@ -21,6 +21,7 @@ from ..analyzers import (
 )
 from ..core import GitRepository
 from ..viz import VisualizationEngine
+from .advanced_report_generator import AdvancedReportGenerator
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,7 @@ class ReportGenerator:
         self.file_analyzer = FileAnalyzer(git_repo)
         self.contributor_analyzer = ContributorAnalyzer(git_repo)
         self.branch_analyzer = BranchAnalyzer(git_repo)
+        self.advanced_report_generator = AdvancedReportGenerator(git_repo, advanced_metrics)
         # Advanced metrics can be accessed via advanced_metrics.create_metric_analyzer()
         # Initialize visualization engine with self as metrics coordinator
         self.visualization = VisualizationEngine(git_repo, self)
@@ -78,7 +80,13 @@ class ReportGenerator:
                     self._create_enhanced_file_analysis_dashboard,
                 ),
                 ("executive_summary", "executive_summary.html", self._create_executive_summary_report),
+                ("knowledge_distribution", "knowledge_distribution.html", self.advanced_report_generator.create_knowledge_distribution_report),
+                ("bus_factor", "bus_factor.html", self.advanced_report_generator.create_bus_factor_report),
             ]
+
+            print(f"DEBUG: Total reports to generate: {len(reports)}")  # Debug output
+            for i, (name, file, func) in enumerate(reports):
+                print(f"DEBUG: Report {i+1}: {name} -> {file}")  # Debug output
 
             for report_name, filename, generator_func in reports:
                 try:
@@ -88,6 +96,9 @@ class ReportGenerator:
                     logger.info(f"Generated {report_name} report: {file_path}")
                 except Exception as e:
                     logger.error(f"Error generating {report_name} report: {e}")
+                    print(f"DEBUG: Error generating {report_name} report: {e}")  # Debug output
+                    import traceback
+                    traceback.print_exc()  # Print full traceback
 
             # Generate index page
             index_path = os.path.join(output_dir, "index.html")
@@ -120,6 +131,12 @@ class ReportGenerator:
                 ("repository_health.html", "Repository Health", "Overall repository health indicators"),
                 ("predictive_maintenance.html", "Predictive Maintenance", "Predictive analytics for code maintenance"),
                 ("velocity_forecasting.html", "Velocity Forecasting", "Development velocity predictions and trends"),
+                ("knowledge_distribution.html", "Knowledge Distribution", "Gini coefficient and knowledge breakdown"),
+                ("bus_factor.html", "Bus Factor", "Analysis of project risk from key person dependencies"),
+                ("critical_files.html", "Critical Files", "Identification of high-risk files based on complexity and change frequency"),
+                ("velocity_trends.html", "Velocity Trends", "Development velocity trend analysis over time"),
+                ("cycle_time.html", "Cycle Time", "Feature delivery cycle time analysis"),
+                ("single_point_failure.html", "Single Point Failure", "Files with dangerously low contributor diversity"),
             ]
 
             # Generate index HTML
@@ -505,7 +522,7 @@ class ReportGenerator:
             </div>
             
             <div style="margin-top: 40px; padding: 20px; background: #e8f4f8; border-radius: 10px;">
-                <h3 style="margin-top: 0; color: #0056b3;">📊 Raw Data Export</h3>
+                <h3 style="margin-top: 0; color: #0056b3;">Raw Data Export</h3>
                 <p style="margin-bottom: 15px;">Access detailed CSV data files for custom analysis and reporting.</p>
                 <a href="csv_data.html" style="background: #28a745; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block; transition: background 0.3s ease;">View CSV Data Files</a>
             </div>

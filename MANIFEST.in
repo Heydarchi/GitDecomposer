@@ -4,10 +4,17 @@ include *.txt
 include Makefile
 include LICENSE
 include README.md
+include ADVANCED_METRICS_GUIDE.md
+include IMPLEMENTATION_STATUS.md
 
 # Include documentation
 recursive-include docs *.md
 recursive-include docs *.puml
+
+# Include package data
+recursive-include gitdecomposer *.md
+recursive-include gitdecomposer *.py
+graft gitdecomposer/py.typed
 recursive-include docs *.png
 
 # Include screenshots

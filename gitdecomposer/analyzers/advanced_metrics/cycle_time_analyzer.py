@@ -68,17 +68,26 @@ class CycleTimeAnalyzer(BaseMetricAnalyzer):
         branches = self.repository.get_branches()
 
         for branch in branches:
+            # Handle branch as string or object
+            if isinstance(branch, str):
+                branch_name = branch
+            elif hasattr(branch, 'name'):
+                branch_name = branch.name
+            else:
+                # Skip if we can't determine branch name
+                continue
+                
             # Skip main branches
-            if branch.name in ["main", "master", "develop"]:
+            if branch_name in ["main", "master", "develop"]:
                 continue
 
             # Check if branch matches any pattern
             matches_pattern = False
             for pattern in branch_patterns:
-                if pattern.endswith("*") and branch.name.startswith(pattern[:-1]):
+                if pattern.endswith("*") and branch_name.startswith(pattern[:-1]):
                     matches_pattern = True
                     break
-                elif branch.name == pattern:
+                elif branch_name == pattern:
                     matches_pattern = True
                     break
 
@@ -86,7 +95,7 @@ class CycleTimeAnalyzer(BaseMetricAnalyzer):
                 continue
 
             try:
-                cycle_time_data = self._calculate_branch_cycle_time(branch, since_date)
+                cycle_time_data = self._calculate_branch_cycle_time(branch, branch_name, since_date)
                 if cycle_time_data:
                     cycle_times.append(cycle_time_data)
             except Exception as e:
@@ -95,9 +104,9 @@ class CycleTimeAnalyzer(BaseMetricAnalyzer):
 
         return cycle_times
 
-    def _calculate_branch_cycle_time(self, branch, since_date: datetime) -> Dict[str, Any]:
+    def _calculate_branch_cycle_time(self, branch, branch_name: str, since_date: datetime) -> Dict[str, Any]:
         """Calculate cycle time for a single branch."""
-        commits = list(self.repository.get_commits(branch=branch.name))
+        commits = list(self.repository.get_all_commits(branch=branch_name))
 
         if len(commits) < 1:
             return None
@@ -139,7 +148,7 @@ class CycleTimeAnalyzer(BaseMetricAnalyzer):
         complexity_indicator = len(recent_commits) * len(files_changed)
 
         return {
-            "branch": branch.name,
+            "branch": branch_name,
             "cycle_time_hours": cycle_time_hours,
             "cycle_time_days": cycle_time_hours / 24,
             "commits": len(recent_commits),

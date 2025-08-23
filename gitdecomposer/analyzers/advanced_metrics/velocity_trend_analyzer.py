@@ -71,7 +71,27 @@ class VelocityTrendAnalyzer(BaseMetricAnalyzer):
             week_end = end_date - timedelta(weeks=week)
 
             # Get commits for this week
-            commits = list(self.repository.get_commits(since=week_start, until=week_end))
+            commits = list(self.repository.get_all_commits())
+            # Filter commits by date range - handle timestamp vs datetime properly
+            filtered_commits = []
+            for c in commits:
+                try:
+                    if hasattr(c.committed_date, 'replace'):
+                        # It's a datetime object
+                        commit_date = c.committed_date.replace(tzinfo=None)
+                    elif isinstance(c.committed_date, (int, float)):
+                        # It's a timestamp
+                        commit_date = datetime.fromtimestamp(c.committed_date)
+                    else:
+                        # It's already a datetime without timezone info
+                        commit_date = c.committed_date
+                    
+                    if week_start <= commit_date <= week_end:
+                        filtered_commits.append(c)
+                except (AttributeError, TypeError, ValueError):
+                    # Skip commits with problematic dates
+                    continue
+            commits = filtered_commits
 
             # Calculate weekly metrics
             weekly_metrics = self._calculate_weekly_metrics(commits, week, week_start, week_end)

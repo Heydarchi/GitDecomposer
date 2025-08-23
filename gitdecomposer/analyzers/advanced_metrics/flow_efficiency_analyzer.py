@@ -89,7 +89,7 @@ class FlowEfficiencyAnalyzer(BaseMetricAnalyzer):
     def _calculate_branch_flow_efficiency(self, branch) -> Dict[str, Any]:
         """Calculate flow efficiency for a single branch."""
         # Get commits for the branch
-        commits = list(self.repository.get_commits(branch=branch.name))
+        commits = list(self.repository.get_all_commits(branch=branch.name))
 
         if len(commits) < 2:
             return None

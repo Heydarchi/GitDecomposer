@@ -62,7 +62,7 @@ class KnowledgeDistributionAnalyzer(BaseMetricAnalyzer):
         # For now, implement a simplified version
         knowledge_weights = {}
 
-        commits = self.repository.get_commits(limit=1000)  # Last 1000 commits
+        commits = self.repository.get_all_commits()
 
         for commit in commits:
             author = commit.author.name

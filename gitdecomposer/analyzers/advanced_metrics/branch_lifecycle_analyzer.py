@@ -88,7 +88,7 @@ class BranchLifecycleAnalyzer(BaseMetricAnalyzer):
 
     def _analyze_single_branch(self, branch, is_merged: bool = True) -> Dict[str, Any]:
         """Analyze the lifecycle of a single branch."""
-        commits = list(self.repository.get_commits(branch=branch.name))
+        commits = list(self.repository.get_all_commits(branch=branch.name))
 
         if len(commits) < 1:
             return None
@@ -155,7 +155,7 @@ class BranchLifecycleAnalyzer(BaseMetricAnalyzer):
         """Get the creation date of a branch (simplified implementation)."""
         # In a real implementation, this would find the actual branch creation point
         # For now, use the first commit date as approximation
-        commits = list(self.repository.get_commits(branch=branch.name))
+        commits = list(self.repository.get_all_commits(branch=branch.name))
         if commits:
             return min(c.committed_datetime for c in commits)
         return None

@@ -214,7 +214,7 @@ Each metric provides actionable recommendations based on the analysis:
 ```python
 result = analyzer.calculate()
 for recommendation in result['recommendations']:
-    print(f"📝 {recommendation}")
+    print(f"- {recommendation}")
 ```
 
 ### Trends and Patterns

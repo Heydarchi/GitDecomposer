@@ -63,7 +63,7 @@ class CriticalFileAnalyzer(BaseMetricAnalyzer):
         since_date = datetime.now() - timedelta(days=30 * lookback_months)
 
         # Get all commits in the timeframe
-        commits = self.repository.get_commits(since=since_date)
+        commits = self.repository.get_all_commits()
 
         # Track file changes
         file_changes = {}

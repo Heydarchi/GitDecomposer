@@ -72,11 +72,13 @@ class BusFactorAnalyzer(BaseMetricAnalyzer):
 
         # Get commits from the specified timeframe
         since_date = datetime.now() - timedelta(days=30 * lookback_months)
-        commits = self.repository.get_commits(since=since_date)
+        commits = self.repository.get_all_commits()
 
         for commit in commits:
             author = commit.author.name
-            days_ago = (datetime.now() - commit.committed_datetime).days
+            # Handle timezone-aware datetime comparison
+            commit_date = commit.committed_datetime.replace(tzinfo=None) if commit.committed_datetime.tzinfo else commit.committed_datetime
+            days_ago = (datetime.now() - commit_date).days
             recency_weight = math.exp(-days_ago / decay_half_life)
 
             for file_path in commit.stats.files:
