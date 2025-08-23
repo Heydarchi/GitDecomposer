@@ -80,7 +80,11 @@ class ReportGenerator:
                     self._create_enhanced_file_analysis_dashboard,
                 ),
                 ("executive_summary", "executive_summary.html", self._create_executive_summary_report),
-                ("knowledge_distribution", "knowledge_distribution.html", self.advanced_report_generator.create_knowledge_distribution_report),
+                (
+                    "knowledge_distribution",
+                    "knowledge_distribution.html",
+                    self.advanced_report_generator.create_knowledge_distribution_report,
+                ),
                 ("bus_factor", "bus_factor.html", self.advanced_report_generator.create_bus_factor_report),
             ]
 
@@ -98,6 +102,7 @@ class ReportGenerator:
                     logger.error(f"Error generating {report_name} report: {e}")
                     print(f"DEBUG: Error generating {report_name} report: {e}")  # Debug output
                     import traceback
+
                     traceback.print_exc()  # Print full traceback
 
             # Generate index page
@@ -133,10 +138,18 @@ class ReportGenerator:
                 ("velocity_forecasting.html", "Velocity Forecasting", "Development velocity predictions and trends"),
                 ("knowledge_distribution.html", "Knowledge Distribution", "Gini coefficient and knowledge breakdown"),
                 ("bus_factor.html", "Bus Factor", "Analysis of project risk from key person dependencies"),
-                ("critical_files.html", "Critical Files", "Identification of high-risk files based on complexity and change frequency"),
+                (
+                    "critical_files.html",
+                    "Critical Files",
+                    "Identification of high-risk files based on complexity and change frequency",
+                ),
                 ("velocity_trends.html", "Velocity Trends", "Development velocity trend analysis over time"),
                 ("cycle_time.html", "Cycle Time", "Feature delivery cycle time analysis"),
-                ("single_point_failure.html", "Single Point Failure", "Files with dangerously low contributor diversity"),
+                (
+                    "single_point_failure.html",
+                    "Single Point Failure",
+                    "Files with dangerously low contributor diversity",
+                ),
             ]
 
             # Generate index HTML

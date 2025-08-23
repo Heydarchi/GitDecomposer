@@ -77,7 +77,11 @@ class BusFactorAnalyzer(BaseMetricAnalyzer):
         for commit in commits:
             author = commit.author.name
             # Handle timezone-aware datetime comparison
-            commit_date = commit.committed_datetime.replace(tzinfo=None) if commit.committed_datetime.tzinfo else commit.committed_datetime
+            commit_date = (
+                commit.committed_datetime.replace(tzinfo=None)
+                if commit.committed_datetime.tzinfo
+                else commit.committed_datetime
+            )
             days_ago = (datetime.now() - commit_date).days
             recency_weight = math.exp(-days_ago / decay_half_life)
 

@@ -71,12 +71,12 @@ class CycleTimeAnalyzer(BaseMetricAnalyzer):
             # Handle branch as string or object
             if isinstance(branch, str):
                 branch_name = branch
-            elif hasattr(branch, 'name'):
+            elif hasattr(branch, "name"):
                 branch_name = branch.name
             else:
                 # Skip if we can't determine branch name
                 continue
-                
+
             # Skip main branches
             if branch_name in ["main", "master", "develop"]:
                 continue

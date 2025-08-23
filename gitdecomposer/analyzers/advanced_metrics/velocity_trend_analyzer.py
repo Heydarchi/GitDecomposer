@@ -76,7 +76,7 @@ class VelocityTrendAnalyzer(BaseMetricAnalyzer):
             filtered_commits = []
             for c in commits:
                 try:
-                    if hasattr(c.committed_date, 'replace'):
+                    if hasattr(c.committed_date, "replace"):
                         # It's a datetime object
                         commit_date = c.committed_date.replace(tzinfo=None)
                     elif isinstance(c.committed_date, (int, float)):
@@ -85,7 +85,7 @@ class VelocityTrendAnalyzer(BaseMetricAnalyzer):
                     else:
                         # It's already a datetime without timezone info
                         commit_date = c.committed_date
-                    
+
                     if week_start <= commit_date <= week_end:
                         filtered_commits.append(c)
                 except (AttributeError, TypeError, ValueError):

@@ -211,7 +211,9 @@ class ExportService:
                 pd.DataFrame([bus_factor_data]).to_csv(bf_path, index=False)
                 exported_files["bus_factor_analysis"] = bf_path
 
-            knowledge_dist_analyzer = self.advanced_metrics.create_metric_analyzer("knowledge_distribution", self.git_repo)
+            knowledge_dist_analyzer = self.advanced_metrics.create_metric_analyzer(
+                "knowledge_distribution", self.git_repo
+            )
             knowledge_dist_data = knowledge_dist_analyzer.calculate()
             if not knowledge_dist_data.get("knowledge_distribution", pd.DataFrame()).empty:
                 kd_path = os.path.join(output_dir, "knowledge_distribution.csv")
