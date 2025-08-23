@@ -22,13 +22,15 @@ from gitdecomposer.analyzers.advanced_metrics import (
 class MockCommit:
     """Mock commit object for testing."""
 
-    def __init__(self, author_name, date, files=None, insertions=0, deletions=0):
+    def __init__(self, author_name, date, files=None, insertions=0, deletions=0, branch=None):
         self.author = Mock()
         self.author.name = author_name
         self.committed_datetime = date
+        self.committed_date = date  # Add committed_date alias for compatibility
         self.stats = Mock()
         self.stats.files = files or {}
         self.stats.total = {"insertions": insertions, "deletions": deletions}
+        self.branch = branch
 
 
 class MockBranch:
@@ -56,6 +58,19 @@ class MockRepository:
         if limit:
             filtered_commits = filtered_commits[:limit]
 
+        return filtered_commits
+
+    def get_all_commits(self, branch=None, max_count=None):
+        """Return all commits (compatible with GitRepository interface)."""
+        filtered_commits = self.commits.copy()
+        
+        if branch:
+            # Filter by branch if specified (simplified)
+            filtered_commits = [c for c in filtered_commits if hasattr(c, 'branch') and c.branch == branch]
+        
+        if max_count:
+            filtered_commits = filtered_commits[:max_count]
+            
         return filtered_commits
 
     def get_branches(self):

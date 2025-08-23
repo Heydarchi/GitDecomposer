@@ -35,11 +35,16 @@ class TestFlowEfficiencyAnalyzer(unittest.TestCase):
         # Create test commits for branches
         now = datetime.now()
         self.test_commits = [
-            # Feature branch commits
-            MockCommit("Alice", now - timedelta(days=10), {"auth.py": {}}, 50, 10),
-            MockCommit("Alice", now - timedelta(days=8), {"auth.py": {}}, 30, 5),
-            MockCommit("Bob", now - timedelta(days=6), {"auth.py": {}, "models.py": {}}, 40, 8),
-            MockCommit("Alice", now - timedelta(days=4), {"auth.py": {}}, 20, 3),
+            # Feature branch commits - feature/user-auth
+            MockCommit("Alice", now - timedelta(days=10), {"auth.py": {}}, 50, 10, "feature/user-auth"),
+            MockCommit("Alice", now - timedelta(days=8), {"auth.py": {}}, 30, 5, "feature/user-auth"),
+            MockCommit("Bob", now - timedelta(days=4), {"auth.py": {}}, 20, 3, "feature/user-auth"),
+            # Feature branch commits - feature/dashboard
+            MockCommit("Bob", now - timedelta(days=6), {"dashboard.py": {}}, 40, 8, "feature/dashboard"),
+            MockCommit("Charlie", now - timedelta(days=3), {"dashboard.py": {}}, 25, 4, "feature/dashboard"),
+            # Bugfix branch commits - bugfix/login-issue
+            MockCommit("Alice", now - timedelta(days=5), {"login.py": {}}, 15, 2, "bugfix/login-issue"),
+            MockCommit("David", now - timedelta(days=2), {"login.py": {}}, 10, 1, "bugfix/login-issue"),
         ]
         self.mock_repo.commits = self.test_commits
 
