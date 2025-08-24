@@ -42,7 +42,7 @@ def run_advanced_metrics_analysis(repo_path: str):
 
         # Run each metric analysis
         for metric_name in available_metrics:
-            print(f"\n🔬 Analyzing: {metric_name.replace('_', ' ').title()}")
+            print(f"\nAnalyzing: {metric_name.replace('_', ' ').title()}")
 
             try:
                 # Create analyzer instance
@@ -185,7 +185,7 @@ def print_overall_summary(results: dict):
             print(f"   • {concern}")
 
     if strengths:
-        print(f"\n💪 STRENGTHS IDENTIFIED:")
+        print(f"\nSTRENGTHS IDENTIFIED:")
         for strength in strengths:
             print(f"   • {strength}")
 
@@ -197,16 +197,16 @@ def main():
     # Default to current directory if no argument provided
     repo_path = sys.argv[1] if len(sys.argv) > 1 else "."
 
-    print("🚀 GitDecomposer Advanced Metrics Analysis")
+    print("GitDecomposer Advanced Metrics Analysis")
     print("=" * 80)
 
     # Run the analysis
     results = run_advanced_metrics_analysis(repo_path)
 
     if results:
-        print("\n✨ Analysis complete! Check the results above for insights.")
+        print("\nAnalysis complete! Check the results above for insights.")
     else:
-        print("\n❌ Analysis failed. Please check the repository path and try again.")
+        print("\nAnalysis failed. Please check the repository path and try again.")
 
 
 if __name__ == "__main__":

@@ -137,9 +137,9 @@ echo -e "\nTotal: $TOTAL_TESTS tests, ${GREEN}${#PASSED_TESTS[@]} passed${NC}, $
 
 # Exit with appropriate code
 if [ ${#FAILED_TESTS[@]} -eq 0 ]; then
-    echo -e "\n${GREEN}All tests passed! 🎉${NC}"
+    echo -e "\n${GREEN}All tests passed!${NC}"
     exit 0
 else
-    echo -e "\n${RED}Some tests failed! 💥${NC}"
+    echo -e "\n${RED}Some tests failed!${NC}"
     exit 1
 fi

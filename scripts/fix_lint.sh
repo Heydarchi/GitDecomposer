@@ -32,11 +32,11 @@ flake8 $TARGET_DIRS --max-line-length=120 --extend-ignore=E203,W503,F401,E402,W2
 echo "flake8 check complete."
 echo ""
 
-echo "✨ Lint fixing process completed!"
+echo "Lint fixing process completed!"
 echo ""
 echo "Summary:"
 echo "  ✓ Code formatted with black"
 echo "  ✓ Imports organized with isort"
 echo "  ⚠ Please review any remaining flake8 errors manually"
 echo ""
-echo "💡 Tip: Run './scripts/check_lint.sh' to verify all checks pass"
+echo "Tip: Run './scripts/check_lint.sh' to verify all checks pass"

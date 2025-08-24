@@ -80,7 +80,7 @@ def run_all_tests():
     print("=" * 60)
 
     # Test imports first
-    print("📦 Testing imports...")
+    print("Testing imports...")
     try:
         from gitdecomposer.analyzers.advanced_metrics import (
             METRIC_ANALYZERS,
@@ -88,24 +88,24 @@ def run_all_tests():
             get_available_metrics,
         )
 
-        print("✅ Core imports successful")
+        print("Core imports successful")
 
         # Test each analyzer import
         for metric_name, analyzer_class in METRIC_ANALYZERS.items():
-            print(f"   ✅ {metric_name}: {analyzer_class.__name__}")
+            print(f"   {metric_name}: {analyzer_class.__name__}")
 
     except Exception as e:
-        print(f"❌ Import failed: {e}")
+        print(f"Import failed: {e}")
         return False
 
-    print("\n🏃 Running unit tests...")
+    print("\nRunning unit tests...")
 
     # Create test loader
     loader = unittest.TestLoader()
     suite = unittest.TestSuite()
 
     # Test basic functionality
-    print("   📋 Testing basic functionality...")
+    print("   Testing basic functionality...")
     test_basic_functionality()
 
     # Test each analyzer individually
@@ -121,10 +121,10 @@ def run_all_tests():
     ]
 
     for analyzer_name in analyzers_to_test:
-        print(f"   🔬 Testing {analyzer_name.replace('_', ' ').title()} Analyzer...")
+        print(f"   Testing {analyzer_name.replace('_', ' ').title()} Analyzer...")
         test_analyzer_functionality(analyzer_name)
 
-    print("\n🎉 All tests completed!")
+    print("\nAll tests completed!")
     return True
 
 
@@ -136,22 +136,22 @@ def test_basic_functionality():
         # Test getting available metrics
         metrics = get_available_metrics()
         assert len(metrics) > 0, "Should have available metrics"
-        print(f"      ✅ Found {len(metrics)} available metrics")
+        print(f"      Found {len(metrics)} available metrics")
 
         # Test creating analyzer
         mock_repo = MockRepository()
         analyzer = create_metric_analyzer("bus_factor", mock_repo)
         assert analyzer is not None, "Should create analyzer"
-        print(f"      ✅ Created analyzer successfully")
+        print(f"      Created analyzer successfully")
 
         # Test analyzer interface
         assert hasattr(analyzer, "calculate"), "Should have calculate method"
         assert hasattr(analyzer, "get_metric_name"), "Should have get_metric_name method"
         assert hasattr(analyzer, "get_description"), "Should have get_description method"
-        print(f"      ✅ Analyzer interface is complete")
+        print(f"      Analyzer interface is complete")
 
     except Exception as e:
-        print(f"      ❌ Basic functionality test failed: {e}")
+        print(f"      Basic functionality test failed: {e}")
 
 
 def test_analyzer_functionality(analyzer_name):
@@ -187,26 +187,26 @@ def test_analyzer_functionality(analyzer_name):
         try:
             result = analyzer.calculate()
             assert isinstance(result, dict), "Result should be a dictionary"
-            print(f"         ✅ {analyzer_name}: calculation successful")
+            print(f"         {analyzer_name}: calculation successful")
         except Exception as calc_error:
             # Some analyzers might fail with mock data, that's okay
-            print(f"         ⚠️  {analyzer_name}: calculation failed with mock data (expected): {calc_error}")
+            print(f"         {analyzer_name}: calculation failed with mock data (expected): {calc_error}")
 
         # Test recommendations
         try:
             recommendations = analyzer.get_recommendations({})
             assert isinstance(recommendations, list), "Recommendations should be a list"
-            print(f"         ✅ {analyzer_name}: recommendations method works")
+            print(f"         {analyzer_name}: recommendations method works")
         except Exception as rec_error:
-            print(f"         ❌ {analyzer_name}: recommendations failed: {rec_error}")
+            print(f"         {analyzer_name}: recommendations failed: {rec_error}")
 
     except Exception as e:
-        print(f"         ❌ {analyzer_name}: test failed: {e}")
+        print(f"         {analyzer_name}: test failed: {e}")
 
 
 def test_specific_calculations():
     """Test specific calculation methods."""
-    print("\n🧮 Testing specific calculations...")
+    print("\nTesting specific calculations...")
 
     try:
         from gitdecomposer.analyzers.advanced_metrics.bus_factor_analyzer import BusFactorAnalyzer
@@ -224,10 +224,10 @@ def test_specific_calculations():
         bus_factor, coverage = analyzer._calculate_bus_factor(knowledge_weights, 0.8)
         assert bus_factor > 0, "Bus factor should be positive"
         assert "target_coverage" in coverage, "Coverage analysis should have target coverage"
-        print("   ✅ Bus factor calculation works")
+        print("   Bus factor calculation works")
 
     except Exception as e:
-        print(f"   ❌ Bus factor calculation test failed: {e}")
+        print(f"   Bus factor calculation test failed: {e}")
 
     try:
         from gitdecomposer.analyzers.advanced_metrics.knowledge_distribution_analyzer import (
@@ -242,10 +242,10 @@ def test_specific_calculations():
 
         gini = analyzer._calculate_gini_coefficient(knowledge_weights)
         assert 0 <= gini <= 1, "Gini coefficient should be between 0 and 1"
-        print("   ✅ Gini coefficient calculation works")
+        print("   Gini coefficient calculation works")
 
     except Exception as e:
-        print(f"   ❌ Gini coefficient calculation test failed: {e}")
+        print(f"   Gini coefficient calculation test failed: {e}")
 
 
 if __name__ == "__main__":
@@ -254,12 +254,12 @@ if __name__ == "__main__":
         test_specific_calculations()
 
         if success:
-            print("\n🎊 All tests passed! The advanced metrics system is ready to use.")
+            print("\nAll tests passed! The advanced metrics system is ready to use.")
             sys.exit(0)
         else:
-            print("\n💥 Some tests failed. Please check the implementation.")
+            print("\nSome tests failed. Please check the implementation.")
             sys.exit(1)
 
     except Exception as e:
-        print(f"\n💥 Test runner failed: {e}")
+        print(f"\nTest runner failed: {e}")
         sys.exit(1)
