@@ -1,4 +1,5 @@
-# GitDecomposer
+# <img src="docs/GitComposer.png" width="128"/>
+GitDecomposer
 
 A comprehensive Python toolkit for analyzing Git repositories. GitDecomposer provides detailed insights into commit patterns, contributor behavior, file changes, branch strategies, and overall repository health through an intuitive class-based API and interactive visualizations.
 
@@ -289,3 +290,4 @@ This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENS
 6. Commit your changes (`git commit -m 'Add amazing feature'`)
 7. Push to the branch (`git push origin feature/amazing-feature`)
 8. Open a Pull Request
+
