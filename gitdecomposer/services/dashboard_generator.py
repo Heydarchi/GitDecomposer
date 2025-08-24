@@ -12,11 +12,11 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from ..analyzers import (
-    AdvancedMetrics,
     BranchAnalyzer,
     CommitAnalyzer,
     ContributorAnalyzer,
     FileAnalyzer,
+    advanced_metrics,
 )
 from ..core import GitRepository
 from ..viz import VisualizationEngine
@@ -44,7 +44,8 @@ class DashboardGenerator:
         self.file_analyzer = FileAnalyzer(git_repo)
         self.contributor_analyzer = ContributorAnalyzer(git_repo)
         self.branch_analyzer = BranchAnalyzer(git_repo)
-        self.advanced_metrics = AdvancedMetrics(git_repo)
+        # Advanced metrics module for creating metric analyzers
+        self.advanced_metrics = advanced_metrics
         # Initialize visualization engine with self as metrics coordinator
         self.visualization = VisualizationEngine(git_repo, self)
 

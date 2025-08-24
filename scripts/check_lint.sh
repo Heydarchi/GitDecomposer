@@ -31,4 +31,4 @@ echo "flake8 check passed."
 echo ""
 
 
-echo "🎉 All lint checks passed successfully!"
+echo "All lint checks passed successfully!"

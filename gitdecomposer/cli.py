@@ -175,6 +175,30 @@ class CLI:
                 self.metrics.create_velocity_forecasting_dashboard,
                 "velocity_forecasting.html",
             ),
+            "Knowledge Distribution": (
+                self.metrics.report_generator.advanced_report_generator.create_knowledge_distribution_report,
+                "knowledge_distribution.html",
+            ),
+            "Bus Factor": (
+                self.metrics.report_generator.advanced_report_generator.create_bus_factor_report,
+                "bus_factor.html",
+            ),
+            "Critical Files": (
+                self.metrics.report_generator.advanced_report_generator.create_critical_files_report,
+                "critical_files.html",
+            ),
+            "Velocity Trends": (
+                self.metrics.report_generator.advanced_report_generator.create_velocity_trend_report,
+                "velocity_trends.html",
+            ),
+            "Cycle Time": (
+                self.metrics.report_generator.advanced_report_generator.create_cycle_time_report,
+                "cycle_time.html",
+            ),
+            "Single Point Failure": (
+                self.metrics.report_generator.advanced_report_generator.create_single_point_failure_report,
+                "single_point_failure.html",
+            ),
         }
 
         with Progress(

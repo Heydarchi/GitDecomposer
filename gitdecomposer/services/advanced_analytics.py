@@ -12,11 +12,11 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from ..analyzers import (
-    AdvancedMetrics,
     BranchAnalyzer,
     CommitAnalyzer,
     ContributorAnalyzer,
     FileAnalyzer,
+    legacy_advanced_metrics,
 )
 from ..core import GitRepository
 
@@ -43,7 +43,8 @@ class AdvancedAnalytics:
         self.file_analyzer = FileAnalyzer(git_repo)
         self.contributor_analyzer = ContributorAnalyzer(git_repo)
         self.branch_analyzer = BranchAnalyzer(git_repo)
-        self.advanced_metrics = AdvancedMetrics(git_repo)
+        self.advanced_metrics = legacy_advanced_metrics.AdvancedMetrics(git_repo)
+        # Advanced metrics can be accessed via advanced_metrics.create_metric_analyzer()
 
         logger.info("AdvancedAnalytics initialized with all analyzers")
 
@@ -62,6 +63,7 @@ class AdvancedAnalytics:
             debt_analysis = self.advanced_metrics.calculate_technical_debt_accumulation()
             maintainability = self.advanced_metrics.calculate_maintainability_index()
             test_ratio = self.advanced_metrics.calculate_test_to_code_ratio()
+
             churn_analysis = self.file_analyzer.get_code_churn_analysis()
 
             # Create subplots for technical debt dashboard

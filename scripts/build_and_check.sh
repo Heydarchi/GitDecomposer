@@ -271,7 +271,7 @@ main() {
     print_step "Build Pipeline Completed Successfully!"
     echo -e "${GREEN}"
     echo "╔══════════════════════════════════════════════════════════════╗"
-    echo "║                    🎉 ALL CHECKS PASSED! 🎉                  ║"
+    echo "║                    ALL CHECKS PASSED!                   ║"
     echo "╚══════════════════════════════════════════════════════════════╝"
     echo -e "${NC}"
     echo ""

@@ -13,11 +13,12 @@ from typing import Dict
 import pandas as pd
 
 from ..analyzers import (
-    AdvancedMetrics,
     BranchAnalyzer,
     CommitAnalyzer,
     ContributorAnalyzer,
     FileAnalyzer,
+    advanced_metrics,
+    legacy_advanced_metrics,
 )
 from ..core import GitRepository
 
@@ -44,7 +45,9 @@ class ExportService:
         self.file_analyzer = FileAnalyzer(git_repo)
         self.contributor_analyzer = ContributorAnalyzer(git_repo)
         self.branch_analyzer = BranchAnalyzer(git_repo)
-        self.advanced_metrics = AdvancedMetrics(git_repo)
+        # Advanced metrics module for creating metric analyzers
+        self.advanced_metrics = advanced_metrics
+        self.legacy_advanced_metrics = legacy_advanced_metrics.AdvancedMetrics(git_repo)
 
         logger.info("ExportService initialized with all analyzers")
 
@@ -187,24 +190,35 @@ class ExportService:
     def _export_advanced_metrics(self, output_dir: str, exported_files: Dict[str, str]) -> None:
         """Export advanced metrics data."""
         try:
-            maintainability = self.advanced_metrics.calculate_maintainability_index()
+            # Export legacy advanced metrics
+            maintainability = self.legacy_advanced_metrics.calculate_maintainability_index()
             if not maintainability.get("file_maintainability", pd.DataFrame()).empty:
                 maint_path = os.path.join(output_dir, "maintainability_analysis.csv")
                 maintainability["file_maintainability"].to_csv(maint_path, index=False)
                 exported_files["maintainability_analysis"] = maint_path
 
-            debt_analysis = self.advanced_metrics.calculate_technical_debt_accumulation()
+            debt_analysis = self.legacy_advanced_metrics.calculate_technical_debt_accumulation()
             if not debt_analysis.get("debt_trend", pd.DataFrame()).empty:
                 debt_path = os.path.join(output_dir, "technical_debt_analysis.csv")
                 debt_analysis["debt_trend"].to_csv(debt_path, index=False)
                 exported_files["technical_debt_analysis"] = debt_path
 
-            test_analysis = self.advanced_metrics.calculate_test_to_code_ratio()
-            if test_analysis.get("untested_directories"):
-                test_df = pd.DataFrame(test_analysis["untested_directories"])
-                test_path = os.path.join(output_dir, "test_coverage_analysis.csv")
-                test_df.to_csv(test_path, index=False)
-                exported_files["test_coverage_analysis"] = test_path
+            # Export new advanced metrics
+            bus_factor_analyzer = self.advanced_metrics.create_metric_analyzer("bus_factor", self.git_repo)
+            bus_factor_data = bus_factor_analyzer.calculate()
+            if bus_factor_data and not pd.DataFrame([bus_factor_data]).empty:
+                bf_path = os.path.join(output_dir, "bus_factor_analysis.csv")
+                pd.DataFrame([bus_factor_data]).to_csv(bf_path, index=False)
+                exported_files["bus_factor_analysis"] = bf_path
+
+            knowledge_dist_analyzer = self.advanced_metrics.create_metric_analyzer(
+                "knowledge_distribution", self.git_repo
+            )
+            knowledge_dist_data = knowledge_dist_analyzer.calculate()
+            if not knowledge_dist_data.get("knowledge_distribution", pd.DataFrame()).empty:
+                kd_path = os.path.join(output_dir, "knowledge_distribution.csv")
+                knowledge_dist_data["knowledge_distribution"].to_csv(kd_path, index=False)
+                exported_files["knowledge_distribution"] = kd_path
 
         except Exception as e:
             logger.warning(f"Error exporting advanced metrics: {e}")

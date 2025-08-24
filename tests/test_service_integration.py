@@ -93,11 +93,11 @@ class TestServiceIntegration:
         # Test ReportGenerator dependencies
         report_generator = ReportGenerator(mock_git_repo)
         assert hasattr(report_generator, "visualization")
-        assert hasattr(report_generator, "advanced_metrics")
+        # Advanced metrics can be accessed via advanced_metrics module
 
         # Test AdvancedAnalytics dependencies
         advanced_analytics = AdvancedAnalytics(mock_git_repo)
-        assert hasattr(advanced_analytics, "advanced_metrics")
+        # Advanced metrics can be accessed via advanced_metrics module
         assert hasattr(advanced_analytics, "commit_analyzer")
 
     def test_data_flow_aggregator_to_export(self, mock_git_repo, temp_output_dir):

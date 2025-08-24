@@ -49,7 +49,7 @@ class GitMetrics:
         self.file_analyzer = self.data_aggregator.file_analyzer
         self.contributor_analyzer = self.data_aggregator.contributor_analyzer
         self.branch_analyzer = self.data_aggregator.branch_analyzer
-        self.advanced_metrics = self.data_aggregator.advanced_metrics
+        # Advanced metrics can be accessed via advanced_analytics.advanced_metrics module
 
     # Data Aggregation Methods (delegate to DataAggregator)
 

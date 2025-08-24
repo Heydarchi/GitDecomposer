@@ -206,7 +206,7 @@ if __name__ == "__main__":
     compare_basic_vs_advanced()
 
     if success:
-        print("\n🎉 All advanced reporting features demonstrated successfully!")
+        print("\nAll advanced reporting features demonstrated successfully!")
         print("\nGenerated Files:")
         print("• technical_debt_dashboard.html")
         print("• repository_health_dashboard.html")
@@ -216,5 +216,5 @@ if __name__ == "__main__":
         print("• advanced_reports_output/ (directory with all reports)")
         print("• enhanced_csv_exports/ (directory with enhanced CSV data)")
     else:
-        print("\n❌ Some features failed. Check the output above.")
+        print("\nSome features failed. Check the output above.")
         sys.exit(1)

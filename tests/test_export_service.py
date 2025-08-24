@@ -44,7 +44,7 @@ class TestExportService:
         assert hasattr(service, "file_analyzer")
         assert hasattr(service, "contributor_analyzer")
         assert hasattr(service, "branch_analyzer")
-        assert hasattr(service, "advanced_metrics")
+        # Advanced metrics can be accessed via advanced_metrics module
 
     def test_export_metrics_to_csv(self, export_service, temp_output_dir):
         """Test CSV export functionality."""

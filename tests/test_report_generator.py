@@ -101,7 +101,7 @@ class TestReportGenerator:
         assert hasattr(generator, "file_analyzer")
         assert hasattr(generator, "contributor_analyzer")
         assert hasattr(generator, "branch_analyzer")
-        assert hasattr(generator, "advanced_metrics")
+        # Advanced metrics can be accessed via advanced_metrics module
         assert hasattr(generator, "visualization")
 
     def test_generate_all_reports(self, report_generator, temp_output_dir):

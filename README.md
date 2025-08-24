@@ -1,16 +1,35 @@
-# <img src="docs/GitComposer.png" width="128"/>GitDecomposer 
+# GitDecomposer
 
 A comprehensive Python toolkit for analyzing Git repositories. GitDecomposer provides detailed insights into commit patterns, contributor behavior, file changes, branch strategies, and overall repository health through an intuitive class-based API and interactive visualizations.
-
 
 ## Features
 
 - **Comprehensive Analysis**: Analyze commits, contributors, files, and branches
-- **Interactive Visualizations**: Generate HTML dashboards with interactive charts
+- **Advanced Metrics**: Knowledge distribution analysis, bus factor calculation, critical file identification, and more
+- **Interactive Visualizations**: Generate HTML dashboards with interactive charts using Plotly
 - **Multiple Output Formats**: Export data as CSV files or HTML reports
 - **Modular Design**: Use individual analyzers or the complete metrics suite
 - **CLI Interface**: Command-line tool for quick analysis
 - **Extensible Architecture**: Well-structured classes for custom analysis
+
+## Advanced Metrics
+
+GitDecomposer includes sophisticated advanced metrics for deeper repository insights:
+
+### Risk Analysis
+- **Bus Factor Analysis**: Identifies key person dependencies and project risk
+- **Critical Files Identification**: Finds high-risk files based on complexity and change frequency
+- **Single Point of Failure Detection**: Locates files with dangerously low contributor diversity
+
+### Knowledge & Velocity Metrics
+- **Knowledge Distribution (Gini Coefficient)**: Measures how knowledge is distributed across the team
+- **Velocity Trend Analysis**: Tracks development velocity patterns over time
+- **Cycle Time Analysis**: Measures feature delivery time from start to completion
+
+### Predictive Analytics
+- **Development Velocity Forecasting**: Predicts future development trends
+- **Predictive Maintenance**: Identifies files likely to need maintenance
+- **Repository Health Assessment**: Overall health indicators and recommendations
 
 ## Quick Start
 
@@ -65,8 +84,26 @@ enhanced_summary = data_aggregator.get_enhanced_repository_summary()
 dashboard_generator.create_commit_activity_dashboard("commit_analysis.html")
 dashboard_generator.create_contributor_analysis_charts("contributor_analysis.html")
 
-# Generate comprehensive reports with navigation
+# Generate comprehensive reports with navigation (includes all advanced metrics)
 report_generator.generate_all_reports("./reports")
+
+# Access advanced metrics directly
+from gitdecomposer.analyzers.advanced_metrics import create_metric_analyzer
+
+# Knowledge distribution analysis
+knowledge_analyzer = create_metric_analyzer('knowledge_distribution', repo)
+knowledge_data = knowledge_analyzer.calculate()
+print(f"Gini Coefficient: {knowledge_data['gini_coefficient']}")
+
+# Bus factor analysis
+bus_factor_analyzer = create_metric_analyzer('bus_factor', repo)
+bus_factor_data = bus_factor_analyzer.calculate()
+print(f"Bus Factor: {bus_factor_data['bus_factor']}")
+
+# Critical files identification
+critical_files_analyzer = create_metric_analyzer('critical_files', repo)
+critical_data = critical_files_analyzer.calculate()
+print(f"Critical Files: {len(critical_data['critical_files'])}")
 
 # Export data to CSV with organized structure
 export_service.export_metrics_to_csv("./csv_data")
@@ -75,7 +112,7 @@ export_service.export_metrics_to_csv("./csv_data")
 ### Command Line Interface
 
 ```bash
-# Analyze current directory
+# Basic usage - analyze current directory
 gitdecomposer .
 
 # Analyze specific repository
@@ -83,7 +120,25 @@ gitdecomposer /path/to/repository
 
 # Specify output directory
 gitdecomposer /path/to/repository --output ./my_analysis
+
+# Generate only HTML reports (skip CSV)
+gitdecomposer /path/to/repository --format html
+
+# Generate only CSV exports (skip HTML)
+gitdecomposer /path/to/repository --format csv
+
+# Verbose output for debugging
+gitdecomposer /path/to/repository --verbose
 ```
+
+**Generated Reports Include:**
+- Executive Summary & Repository Health
+- Commit Activity & Contributor Analysis  
+- File Analysis & Technical Debt
+- Knowledge Distribution & Bus Factor
+- Critical Files & Single Point Failure Detection
+- Velocity Trends & Cycle Time Analysis
+- Predictive Maintenance & Velocity Forecasting
 
 **Alternative: Direct script execution:**
 
@@ -101,6 +156,36 @@ See the [`examples/`](examples/) directory for detailed usage examples:
 - **[Comprehensive Analysis](examples/comprehensive_analysis.py)** - Full-featured analysis
 - **[Enhanced Analytics](examples/enhanced_analytics.py)** - Advanced metrics and visualizations
 - **[Advanced Reporting Demo](examples/advanced_reporting_demo.py)** - Comprehensive reporting features
+- **[Advanced Metrics Demo](examples/advanced_metrics_demo.py)** - Advanced metrics showcase
+
+## Available Analysis Reports
+
+GitDecomposer generates comprehensive HTML reports with interactive visualizations:
+
+### Core Analysis Reports
+- **Executive Summary**: High-level repository overview and key metrics
+- **Commit Activity Analysis**: Commit patterns, frequency, and timing analysis
+- **Contributor Analysis**: Developer activity, contribution patterns, and collaboration metrics
+- **File Analysis**: File change patterns, hotspots, and complexity metrics
+- **Enhanced File Analysis**: Advanced file metrics with risk assessment
+
+### Advanced Risk & Quality Reports
+- **Technical Debt Analysis**: Code quality metrics and technical debt indicators
+- **Repository Health**: Overall health indicators and recommendations
+- **Critical Files**: High-risk files based on complexity and change frequency
+- **Single Point Failure**: Files with dangerous contributor concentration
+
+### Knowledge & Team Analytics
+- **Knowledge Distribution**: Gini coefficient analysis of knowledge spread
+- **Bus Factor Analysis**: Key person dependencies and project risk assessment
+
+### Velocity & Performance Reports
+- **Velocity Trends**: Development velocity analysis over time
+- **Cycle Time Analysis**: Feature delivery time patterns
+- **Predictive Maintenance**: Files likely to need future maintenance
+- **Velocity Forecasting**: Development trend predictions
+
+All reports are accessible through an integrated dashboard with navigation between different analysis views.
 
 ## Architecture
 

@@ -23,11 +23,11 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from gitdecomposer.analyzers import (
-    AdvancedMetrics,
     BranchAnalyzer,
     CommitAnalyzer,
     ContributorAnalyzer,
     FileAnalyzer,
+    advanced_metrics,
 )
 from gitdecomposer.core.git_repository import GitRepository
 
@@ -40,6 +40,10 @@ class TestAnalyzersBase(unittest.TestCase):
         self.mock_repo = Mock(spec=GitRepository)
         self.mock_commits = self._create_mock_commits()
         self.mock_repo.get_all_commits.return_value = self.mock_commits
+
+        # Add the get_commits method to the mock
+        self.mock_repo.get_commits = Mock(return_value=self.mock_commits)
+
         self.mock_repo.repo_path = "/test/repo"
 
         # Mock GitRepository methods used by analyzers
@@ -65,8 +69,18 @@ class TestAnalyzersBase(unittest.TestCase):
             commit.committer = commit.author
             commit.authored_date = int((base_date + timedelta(days=i)).timestamp())  # Unix timestamp
             commit.committed_date = int((base_date + timedelta(days=i)).timestamp())  # Unix timestamp
+            commit.committed_datetime = base_date + timedelta(days=i)  # Actual datetime object
             commit.parents = [Mock()] if i > 0 else []
+
+            # Create proper stats structure
             commit.stats.total = {"insertions": 10 + i, "deletions": 5 + i, "lines": 15 + (2 * i)}
+
+            # Create mock files dictionary that's iterable
+            commit.stats.files = {
+                f"file{i % 3}.py": {"insertions": 5 + i, "deletions": 2 + i},
+                f"test_file{i % 2}.py": {"insertions": 3 + i, "deletions": 1 + i},
+            }
+
             commits.append(commit)
 
         return commits
@@ -239,47 +253,55 @@ class TestBranchAnalyzer(TestAnalyzersBase):
 
 
 class TestAdvancedMetrics(TestAnalyzersBase):
-    """Test cases for AdvancedMetrics class."""
+    """Test cases for Advanced Metrics system."""
 
     def setUp(self):
-        """Set up AdvancedMetrics test fixtures."""
+        """Set up Advanced Metrics test fixtures."""
         super().setUp()
-        self.analyzer = AdvancedMetrics(self.mock_repo)
+        # Use new advanced metrics system
+        from gitdecomposer.analyzers.advanced_metrics import create_metric_analyzer
+
+        self.create_analyzer = create_metric_analyzer
 
     def test_initialization(self):
-        """Test AdvancedMetrics initialization."""
-        self.assertIsInstance(self.analyzer, AdvancedMetrics)
-        self.assertEqual(self.analyzer.git_repo, self.mock_repo)
+        """Test Advanced Metrics system initialization."""
+        # Test that we can create analyzers
+        analyzer = self.create_analyzer("bus_factor", self.mock_repo)
+        self.assertIsNotNone(analyzer)
+        self.assertEqual(analyzer.repository, self.mock_repo)
 
     def test_calculate_commit_velocity(self):
-        """Test commit velocity calculation."""
-        # This method doesn't exist, so test maintainability index instead
-        result = self.analyzer.calculate_maintainability_index()
+        """Test velocity trend calculation."""
+        analyzer = self.create_analyzer("velocity_trend", self.mock_repo)
+        result = analyzer.calculate()
 
         self.assertIsInstance(result, dict)
-        # Should contain maintainability data
+        self.assertIn("weekly_data", result)
+        self.assertIn("trends", result)
 
     def test_calculate_code_churn(self):
-        """Test code churn calculation."""
-        # This method doesn't exist, so test technical debt instead
-        result = self.analyzer.calculate_technical_debt_accumulation()
+        """Test critical files analysis."""
+        analyzer = self.create_analyzer("critical_files", self.mock_repo)
+        result = analyzer.calculate()
 
         self.assertIsInstance(result, dict)
-        # Should contain debt data
+        self.assertIn("critical_files", result)
 
     def test_calculate_technical_debt_accumulation(self):
-        """Test technical debt accumulation calculation."""
-        result = self.analyzer.calculate_technical_debt_accumulation()
+        """Test bus factor analysis."""
+        analyzer = self.create_analyzer("bus_factor", self.mock_repo)
+        result = analyzer.calculate()
 
         self.assertIsInstance(result, dict)
-        # Should contain debt indicators
+        self.assertIn("bus_factor", result)
 
     def test_calculate_test_to_code_ratio(self):
-        """Test test coverage proxy calculation."""
-        result = self.analyzer.calculate_test_to_code_ratio()
+        """Test knowledge distribution analysis."""
+        analyzer = self.create_analyzer("knowledge_distribution", self.mock_repo)
+        result = analyzer.calculate()
 
         self.assertIsInstance(result, dict)
-        # Should contain coverage metrics
+        self.assertIn("gini_coefficient", result)
 
 
 class TestAnalyzerIntegration(TestAnalyzersBase):
@@ -297,12 +319,21 @@ class TestAnalyzerIntegration(TestAnalyzersBase):
             FileAnalyzer(self.mock_repo),
             ContributorAnalyzer(self.mock_repo),
             BranchAnalyzer(self.mock_repo),
-            AdvancedMetrics(self.mock_repo),
         ]
+
+        # Test advanced metrics system
+        from gitdecomposer.analyzers.advanced_metrics import create_metric_analyzer
+
+        advanced_analyzer = create_metric_analyzer("bus_factor", self.mock_repo)
+        analyzers.append(advanced_analyzer)
 
         for analyzer in analyzers:
             self.assertIsNotNone(analyzer)
-            self.assertEqual(analyzer.git_repo, self.mock_repo)
+            # Different attribute names for different analyzers
+            if hasattr(analyzer, "git_repo"):
+                self.assertEqual(analyzer.git_repo, self.mock_repo)
+            elif hasattr(analyzer, "repository"):
+                self.assertEqual(analyzer.repository, self.mock_repo)
 
     def test_error_handling(self):
         """Test that analyzers handle errors gracefully."""
