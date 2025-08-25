@@ -775,7 +775,10 @@ class AdvancedAnalytics:
             )
 
             if save_path:
-                fig.write_html(save_path)
+                # Generate HTML with custom description
+                html_content = self._generate_velocity_forecasting_html(fig)
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_content)
                 logger.info(f"Velocity forecasting dashboard saved to {save_path}")
 
             return fig
@@ -783,6 +786,119 @@ class AdvancedAnalytics:
         except Exception as e:
             logger.error(f"Error creating velocity forecasting dashboard: {e}")
             return self._create_error_figure("Error creating velocity forecasting dashboard")
+
+    def _generate_velocity_forecasting_html(self, fig: go.Figure) -> str:
+        """Generate HTML content for velocity forecasting report with description."""
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Velocity Forecasting Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 1400px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #6f42c1 0%, #5a32a3 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
+        .content {{ padding: 30px; }}
+        .description {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #6f42c1; }}
+        .calculation {{ background: #e9ecef; padding: 15px; border-radius: 6px; margin: 10px 0; }}
+        .section-title {{ color: #6f42c1; font-weight: 600; margin-top: 20px; margin-bottom: 10px; }}
+        .metric-formula {{ font-family: 'Courier New', monospace; background: #f1f3f4; padding: 8px; border-radius: 4px; }}
+        .component-box {{ background: #ffffff; border: 1px solid #e9ecef; padding: 12px; border-radius: 6px; margin: 8px 0; }}
+        .warning-box {{ background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 4px; margin: 10px 0; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Velocity Forecasting Dashboard</h1>
+            <p>Development velocity predictions and performance trend analysis</p>
+        </div>
+        
+        <div class="content">
+            <div id="chart"></div>
+            
+            <div class="description">
+                <h3 class="section-title">Dashboard Overview</h3>
+                <p><strong>Velocity Forecasting</strong> analyzes your team's development speed over time and provides predictive insights for future performance. This analysis combines historical data with statistical modeling to help with sprint planning, resource allocation, and productivity optimization.</p>
+                
+                <h4 class="section-title">Key Metrics and Calculations</h4>
+                
+                <div class="component-box">
+                    <strong>Velocity Trend Analysis:</strong>
+                    <div class="metric-formula">Average Velocity = Total Commits / Time Period</div>
+                    <p>Tracks development speed over rolling time windows to identify patterns and trends in team productivity.</p>
+                </div>
+
+                <div class="component-box">
+                    <strong>Velocity Distribution:</strong>
+                    <div class="metric-formula">Statistical Distribution = Frequency Analysis of Daily/Weekly Output</div>
+                    <p>Shows the spread and consistency of development activity, helping identify normal vs exceptional performance periods.</p>
+                </div>
+
+                <div class="component-box">
+                    <strong>Productivity Score:</strong>
+                    <div class="metric-formula">Score = (Current Velocity / Historical Maximum) × 100</div>
+                    <p>Normalized performance metric scaled from 0-100, providing a quick assessment of current team efficiency.</p>
+                </div>
+
+                <div class="component-box">
+                    <strong>Forecasting Model:</strong>
+                    <div class="metric-formula">Prediction = Linear Regression(Historical Data) + Trend Analysis</div>
+                    <p>Uses the last 12 weeks of data to project future velocity with confidence intervals based on historical variance.</p>
+                </div>
+
+                <h4 class="section-title">Dashboard Components Analysis</h4>
+                <ul>
+                    <li><strong>Velocity Trend (Top Left):</strong> Historical development speed showing patterns over time and identifying periods of high/low activity</li>
+                    <li><strong>Velocity Distribution (Top Right):</strong> Statistical frequency analysis revealing consistency patterns and outlier identification</li>
+                    <li><strong>Team Productivity Gauge (Bottom Left):</strong> Current performance indicator with color-coded status (Red: <50, Yellow: 50-80, Green: 80+)</li>
+                    <li><strong>Forecasting Chart (Bottom Right):</strong> Predictive trend line with confidence intervals for next 4 weeks of expected performance</li>
+                </ul>
+
+                <h4 class="section-title">Practical Applications</h4>
+                <ul>
+                    <li><strong>Sprint Planning:</strong> Use velocity forecasts to estimate realistic story point capacity for upcoming sprints</li>
+                    <li><strong>Resource Management:</strong> Identify when additional resources may be needed based on projected workload vs capacity</li>
+                    <li><strong>Performance Monitoring:</strong> Track whether implemented improvements are positively affecting team velocity</li>
+                    <li><strong>Bottleneck Detection:</strong> Spot periods of consistently low productivity that may indicate process or technical issues</li>
+                    <li><strong>Goal Setting:</strong> Establish realistic performance targets based on historical data and improvement trends</li>
+                    <li><strong>Team Health Assessment:</strong> Monitor for signs of burnout or overwork through velocity pattern analysis</li>
+                </ul>
+
+                <h4 class="section-title">Forecasting Methodology</h4>
+                <div class="calculation">
+                    <ul>
+                        <li><strong>Data Window:</strong> 12-week rolling analysis for trend identification</li>
+                        <li><strong>Trend Calculation:</strong> Linear regression with weighted recent performance</li>
+                        <li><strong>Confidence Interval:</strong> ±20% variance based on historical data standard deviation</li>
+                        <li><strong>Projection Period:</strong> 4-week forward prediction with weekly granularity</li>
+                        <li><strong>Model Updates:</strong> Continuous recalibration as new data becomes available</li>
+                    </ul>
+                </div>
+
+                <div class="warning-box">
+                    <h4 class="section-title">Important Considerations</h4>
+                    <ul>
+                        <li><strong>Quality vs Quantity:</strong> Velocity measures output speed, not code quality or business value delivered</li>
+                        <li><strong>External Factors:</strong> Consider holidays, team changes, training periods, and other contextual factors</li>
+                        <li><strong>Prediction Limitations:</strong> Forecasts are estimates based on historical patterns, not absolute predictions</li>
+                        <li><strong>Holistic Analysis:</strong> Combine velocity data with other metrics like code quality, bug rates, and customer satisfaction</li>
+                        <li><strong>Team Dynamics:</strong> Account for team composition changes, learning curves, and process improvements</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        var chartData = {fig.to_json()};
+        Plotly.newPlot('chart', chartData.data, chartData.layout);
+    </script>
+</body>
+</html>"""
+        return html_content
 
     def _create_error_figure(self, error_message: str) -> go.Figure:
         """Create a simple error figure when visualization fails."""
