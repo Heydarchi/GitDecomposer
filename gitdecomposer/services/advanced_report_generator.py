@@ -176,7 +176,10 @@ class AdvancedReportGenerator:
             )
 
             if save_path:
-                fig.write_html(save_path)
+                # Generate HTML with custom description
+                html_content = self._generate_bus_factor_html(fig)
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_content)
             return fig
         except Exception as e:
             logger.error(f"Error creating bus factor report: {e}")
@@ -224,7 +227,7 @@ class AdvancedReportGenerator:
                     fig.write_html(save_path)
                 return fig
 
-            critical_files = data["critical_files"][:10]  # Top 10 most critical
+            critical_files = data["critical_files"][:25]  # Top 25 most critical
 
             # Create bar chart for critical files
             file_names = [file_path.split("/")[-1] for file_path, metrics in critical_files]
@@ -254,7 +257,10 @@ class AdvancedReportGenerator:
             )
 
             if save_path:
-                fig.write_html(save_path)
+                # Generate HTML with custom description
+                html_content = self._generate_critical_files_html(fig)
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_content)
             return fig
 
         except Exception as e:
@@ -421,7 +427,7 @@ class AdvancedReportGenerator:
                     fig.write_html(save_path)
                 return fig
 
-            spof_files = data["spof_files"][:10]  # Top 10 SPOF files
+            spof_files = data["spof_files"][:25]  # Top 25 SPOF files
 
             # Create bar chart for SPOF files
             file_names = [f["file"].split("/")[-1] for f in spof_files]
@@ -451,9 +457,287 @@ class AdvancedReportGenerator:
             )
 
             if save_path:
-                fig.write_html(save_path)
+                # Generate HTML with custom description
+                html_content = self._generate_single_point_failure_html(fig)
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_content)
             return fig
 
         except Exception as e:
             logger.error(f"Error creating single point failure report: {e}")
             return self._create_error_figure(f"Error generating Single Point Failure report: {str(e)}")
+
+    def _generate_critical_files_html(self, fig: go.Figure) -> str:
+        """Generate HTML content for critical files report with description."""
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Critical Files Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
+        .content {{ padding: 30px; }}
+        .description {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #dc3545; }}
+        .calculation {{ background: #e9ecef; padding: 15px; border-radius: 6px; margin: 10px 0; }}
+        .section-title {{ color: #dc3545; font-weight: 600; margin-top: 20px; margin-bottom: 10px; }}
+        .metric-formula {{ font-family: 'Courier New', monospace; background: #f1f3f4; padding: 8px; border-radius: 4px; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Critical Files Analysis</h1>
+            <p>High-risk files based on complexity and change frequency</p>
+        </div>
+        
+        <div class="content">
+            <div id="chart"></div>
+            
+            <div class="description">
+                <h3 class="section-title">Report Overview</h3>
+                <p><strong>Critical Files Analysis</strong> identifies files that pose the highest risk to your project due to their combination of high complexity and frequent changes. This analysis helps prioritize refactoring efforts and increase testing coverage for the most vulnerable parts of your codebase.</p>
+                
+                <h4 class="section-title">Calculation Methodology</h4>
+                <div class="calculation">
+                    <div class="metric-formula">Risk Score = (Change Frequency × 0.4) + (Code Complexity × 0.6)</div>
+                    <ul>
+                        <li><strong>Change Frequency:</strong> Number of commits affecting the file (normalized to 0-100 scale)</li>
+                        <li><strong>Code Complexity:</strong> Estimated based on file size, nesting depth, and code patterns</li>
+                        <li><strong>Weighting Rationale:</strong> Complexity weighted higher (60%) as it indicates potential technical debt</li>
+                    </ul>
+                </div>
+
+                <h4 class="section-title">Risk Level Classification</h4>
+                <ul>
+                    <li><strong>High Risk (Score > 70):</strong> Immediate refactoring and comprehensive testing recommended</li>
+                    <li><strong>Medium Risk (Score 40-70):</strong> Monitor closely, add automated tests, schedule code reviews</li>
+                    <li><strong>Low Risk (Score < 40):</strong> Stable, well-maintained code with minimal immediate action needed</li>
+                </ul>
+
+                <h4 class="section-title">Recommended Actions</h4>
+                <ul>
+                    <li>Prioritize automated testing for the top 5 critical files</li>
+                    <li>Break down large, monolithic files into smaller, focused modules</li>
+                    <li>Implement continuous monitoring for files with frequent change patterns</li>
+                    <li>Establish mandatory code review processes for all changes to critical files</li>
+                    <li>Consider architectural refactoring for consistently high-risk areas</li>
+                    <li>Document complex business logic in critical files</li>
+                </ul>
+
+                <h4 class="section-title">Best Practices</h4>
+                <ul>
+                    <li>Aim to keep individual files under 500 lines of code</li>
+                    <li>Implement the Single Responsibility Principle to reduce complexity</li>
+                    <li>Use design patterns to manage complexity in unavoidably large files</li>
+                    <li>Regularly assess and refactor based on changing risk scores</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        var chartData = {fig.to_json()};
+        Plotly.newPlot('chart', chartData.data, chartData.layout);
+    </script>
+</body>
+</html>"""
+        return html_content
+
+    def _generate_single_point_failure_html(self, fig: go.Figure) -> str:
+        """Generate HTML content for single point failure report with description."""
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Single Point of Failure Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #dc3545 0%, #bd2130 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
+        .content {{ padding: 30px; }}
+        .description {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #dc3545; }}
+        .calculation {{ background: #e9ecef; padding: 15px; border-radius: 6px; margin: 10px 0; }}
+        .section-title {{ color: #dc3545; font-weight: 600; margin-top: 20px; margin-bottom: 10px; }}
+        .metric-formula {{ font-family: 'Courier New', monospace; background: #f1f3f4; padding: 8px; border-radius: 4px; }}
+        .risk-level {{ margin: 8px 0; padding: 8px; border-radius: 4px; }}
+        .critical {{ background-color: #f8d7da; border-left: 4px solid #dc3545; }}
+        .high {{ background-color: #fff3cd; border-left: 4px solid #ffc107; }}
+        .medium {{ background-color: #d1ecf1; border-left: 4px solid #17a2b8; }}
+        .low {{ background-color: #d4edda; border-left: 4px solid #28a745; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Single Point of Failure Analysis</h1>
+            <p>Files with dangerously low contributor diversity</p>
+        </div>
+        
+        <div class="content">
+            <div id="chart"></div>
+            
+            <div class="description">
+                <h3 class="section-title">Report Overview</h3>
+                <p><strong>Single Point of Failure (SPOF) Analysis</strong> identifies files where knowledge and maintenance responsibility is concentrated in a single contributor. These files represent significant project risk if that contributor becomes unavailable, creating potential bottlenecks in development and maintenance.</p>
+                
+                <h4 class="section-title">Calculation Methodology</h4>
+                <div class="calculation">
+                    <div class="metric-formula">Dominance Ratio = (Main Contributor Commits / Total File Commits) × 100</div>
+                    <ul>
+                        <li><strong>Main Contributor:</strong> Individual with the highest number of commits to the file</li>
+                        <li><strong>SPOF Threshold:</strong> Files with dominance ratio >80% are flagged as single points of failure</li>
+                        <li><strong>Risk Assessment:</strong> Higher percentage indicates greater concentration of knowledge</li>
+                    </ul>
+                </div>
+
+                <h4 class="section-title">Risk Level Classification</h4>
+                <div class="risk-level critical">
+                    <strong>Critical Risk (>90% dominance):</strong> Single person effectively owns the file with minimal knowledge sharing
+                </div>
+                <div class="risk-level high">
+                    <strong>High Risk (80-90% dominance):</strong> Very limited knowledge distribution among team members
+                </div>
+                <div class="risk-level medium">
+                    <strong>Medium Risk (60-80% dominance):</strong> Some knowledge sharing exists but still concentrated
+                </div>
+                <div class="risk-level low">
+                    <strong>Low Risk (<60% dominance):</strong> Good knowledge distribution across multiple contributors
+                </div>
+
+                <h4 class="section-title">Risk Mitigation Strategies</h4>
+                <ul>
+                    <li><strong>Knowledge Transfer:</strong> Schedule dedicated sessions for primary contributor to share domain knowledge</li>
+                    <li><strong>Pair Programming:</strong> Implement regular pair programming sessions for SPOF files</li>
+                    <li><strong>Documentation:</strong> Create comprehensive documentation covering business logic and technical decisions</li>
+                    <li><strong>Code Review:</strong> Require multiple reviewers for changes to high-risk files</li>
+                    <li><strong>Backup Maintainers:</strong> Assign secondary maintainers and rotate responsibilities</li>
+                    <li><strong>Cross-Training:</strong> Ensure multiple team members understand critical system components</li>
+                </ul>
+
+                <h4 class="section-title">Implementation Guidelines</h4>
+                <ul>
+                    <li>Start with the highest-risk files and work systematically through the list</li>
+                    <li>Establish a knowledge-sharing culture through regular team technical discussions</li>
+                    <li>Create architectural decision records (ADRs) for important design choices</li>
+                    <li>Monitor improvements over time by tracking dominance ratio changes</li>
+                    <li>Include knowledge distribution as a factor in code review processes</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        var chartData = {fig.to_json()};
+        Plotly.newPlot('chart', chartData.data, chartData.layout);
+    </script>
+</body>
+</html>"""
+        return html_content
+
+    def _generate_bus_factor_html(self, fig: go.Figure) -> str:
+        """Generate HTML content for bus factor report with description."""
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Factor Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #fd7e14 0%, #e8590c 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
+        .content {{ padding: 30px; }}
+        .description {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin-top: 20px; border-left: 4px solid #fd7e14; }}
+        .calculation {{ background: #e9ecef; padding: 15px; border-radius: 6px; margin: 10px 0; }}
+        .section-title {{ color: #fd7e14; font-weight: 600; margin-top: 20px; margin-bottom: 10px; }}
+        .metric-formula {{ font-family: 'Courier New', monospace; background: #f1f3f4; padding: 8px; border-radius: 4px; }}
+        .risk-indicator {{ margin: 8px 0; padding: 8px; border-radius: 4px; }}
+        .critical {{ background-color: #f8d7da; border-left: 4px solid #dc3545; }}
+        .high {{ background-color: #fff3cd; border-left: 4px solid #ffc107; }}
+        .medium {{ background-color: #d1ecf1; border-left: 4px solid #17a2b8; }}
+        .low {{ background-color: #d4edda; border-left: 4px solid #28a745; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Bus Factor Analysis</h1>
+            <p>Project risk assessment from key person dependencies</p>
+        </div>
+        
+        <div class="content">
+            <div id="chart"></div>
+            
+            <div class="description">
+                <h3 class="section-title">Bus Factor Definition</h3>
+                <p><strong>Bus Factor</strong> represents the minimum number of team members who would need to become unavailable before the project becomes severely compromised. It measures knowledge concentration and identifies critical dependencies in your development team.</p>
+                
+                <h4 class="section-title">Calculation Methodology</h4>
+                <div class="calculation">
+                    <div class="metric-formula">Bus Factor = Minimum contributors needed to account for 50% of total project commits</div>
+                    <ul>
+                        <li><strong>Knowledge Share Analysis:</strong> Cumulative percentage of commits by each contributor</li>
+                        <li><strong>Critical Threshold:</strong> Point where combined contributions reach 50% of total work</li>
+                        <li><strong>Risk Assessment:</strong> Lower bus factor indicates higher project vulnerability</li>
+                    </ul>
+                </div>
+
+                <h4 class="section-title">Risk Level Interpretation</h4>
+                <div class="risk-indicator critical">
+                    <strong>Bus Factor 1 - Critical Risk:</strong> Project has a single point of failure with catastrophic potential impact
+                </div>
+                <div class="risk-indicator high">
+                    <strong>Bus Factor 2-3 - High Risk:</strong> Limited knowledge sharing creates significant project vulnerability
+                </div>
+                <div class="risk-indicator medium">
+                    <strong>Bus Factor 4-6 - Medium Risk:</strong> Reasonable knowledge distribution with room for improvement
+                </div>
+                <div class="risk-indicator low">
+                    <strong>Bus Factor 7+ - Low Risk:</strong> Well-distributed knowledge across multiple team members
+                </div>
+
+                <h4 class="section-title">Knowledge Distribution Improvement Strategies</h4>
+                <ul>
+                    <li><strong>Cross-Training Programs:</strong> Implement systematic knowledge sharing across team members</li>
+                    <li><strong>Pair Programming:</strong> Regular rotation of programming pairs to spread domain knowledge</li>
+                    <li><strong>Code Review Culture:</strong> Ensure multiple people understand each part of the codebase</li>
+                    <li><strong>Documentation Standards:</strong> Maintain comprehensive documentation of critical processes and architecture</li>
+                    <li><strong>Mentorship Programs:</strong> Pair experienced developers with newer team members</li>
+                    <li><strong>Technical Presentations:</strong> Regular team sessions where members share knowledge about their areas</li>
+                </ul>
+
+                <h4 class="section-title">Organizational Best Practices</h4>
+                <ul>
+                    <li>Rotate responsibilities for critical system components among multiple team members</li>
+                    <li>Identify and proactively train backup experts for specialized knowledge areas</li>
+                    <li>Create and maintain up-to-date architectural decision records</li>
+                    <li>Establish clear ownership models while ensuring knowledge redundancy</li>
+                    <li>Monitor bus factor trends over time to track improvement efforts</li>
+                    <li>Include knowledge sharing in performance evaluation criteria</li>
+                </ul>
+
+                <h4 class="section-title">Risk Mitigation Timeline</h4>
+                <ul>
+                    <li><strong>Immediate (1-2 weeks):</strong> Document critical knowledge held by key contributors</li>
+                    <li><strong>Short-term (1-3 months):</strong> Implement pair programming and code review processes</li>
+                    <li><strong>Medium-term (3-6 months):</strong> Cross-train team members on critical systems</li>
+                    <li><strong>Long-term (6+ months):</strong> Achieve sustainable knowledge distribution patterns</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        var chartData = {fig.to_json()};
+        Plotly.newPlot('chart', chartData.data, chartData.layout);
+    </script>
+</body>
+</html>"""
+        return html_content
