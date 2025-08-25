@@ -741,21 +741,3 @@ class AdvancedReportGenerator:
 </body>
 </html>"""
         return html_content
-
-    def _create_error_figure(self, error_message: str) -> go.Figure:
-        """Create a simple error figure when visualization fails."""
-        fig = go.Figure()
-        fig.add_annotation(
-            text=error_message,
-            xref="paper",
-            yref="paper",
-            x=0.5,
-            y=0.5,
-            showarrow=False,
-            font=dict(size=16, color="red"),
-        )
-        fig.update_layout(
-            title="Report Generation Error",
-            template="plotly_white",
-        )
-        return fig

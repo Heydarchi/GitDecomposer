@@ -6,7 +6,8 @@ for repository analysis data.
 """
 
 import logging
-from typing import Optional
+from pathlib import Path
+from typing import Dict, Optional
 
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
@@ -189,7 +190,7 @@ class DashboardGenerator:
             )
 
             if save_path:
-                # Generate HTML with custom description  
+                # Generate HTML with custom description
                 html_content = self._generate_file_analysis_html(fig)
                 with open(save_path, "w", encoding="utf-8") as f:
                     f.write(html_content)
@@ -389,6 +390,8 @@ class DashboardGenerator:
         .metric-formula {{ font-family: 'Courier New', monospace; background: #f1f3f4; padding: 8px; border-radius: 4px; }}
         .component-box {{ background: #ffffff; border: 1px solid #e9ecef; padding: 12px; border-radius: 6px; margin: 8px 0; }}
         .insight-box {{ background: #d4edda; border-left: 4px solid #28a745; padding: 12px; border-radius: 4px; margin: 10px 0; }}
+        .nav-link {{ display: inline-block; margin: 5px 10px; padding: 8px 16px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; }}
+        .nav-link:hover {{ background: #1e7e34; color: white; text-decoration: none; }}
     </style>
 </head>
 <body>
@@ -404,6 +407,12 @@ class DashboardGenerator:
             <div class="description">
                 <h3 class="section-title">Dashboard Overview</h3>
                 <p><strong>Enhanced File Analysis</strong> provides deep insights into your codebase files, identifying hotspots, technical debt, and maintenance patterns. This advanced analysis goes beyond basic file statistics to reveal actionable insights for code quality improvement and technical debt management.</p>
+                
+                <div class="nav-links" style="text-align: center; margin: 20px 0;">
+                    <a href="expanded_hotspots.html" class="nav-link">View All Hotspots</a>
+                    <a href="expanded_most_changed_files.html" class="nav-link">View All Changed Files</a>
+                    <a href="comprehensive_file_analysis.html" class="nav-link">Comprehensive View</a>
+                </div>
                 
                 <h4 class="section-title">Key Metrics and Calculations</h4>
                 
@@ -564,6 +573,8 @@ class DashboardGenerator:
         .metric-formula {{ font-family: 'Courier New', monospace; background: #f1f3f4; padding: 8px; border-radius: 4px; }}
         .component-box {{ background: #ffffff; border: 1px solid #e9ecef; padding: 12px; border-radius: 6px; margin: 8px 0; }}
         .action-box {{ background: #cce5ff; border-left: 4px solid #007bff; padding: 12px; border-radius: 4px; margin: 10px 0; }}
+        .nav-link {{ display: inline-block; margin: 5px 10px; padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; }}
+        .nav-link:hover {{ background: #0056b3; color: white; text-decoration: none; }}
     </style>
 </head>
 <body>
@@ -579,6 +590,12 @@ class DashboardGenerator:
             <div class="description">
                 <h3 class="section-title">Dashboard Overview</h3>
                 <p><strong>File Analysis</strong> provides fundamental insights into your repository's file structure, change patterns, and development activity. This analysis helps understand the codebase composition, identify areas of high activity, and assess project organization effectiveness.</p>
+                
+                <div class="nav-links" style="text-align: center; margin: 20px 0;">
+                    <a href="expanded_most_changed_files.html" class="nav-link">View All Changed Files</a>
+                    <a href="expanded_directory_analysis.html" class="nav-link">View All Directories</a>
+                    <a href="comprehensive_file_analysis.html" class="nav-link">Comprehensive View</a>
+                </div>
                 
                 <h4 class="section-title">Key Metrics and Calculations</h4>
                 
@@ -705,6 +722,527 @@ class DashboardGenerator:
 </html>"""
         return html_content
 
+    def create_expanded_most_changed_files_report(self, save_path: Optional[str] = None) -> go.Figure:
+        """Create an expanded report showing all most changed files in full-width layout."""
+        try:
+            most_changed = self.file_analyzer.get_most_changed_files(top_n=100)  # Get top 100
+
+            if most_changed.empty:
+                return self._create_error_figure("No file change data available")
+
+            # Create figure with single column layout (full width)
+            fig = go.Figure()
+
+            # Add all files as a bar chart with better spacing
+            fig.add_trace(
+                go.Bar(
+                    x=most_changed["file_path"],
+                    y=most_changed["change_count"],
+                    name="Changes",
+                    marker_color="lightblue",
+                    text=most_changed["change_count"],
+                    textposition="outside",
+                    hovertemplate="<b>%{x}</b><br>Changes: %{y}<extra></extra>",
+                )
+            )
+
+            fig.update_layout(
+                title="Complete Most Changed Files Analysis",
+                xaxis_title="File Path",
+                yaxis_title="Number of Changes",
+                xaxis_tickangle=-45,
+                height=max(600, len(most_changed) * 20),  # Dynamic height based on number of files
+                margin=dict(l=50, r=50, t=80, b=250),
+                showlegend=False,
+                template="plotly_white",
+            )
+
+            if save_path:
+                html_content = self._generate_expanded_most_changed_files_html(fig, len(most_changed))
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_content)
+                logger.info(f"Expanded most changed files report saved to {save_path}")
+
+            return fig
+
+        except Exception as e:
+            logger.error(f"Error creating expanded most changed files report: {e}")
+            return self._create_error_figure("Error creating expanded most changed files report")
+
+    def create_expanded_hotspots_report(self, save_path: Optional[str] = None) -> go.Figure:
+        """Create an expanded report showing all file hotspots in full-width layout."""
+        try:
+            hotspots = self.file_analyzer.get_hotspot_files_analysis()
+
+            if hotspots.empty:
+                return self._create_error_figure("No hotspot data available")
+
+            # Create figure with single column layout (full width)
+            fig = go.Figure()
+
+            # Create a detailed scatter plot with all hotspots
+            fig.add_trace(
+                go.Scatter(
+                    x=(
+                        hotspots["total_lines_changed"]
+                        if "total_lines_changed" in hotspots.columns
+                        else range(len(hotspots))
+                    ),
+                    y=hotspots["hotspot_score"] if "hotspot_score" in hotspots.columns else hotspots.index,
+                    mode="markers",
+                    marker=dict(
+                        size=[
+                            min(max(x / 10, 8), 30)
+                            for x in (
+                                hotspots["commit_count"] if "commit_count" in hotspots.columns else [10] * len(hotspots)
+                            )
+                        ],
+                        color=(
+                            hotspots["total_lines_changed"]
+                            if "total_lines_changed" in hotspots.columns
+                            else range(len(hotspots))
+                        ),
+                        colorscale="Reds",
+                        showscale=True,
+                        colorbar=dict(title="Lines Changed"),
+                        line=dict(width=1, color="DarkSlateGrey"),
+                    ),
+                    text=hotspots.index,
+                    name="File Hotspots",
+                    hovertemplate="<b>%{text}</b><br>"
+                    + "Lines Changed: %{x}<br>"
+                    + "Hotspot Score: %{y}<br>"
+                    + "Commits: %{marker.size}<br>"
+                    + "<extra></extra>",
+                )
+            )
+
+            fig.update_layout(
+                title="Complete File Hotspots Analysis",
+                xaxis_title="Total Lines Changed",
+                yaxis_title="Hotspot Score",
+                height=max(700, len(hotspots) * 15),  # Dynamic height
+                margin=dict(l=50, r=100, t=80, b=50),
+                showlegend=False,
+                template="plotly_white",
+            )
+
+            if save_path:
+                html_content = self._generate_expanded_hotspots_html(fig, len(hotspots))
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_content)
+                logger.info(f"Expanded hotspots report saved to {save_path}")
+
+            return fig
+
+        except Exception as e:
+            logger.error(f"Error creating expanded hotspots report: {e}")
+            return self._create_error_figure("Error creating expanded hotspots report")
+
+    def create_expanded_directory_analysis_report(self, save_path: Optional[str] = None) -> go.Figure:
+        """Create an expanded report showing all directory statistics in full-width layout."""
+        try:
+            directory_analysis = self.file_analyzer.get_directory_analysis()
+
+            if directory_analysis.empty:
+                return self._create_error_figure("No directory analysis data available")
+
+            # Create figure with single column layout (full width)
+            fig = go.Figure()
+
+            # Add all directories as a bar chart with better spacing
+            fig.add_trace(
+                go.Bar(
+                    x=directory_analysis["directory"],
+                    y=directory_analysis["unique_files"],
+                    name="File Count",
+                    marker_color="lightgreen",
+                    text=directory_analysis["unique_files"],
+                    textposition="outside",
+                    hovertemplate="<b>%{x}</b><br>Files: %{y}<extra></extra>",
+                )
+            )
+
+            fig.update_layout(
+                title="Complete Directory Analysis",
+                xaxis_title="Directory",
+                yaxis_title="Number of Files",
+                xaxis_tickangle=-45,
+                height=max(600, len(directory_analysis) * 25),  # Dynamic height
+                margin=dict(l=50, r=50, t=80, b=250),
+                showlegend=False,
+                template="plotly_white",
+            )
+
+            if save_path:
+                html_content = self._generate_expanded_directory_analysis_html(fig, len(directory_analysis))
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_content)
+                logger.info(f"Expanded directory analysis report saved to {save_path}")
+
+            return fig
+
+        except Exception as e:
+            logger.error(f"Error creating expanded directory analysis report: {e}")
+            return self._create_error_figure("Error creating expanded directory analysis report")
+
+    def _generate_expanded_most_changed_files_html(self, fig: go.Figure, total_files: int) -> str:
+        """Generate HTML content for expanded most changed files report."""
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Most Changed Files Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 1600px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
+        .content {{ padding: 30px; }}
+        .stats {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #e74c3c; }}
+        .nav-link {{ display: inline-block; margin: 10px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; }}
+        .nav-link:hover {{ background: #2980b9; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Complete Most Changed Files Analysis</h1>
+            <p>Comprehensive view of all {total_files} most frequently modified files</p>
+            <a href="index.html" class="nav-link">Back to Dashboard</a>
+        </div>
+        
+        <div class="content">
+            <div class="stats">
+                <h3>Analysis Summary</h3>
+                <p><strong>Total Files Analyzed:</strong> {total_files}</p>
+                <p>This expanded view shows all files sorted by modification frequency, helping identify the most active areas of your codebase that may require additional attention, testing, or refactoring.</p>
+            </div>
+            
+            <div id="chart"></div>
+        </div>
+    </div>
+    
+    <script>
+        var chartData = {fig.to_json()};
+        Plotly.newPlot('chart', chartData.data, chartData.layout, {{responsive: true}});
+    </script>
+</body>
+</html>"""
+        return html_content
+
+    def _generate_expanded_hotspots_html(self, fig: go.Figure, total_files: int) -> str:
+        """Generate HTML content for expanded hotspots report."""
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete File Hotspots Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 1600px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
+        .content {{ padding: 30px; }}
+        .stats {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #e67e22; }}
+        .nav-link {{ display: inline-block; margin: 10px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; }}
+        .nav-link:hover {{ background: #2980b9; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Complete File Hotspots Analysis</h1>
+            <p>Comprehensive view of all {total_files} files ranked by hotspot score</p>
+            <a href="enhanced_file_analysis.html" class="nav-link">Back to Enhanced Analysis</a>
+            <a href="index.html" class="nav-link">Main Dashboard</a>
+        </div>
+        
+        <div class="content">
+            <div class="stats">
+                <h3>Hotspot Analysis Summary</h3>
+                <p><strong>Total Files Analyzed:</strong> {total_files}</p>
+                <p>Files are plotted by their hotspot score (combination of change frequency, lines changed, and contributor count) versus total lines changed. Bubble size indicates commit count. Higher scores indicate files requiring immediate attention.</p>
+            </div>
+            
+            <div id="chart"></div>
+        </div>
+    </div>
+    
+    <script>
+        var chartData = {fig.to_json()};
+        Plotly.newPlot('chart', chartData.data, chartData.layout, {{responsive: true}});
+    </script>
+</body>
+</html>"""
+        return html_content
+
+    def _generate_expanded_directory_analysis_html(self, fig: go.Figure, total_dirs: int) -> str:
+        """Generate HTML content for expanded directory analysis report."""
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Directory Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 1600px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #27ae60 0%, #229954 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
+        .content {{ padding: 30px; }}
+        .stats {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #27ae60; }}
+        .nav-link {{ display: inline-block; margin: 10px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; }}
+        .nav-link:hover {{ background: #2980b9; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Complete Directory Analysis</h1>
+            <p>Comprehensive view of all {total_dirs} directories and their file counts</p>
+            <a href="file_analysis.html" class="nav-link">Back to File Analysis</a>
+            <a href="index.html" class="nav-link">Main Dashboard</a>
+        </div>
+        
+        <div class="content">
+            <div class="stats">
+                <h3>Directory Structure Summary</h3>
+                <p><strong>Total Directories Analyzed:</strong> {total_dirs}</p>
+                <p>This view shows the complete directory structure with file counts, helping assess code organization and identify directories that may benefit from restructuring or subdivision.</p>
+            </div>
+            
+            <div id="chart"></div>
+        </div>
+    </div>
+    
+    <script>
+        var chartData = {fig.to_json()};
+        Plotly.newPlot('chart', chartData.data, chartData.layout, {{responsive: true}});
+    </script>
+</body>
+</html>"""
+        return html_content
+
+    def generate_all_expanded_reports(self, output_dir: str) -> Dict[str, str]:
+        """Generate all expanded reports for detailed views."""
+        expanded_files = {}
+
+        try:
+            # Create output directory if it doesn't exist
+            Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+            # Generate expanded most changed files report
+            most_changed_path = Path(output_dir) / "expanded_most_changed_files.html"
+            self.create_expanded_most_changed_files_report(str(most_changed_path))
+            expanded_files["most_changed"] = str(most_changed_path)
+
+            # Generate expanded hotspots report
+            hotspots_path = Path(output_dir) / "expanded_hotspots.html"
+            self.create_expanded_hotspots_report(str(hotspots_path))
+            expanded_files["hotspots"] = str(hotspots_path)
+
+            # Generate expanded directory analysis report
+            directory_path = Path(output_dir) / "expanded_directory_analysis.html"
+            self.create_expanded_directory_analysis_report(str(directory_path))
+            expanded_files["directory"] = str(directory_path)
+
+            # Generate comprehensive file analysis report (row-based layout)
+            comprehensive_path = Path(output_dir) / "comprehensive_file_analysis.html"
+            self.create_comprehensive_file_analysis_report(str(comprehensive_path))
+            expanded_files["comprehensive"] = str(comprehensive_path)
+
+            logger.info(f"Generated {len(expanded_files)} expanded reports in {output_dir}")
+
+        except Exception as e:
+            logger.error(f"Error generating expanded reports: {e}")
+
+        return expanded_files
+
+    def create_comprehensive_file_analysis_report(self, save_path: Optional[str] = None) -> str:
+        """Create a comprehensive file analysis report with all charts as full-width rows."""
+        try:
+            # Get all the data
+            most_changed = self.file_analyzer.get_most_changed_files(top_n=50)
+            hotspots = self.file_analyzer.get_hotspot_files_analysis()
+            directory_analysis = self.file_analyzer.get_directory_analysis()
+
+            # Generate individual chart HTMLs
+            charts = []
+
+            # Chart 1: Most Changed Files
+            if not most_changed.empty:
+                fig1 = go.Figure()
+                fig1.add_trace(
+                    go.Bar(
+                        x=most_changed["file_path"],
+                        y=most_changed["change_count"],
+                        name="Changes",
+                        marker_color="lightblue",
+                        text=most_changed["change_count"],
+                        textposition="outside",
+                        hovertemplate="<b>%{x}</b><br>Changes: %{y}<extra></extra>",
+                    )
+                )
+                fig1.update_layout(
+                    title="Most Changed Files (Top 50)",
+                    xaxis_title="File Path",
+                    yaxis_title="Number of Changes",
+                    xaxis_tickangle=-45,
+                    height=600,
+                    margin=dict(l=50, r=50, t=80, b=200),
+                    template="plotly_white",
+                )
+                charts.append(("most_changed", fig1.to_json()))
+
+            # Chart 2: File Hotspots
+            if not hotspots.empty:
+                fig2 = go.Figure()
+                fig2.add_trace(
+                    go.Scatter(
+                        x=(
+                            hotspots["total_lines_changed"]
+                            if "total_lines_changed" in hotspots.columns
+                            else range(len(hotspots))
+                        ),
+                        y=hotspots["hotspot_score"] if "hotspot_score" in hotspots.columns else hotspots.index,
+                        mode="markers",
+                        marker=dict(
+                            size=[
+                                min(max(x / 10, 8), 30)
+                                for x in (
+                                    hotspots["commit_count"]
+                                    if "commit_count" in hotspots.columns
+                                    else [10] * len(hotspots)
+                                )
+                            ],
+                            color=(
+                                hotspots["total_lines_changed"]
+                                if "total_lines_changed" in hotspots.columns
+                                else range(len(hotspots))
+                            ),
+                            colorscale="Reds",
+                            showscale=True,
+                            colorbar=dict(title="Lines Changed"),
+                        ),
+                        text=hotspots.index,
+                        hovertemplate="<b>%{text}</b><br>Lines Changed: %{x}<br>Hotspot Score: %{y}<extra></extra>",
+                    )
+                )
+                fig2.update_layout(
+                    title="File Hotspots Analysis",
+                    xaxis_title="Total Lines Changed",
+                    yaxis_title="Hotspot Score",
+                    height=600,
+                    margin=dict(l=50, r=100, t=80, b=50),
+                    template="plotly_white",
+                )
+                charts.append(("hotspots", fig2.to_json()))
+
+            # Chart 3: Directory Analysis
+            if not directory_analysis.empty:
+                fig3 = go.Figure()
+                fig3.add_trace(
+                    go.Bar(
+                        x=directory_analysis["directory"],
+                        y=directory_analysis["unique_files"],
+                        name="File Count",
+                        marker_color="lightgreen",
+                        text=directory_analysis["unique_files"],
+                        textposition="outside",
+                        hovertemplate="<b>%{x}</b><br>Files: %{y}<extra></extra>",
+                    )
+                )
+                fig3.update_layout(
+                    title="Directory Structure Analysis",
+                    xaxis_title="Directory",
+                    yaxis_title="Number of Files",
+                    xaxis_tickangle=-45,
+                    height=600,
+                    margin=dict(l=50, r=50, t=80, b=200),
+                    template="plotly_white",
+                )
+                charts.append(("directory", fig3.to_json()))
+
+            # Generate comprehensive HTML
+            html_content = self._generate_comprehensive_file_analysis_html(charts)
+
+            if save_path:
+                with open(save_path, "w", encoding="utf-8") as f:
+                    f.write(html_content)
+                logger.info(f"Comprehensive file analysis report saved to {save_path}")
+
+            return html_content
+
+        except Exception as e:
+            logger.error(f"Error creating comprehensive file analysis report: {e}")
+            return f"<html><body><h1>Error: {e}</h1></body></html>"
+
+    def _generate_comprehensive_file_analysis_html(self, charts) -> str:
+        """Generate HTML content for comprehensive file analysis with row-based layout."""
+        chart_divs = ""
+        chart_scripts = ""
+
+        for i, (chart_id, chart_data) in enumerate(charts):
+            chart_divs += f'<div id="chart_{chart_id}" class="chart-row"></div>'
+            chart_scripts += f"""
+                var chartData_{chart_id} = {chart_data};
+                Plotly.newPlot('chart_{chart_id}', chartData_{chart_id}.data, chartData_{chart_id}.layout, {{responsive: true}});
+            """
+
+        html_content = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive File Analysis</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 1800px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
+        .content {{ padding: 30px; }}
+        .chart-row {{ margin: 30px 0; padding: 20px; border: 1px solid #e9ecef; border-radius: 8px; background: #fafafa; }}
+        .nav-link {{ display: inline-block; margin: 10px; padding: 10px 20px; background: #3498db; color: white; text-decoration: none; border-radius: 5px; }}
+        .nav-link:hover {{ background: #2980b9; }}
+        .description {{ background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3498db; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Comprehensive File Analysis</h1>
+            <p>Complete repository file analysis with full-width chart views</p>
+            <a href="index.html" class="nav-link">Back to Dashboard</a>
+            <a href="file_analysis.html" class="nav-link">Basic Analysis</a>
+            <a href="enhanced_file_analysis.html" class="nav-link">Enhanced Analysis</a>
+        </div>
+        
+        <div class="content">
+            <div class="description">
+                <h3>Analysis Overview</h3>
+                <p>This comprehensive view displays all file analysis charts in full-width rows, providing better visibility for detailed examination of repository patterns. Each chart is optimized for maximum data visibility and interaction.</p>
+                <ul>
+                    <li><strong>Row-based Layout:</strong> Each chart takes full width for optimal data visibility</li>
+                    <li><strong>Interactive Charts:</strong> Hover for detailed information, zoom and pan for exploration</li>
+                    <li><strong>Comprehensive Data:</strong> All available file metrics displayed without truncation</li>
+                    <li><strong>Professional Presentation:</strong> Suitable for stakeholder reviews and technical documentation</li>
+                </ul>
+            </div>
+            
+            {chart_divs}
+        </div>
+    </div>
+    
+    <script>
+        {chart_scripts}
+    </script>
+</body>
+</html>"""
+        return html_content
+
     def create_branch_analysis_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
         """
         Create a dashboard for branch analysis.
@@ -776,24 +1314,6 @@ class DashboardGenerator:
         )
         fig.update_layout(
             title="Visualization Error",
-            template="plotly_white",
-        )
-        return fig
-
-    def _create_error_figure(self, error_message: str) -> go.Figure:
-        """Create a simple error figure when visualization fails."""
-        fig = go.Figure()
-        fig.add_annotation(
-            text=error_message,
-            xref="paper",
-            yref="paper",
-            x=0.5,
-            y=0.5,
-            showarrow=False,
-            font=dict(size=16, color="red"),
-        )
-        fig.update_layout(
-            title="Dashboard Generation Error",
             template="plotly_white",
         )
         return fig
