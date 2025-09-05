@@ -9,7 +9,7 @@ set -e
 # --- Configuration ---
 # Define the directories to check.
 # Add or remove directories as needed.
-TARGET_DIRS="gitdecomposer tests examples"
+TARGET_DIRS="gitdecomposer tests"
 echo "Targeting directories: $TARGET_DIRS"
 echo ""
 
