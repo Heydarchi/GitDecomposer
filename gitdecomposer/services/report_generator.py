@@ -486,9 +486,7 @@ class ReportGenerator:
             "</style>"
         )
 
-        html = (
-            f"<div class=\"gd-global-nav\">{''.join(tabs)}{extra}</div>"
-        )
+        html = f"<div class=\"gd-global-nav\">{''.join(tabs)}{extra}</div>"
 
         return style + "\n" + html
 

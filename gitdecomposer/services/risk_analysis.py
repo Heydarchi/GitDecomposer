@@ -57,102 +57,131 @@ class RiskAnalysis:
 
         # Create buttons for tabs
         buttons = [
-            dict(label="File Hotspots", method="update", args=[{"visible": [True, True, False, False, False, False]}, {"title": "File Insights: Hotspots & Churn"}]),
-            dict(label="Critical Files", method="update", args=[{"visible": [False, False, True, True, False, False]}, {"title": "File Insights: Critical Files"}]),
-            dict(label="Knowledge Silos", method="update", args=[{"visible": [False, False, False, False, True, True]}, {"title": "File Insights: Knowledge Silos"}])
+            dict(
+                label="File Hotspots",
+                method="update",
+                args=[
+                    {"visible": [True, True, False, False, False, False]},
+                    {"title": "File Insights: Hotspots & Churn"},
+                ],
+            ),
+            dict(
+                label="Critical Files",
+                method="update",
+                args=[
+                    {"visible": [False, False, True, True, False, False]},
+                    {"title": "File Insights: Critical Files"},
+                ],
+            ),
+            dict(
+                label="Knowledge Silos",
+                method="update",
+                args=[
+                    {"visible": [False, False, False, False, True, True]},
+                    {"title": "File Insights: Knowledge Silos"},
+                ],
+            ),
         ]
-        fig.update_layout(updatemenus=[dict(type="buttons", direction="right", x=1, y=1.1, showactive=True, buttons=buttons)])
+        fig.update_layout(
+            updatemenus=[dict(type="buttons", direction="right", x=1, y=1.1, showactive=True, buttons=buttons)]
+        )
 
         # Tab 1: File Hotspots
-        churn_df = hotspots_data.get('file_churn_rates', pd.DataFrame())
+        churn_df = hotspots_data.get("file_churn_rates", pd.DataFrame())
         if not churn_df.empty:
-            top_churn = churn_df.sort_values('churn_rate', ascending=False).head(15)
+            top_churn = churn_df.sort_values("churn_rate", ascending=False).head(15)
             fig.add_trace(
                 go.Bar(
-                    x=top_churn['file_path'],
-                    y=top_churn['churn_rate'],
+                    x=top_churn["file_path"],
+                    y=top_churn["churn_rate"],
                     name="Churn Rate",
-                    marker_color='blue',
+                    marker_color="blue",
                     visible=True,
                 )
             )
             # Use total_changes instead of non-existent commit_count
             fig.add_trace(
                 go.Bar(
-                    x=top_churn['file_path'],
-                    y=top_churn.get('total_changes', pd.Series([0]*len(top_churn))),
+                    x=top_churn["file_path"],
+                    y=top_churn.get("total_changes", pd.Series([0] * len(top_churn))),
                     name="Total Changes",
-                    marker_color='lightblue',
+                    marker_color="lightblue",
                     visible=True,
                 )
             )
 
         # Tab 2: Critical Files
         # critical_files is list of (file_path, metrics)
-        cf_list = critical_files_data.get('critical_files', []) or []
+        cf_list = critical_files_data.get("critical_files", []) or []
         if cf_list:
-            cf_df = pd.DataFrame([
-                {
-                    'file_path': fp,
-                    'complexity': m.get('complexity'),
-                    'change_frequency': m.get('change_frequency'),
-                    'criticality_score': m.get('criticality_score'),
-                }
-                for fp, m in cf_list
-            ])
+            cf_df = pd.DataFrame(
+                [
+                    {
+                        "file_path": fp,
+                        "complexity": m.get("complexity"),
+                        "change_frequency": m.get("change_frequency"),
+                        "criticality_score": m.get("criticality_score"),
+                    }
+                    for fp, m in cf_list
+                ]
+            )
             fig.add_trace(
                 go.Scatter(
-                    x=cf_df['complexity'],
-                    y=cf_df['change_frequency'],
-                    mode='markers',
-                    text=cf_df['file_path'],
+                    x=cf_df["complexity"],
+                    y=cf_df["change_frequency"],
+                    mode="markers",
+                    text=cf_df["file_path"],
                     name="Critical Files",
-                    marker=dict(size=10, color='red'),
+                    marker=dict(size=10, color="red"),
                     visible=False,
                 )
             )
             fig.add_trace(
                 go.Table(
-                    header=dict(values=['File', 'Complexity', 'Change Freq', 'Risk Score']),
-                    cells=dict(values=[cf_df['file_path'], cf_df['complexity'], cf_df['change_frequency'], cf_df['criticality_score']]),
+                    header=dict(values=["File", "Complexity", "Change Freq", "Risk Score"]),
+                    cells=dict(
+                        values=[
+                            cf_df["file_path"],
+                            cf_df["complexity"],
+                            cf_df["change_frequency"],
+                            cf_df["criticality_score"],
+                        ]
+                    ),
                     visible=False,
                 )
             )
 
         # Tab 3: Knowledge Silos
-        spof_list = silo_data.get('spof_files', []) or []
+        spof_list = silo_data.get("spof_files", []) or []
         if spof_list:
-            spof_df = pd.DataFrame([
-                {
-                    'file_path': item.get('file'),
-                    'owner': item.get('dominant_author'),
-                    'dominance_%': (item.get('dominance_ratio', 0) or 0) * 100,
-                }
-                for item in spof_list
-            ])
+            spof_df = pd.DataFrame(
+                [
+                    {
+                        "file_path": item.get("file"),
+                        "owner": item.get("dominant_author"),
+                        "dominance_%": (item.get("dominance_ratio", 0) or 0) * 100,
+                    }
+                    for item in spof_list
+                ]
+            )
             fig.add_trace(
                 go.Bar(
-                    x=spof_df['file_path'],
-                    y=spof_df['dominance_%'],
+                    x=spof_df["file_path"],
+                    y=spof_df["dominance_%"],
                     name="Dominance % by Single Owner",
-                    marker_color='purple',
+                    marker_color="purple",
                     visible=False,
                 )
             )
             fig.add_trace(
                 go.Table(
-                    header=dict(values=['File', 'Owner', 'Dominance %']),
-                    cells=dict(values=[spof_df['file_path'], spof_df['owner'], spof_df['dominance_%']]),
+                    header=dict(values=["File", "Owner", "Dominance %"]),
+                    cells=dict(values=[spof_df["file_path"], spof_df["owner"], spof_df["dominance_%"]]),
                     visible=False,
                 )
             )
 
-        fig.update_layout(
-            title="File Insights: Hotspots & Churn",
-            template="plotly_white",
-            height=700,
-            barmode='stack'
-        )
+        fig.update_layout(title="File Insights: Hotspots & Churn", template="plotly_white", height=700, barmode="stack")
 
         if save_path:
             fig.write_html(save_path)

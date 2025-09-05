@@ -9,7 +9,6 @@ import logging
 from typing import Dict, Optional
 
 import pandas as pd
-
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -81,11 +80,15 @@ class AdvancedAnalytics:
                 # Prepare series
                 if not churn_trend.empty:
                     churn_trend = churn_trend.copy()
-                    churn_trend["month"] = pd.to_datetime(churn_trend["month"]) if "month" in churn_trend.columns else churn_trend.index
+                    churn_trend["month"] = (
+                        pd.to_datetime(churn_trend["month"]) if "month" in churn_trend.columns else churn_trend.index
+                    )
                     churn_trend = churn_trend[["month", "churn_rate"]]
                 if not bug_trend.empty:
                     bug_trend = bug_trend.copy()
-                    bug_trend["month"] = pd.to_datetime(bug_trend["month"]) if "month" in bug_trend.columns else bug_trend.index
+                    bug_trend["month"] = (
+                        pd.to_datetime(bug_trend["month"]) if "month" in bug_trend.columns else bug_trend.index
+                    )
                     bug_trend = bug_trend[["month", "bug_fix_ratio"]]
 
                 # Join on month
@@ -97,6 +100,7 @@ class AdvancedAnalytics:
                     debt_trend["debt_score"] = debt_trend["debt_score"].fillna(0)
                 else:
                     merged = pd.merge(churn_trend, bug_trend, on="month", how="outer").sort_values("month")
+
                     # Normalize to 0..1 before combining
                     def _normalize(series: pd.Series) -> pd.Series:
                         s = series.fillna(0).astype(float)
@@ -296,8 +300,8 @@ class AdvancedAnalytics:
             # Get health metrics
             velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis()
             bug_fix_analysis = self.commit_analyzer.get_bug_fix_ratio_analysis()
-            maintainability = {} #self.advanced_metrics.calculate_maintainability_index()
-            test_ratio = {} #self.advanced_metrics.calculate_test_to_code_ratio()
+            maintainability = {}  # self.advanced_metrics.calculate_maintainability_index()
+            test_ratio = {}  # self.advanced_metrics.calculate_test_to_code_ratio()
             doc_coverage = self.file_analyzer.get_documentation_coverage_analysis()
 
             # Create health dashboard
@@ -473,7 +477,7 @@ class AdvancedAnalytics:
             # Get predictive data
             velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis()
             churn_analysis = self.file_analyzer.get_code_churn_analysis()
-            debt_analysis = {} #self.advanced_metrics.calculate_technical_debt_accumulation()
+            debt_analysis = {}  # self.advanced_metrics.calculate_technical_debt_accumulation()
 
             # Create predictive dashboard
             fig = make_subplots(
@@ -617,7 +621,7 @@ class AdvancedAnalytics:
             # Get predictive data for all available weeks
             velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis(weeks_back=52)
             churn_analysis = self.file_analyzer.get_code_churn_analysis()
-            debt_analysis = {} #self.advanced_metrics.calculate_technical_debt_accumulation()
+            debt_analysis = {}  # self.advanced_metrics.calculate_technical_debt_accumulation()
 
             # Create predictive dashboard
             fig = make_subplots(

@@ -31,7 +31,9 @@ def test_technical_debt_dashboard_smoke(tmp_path):
     aa.commit_analyzer.get_bug_fix_ratio_analysis = Mock(
         return_value={"bug_fix_ratio": 10, "bug_fix_trend": _df({"month": ["2024-01"], "bug_fix_ratio": [5]})}
     )
-    aa.commit_analyzer.get_commit_velocity_analysis = Mock(return_value={"weekly_velocity": _df({"week_start": [], "commit_count": []})})
+    aa.commit_analyzer.get_commit_velocity_analysis = Mock(
+        return_value={"weekly_velocity": _df({"week_start": [], "commit_count": []})}
+    )
     aa.file_analyzer.get_documentation_coverage_analysis = Mock(return_value={"documentation_ratio": 25})
 
     path = str(tmp_path / "technical_debt.html")
