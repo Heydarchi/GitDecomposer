@@ -129,14 +129,11 @@ class ReportGenerator:
             report_files = [
                 ("commit_activity.html", "Commit Activity Analysis", "Analysis of commit patterns over time"),
                 ("contributor_analysis.html", "Contributor Analysis", "Insights into contributor behavior"),
-                ("file_analysis.html", "File Analysis", "File change patterns and statistics"),
                 ("enhanced_file_analysis.html", "Enhanced File Analysis", "Advanced file metrics and hotspots"),
                 ("executive_summary.html", "Executive Summary", "High-level repository overview"),
                 ("technical_debt.html", "Technical Debt Analysis", "Code quality and technical debt metrics"),
                 ("repository_health.html", "Repository Health", "Overall repository health indicators"),
                 ("predictive_maintenance.html", "Predictive Maintenance", "Predictive analytics for code maintenance"),
-                ("velocity_forecasting.html", "Velocity Forecasting", "Development velocity predictions and trends"),
-                ("knowledge_distribution.html", "Knowledge Distribution", "Gini coefficient and knowledge breakdown"),
                 ("bus_factor.html", "Bus Factor", "Analysis of project risk from key person dependencies"),
                 (
                     "critical_files.html",
@@ -144,7 +141,6 @@ class ReportGenerator:
                     "Identification of high-risk files based on complexity and change frequency",
                 ),
                 ("velocity_trends.html", "Velocity Trends", "Development velocity trend analysis over time"),
-                ("cycle_time.html", "Cycle Time", "Feature delivery cycle time analysis"),
                 (
                     "single_point_failure.html",
                     "Single Point Failure",

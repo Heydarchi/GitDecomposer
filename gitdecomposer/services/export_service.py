@@ -18,7 +18,6 @@ from ..analyzers import (
     ContributorAnalyzer,
     FileAnalyzer,
     advanced_metrics,
-    legacy_advanced_metrics,
 )
 from ..core import GitRepository
 
@@ -47,7 +46,6 @@ class ExportService:
         self.branch_analyzer = BranchAnalyzer(git_repo)
         # Advanced metrics module for creating metric analyzers
         self.advanced_metrics = advanced_metrics
-        self.legacy_advanced_metrics = legacy_advanced_metrics.AdvancedMetrics(git_repo)
 
         logger.info("ExportService initialized with all analyzers")
 

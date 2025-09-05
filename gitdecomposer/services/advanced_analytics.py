@@ -16,7 +16,6 @@ from ..analyzers import (
     CommitAnalyzer,
     ContributorAnalyzer,
     FileAnalyzer,
-    legacy_advanced_metrics,
 )
 from ..core import GitRepository
 
@@ -43,7 +42,6 @@ class AdvancedAnalytics:
         self.file_analyzer = FileAnalyzer(git_repo)
         self.contributor_analyzer = ContributorAnalyzer(git_repo)
         self.branch_analyzer = BranchAnalyzer(git_repo)
-        self.advanced_metrics = legacy_advanced_metrics.AdvancedMetrics(git_repo)
         # Advanced metrics can be accessed via advanced_metrics.create_metric_analyzer()
 
         logger.info("AdvancedAnalytics initialized with all analyzers")
@@ -60,9 +58,9 @@ class AdvancedAnalytics:
         """
         try:
             # Get technical debt data
-            debt_analysis = self.advanced_metrics.calculate_technical_debt_accumulation()
-            maintainability = self.advanced_metrics.calculate_maintainability_index()
-            test_ratio = self.advanced_metrics.calculate_test_to_code_ratio()
+            debt_analysis = {} #self.advanced_metrics.calculate_technical_debt_accumulation()
+            maintainability = {} #self.advanced_metrics.calculate_maintainability_index()
+            test_ratio = {} #self.advanced_metrics.calculate_test_to_code_ratio()
 
             churn_analysis = self.file_analyzer.get_code_churn_analysis()
 
@@ -223,8 +221,8 @@ class AdvancedAnalytics:
             # Get health metrics
             velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis()
             bug_fix_analysis = self.commit_analyzer.get_bug_fix_ratio_analysis()
-            maintainability = self.advanced_metrics.calculate_maintainability_index()
-            test_ratio = self.advanced_metrics.calculate_test_to_code_ratio()
+            maintainability = {} #self.advanced_metrics.calculate_maintainability_index()
+            test_ratio = {} #self.advanced_metrics.calculate_test_to_code_ratio()
             doc_coverage = self.file_analyzer.get_documentation_coverage_analysis()
 
             # Create health dashboard
@@ -400,7 +398,7 @@ class AdvancedAnalytics:
             # Get predictive data
             velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis()
             churn_analysis = self.file_analyzer.get_code_churn_analysis()
-            debt_analysis = self.advanced_metrics.calculate_technical_debt_accumulation()
+            debt_analysis = {} #self.advanced_metrics.calculate_technical_debt_accumulation()
 
             # Create predictive dashboard
             fig = make_subplots(
@@ -544,7 +542,7 @@ class AdvancedAnalytics:
             # Get predictive data for all available weeks
             velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis(weeks_back=52)
             churn_analysis = self.file_analyzer.get_code_churn_analysis()
-            debt_analysis = self.advanced_metrics.calculate_technical_debt_accumulation()
+            debt_analysis = {} #self.advanced_metrics.calculate_technical_debt_accumulation()
 
             # Create predictive dashboard
             fig = make_subplots(

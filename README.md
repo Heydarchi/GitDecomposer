@@ -148,17 +148,6 @@ gitdecomposer /path/to/repository --verbose
 python gitdecomposer/cli.py /path/to/repository --output ./analysis_output
 ```
 
-## Examples
-
-See the [`examples/`](examples/) directory for detailed usage examples:
-
-- **[Basic Analysis](examples/basic_analysis.py)** - Simple repository analysis
-- **[Advanced Analysis](examples/advanced_analysis.py)** - Using individual analyzers  
-- **[Comprehensive Analysis](examples/comprehensive_analysis.py)** - Full-featured analysis
-- **[Enhanced Analytics](examples/enhanced_analytics.py)** - Advanced metrics and visualizations
-- **[Advanced Reporting Demo](examples/advanced_reporting_demo.py)** - Comprehensive reporting features
-- **[Advanced Metrics Demo](examples/advanced_metrics_demo.py)** - Advanced metrics showcase
-
 ## Available Analysis Reports
 
 GitDecomposer generates comprehensive HTML reports with interactive visualizations:
@@ -168,7 +157,6 @@ GitDecomposer generates comprehensive HTML reports with interactive visualizatio
 - **Commit Activity Analysis**: Commit patterns, frequency, and timing analysis
 - **Contributor Analysis**: Developer activity, contribution patterns, and collaboration metrics
 - **File Analysis**: File change patterns, hotspots, and complexity metrics
-- **Enhanced File Analysis**: Advanced file metrics with risk assessment
 
 ### Advanced Risk & Quality Reports
 - **Technical Debt Analysis**: Code quality metrics and technical debt indicators
@@ -198,7 +186,6 @@ See the [Architecture Diagram](docs/architecture.puml) for system design and com
 
 For detailed documentation, see:
 - **[Documentation](docs/README.md)** - Complete guide and API reference
-- **[Examples README](examples/README.md)** - Example usage patterns
 
 ## Testing
 
@@ -254,7 +241,6 @@ GitDecomposer/
 │   ├── models/            # Data models and structures
 │   ├── services/          # Service layer (DataAggregator, DashboardGenerator, etc.)
 │   └── viz/               # Visualization components
-├── examples/              # Usage examples
 ├── tests/                 # Comprehensive test suite
 ├── docs/                  # Documentation and architecture
 └── scripts/               # Development scripts
