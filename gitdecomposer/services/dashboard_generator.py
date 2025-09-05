@@ -12,196 +12,245 @@ from typing import Dict, Optional
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
-from ..analyzers import (
-    BranchAnalyzer,
-    CommitAnalyzer,
-    ContributorAnalyzer,
-    FileAnalyzer,
-    advanced_metrics,
-)
-from ..core import GitRepository
-from ..viz import VisualizationEngine
+from ..analyzers import BranchAnalyzer, CommitAnalyzer, ContributorAnalyzer, FileAnalyzer, advanced_metrics
+from ..viz.visualization_engine import VisualizationEngine
 
 logger = logging.getLogger(__name__)
 
 
 class DashboardGenerator:
-    """
-    Service for generating interactive dashboard visualizations.
+    """Service class to generate dashboards and HTML reports."""
 
-    This class handles dashboard creation responsibilities previously managed
-    by GitMetrics, providing clean separation of concerns.
-    """
-
-    def __init__(self, git_repo: GitRepository):
-        """
-        Initialize DashboardGenerator with analyzer and visualization instances.
-
-        Args:
-            git_repo (GitRepository): GitRepository instance
-        """
+    def __init__(self, git_repo):
         self.git_repo = git_repo
+
+        # Initialize analyzers
         self.commit_analyzer = CommitAnalyzer(git_repo)
         self.file_analyzer = FileAnalyzer(git_repo)
         self.contributor_analyzer = ContributorAnalyzer(git_repo)
         self.branch_analyzer = BranchAnalyzer(git_repo)
-        # Advanced metrics module for creating metric analyzers
+
+        # Expose advanced_metrics module for compatibility
         self.advanced_metrics = advanced_metrics
-        # Initialize visualization engine with self as metrics coordinator
+
+        # Visualization engine (delegates to plots module)
         self.visualization = VisualizationEngine(git_repo, self)
 
-        logger.info("DashboardGenerator initialized with all analyzers and visualization engine")
-
-    def create_commit_activity_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
-        """
-        Create an interactive dashboard showing commit activity patterns.
-
-        Args:
-            save_path (str, optional): Path to save the HTML file
-
-        Returns:
-            plotly.graph_objects.Figure: Interactive dashboard
-        """
+    # Lightweight delegates used by tests and callers
+    def create_commit_activity_dashboard(self, save_path: Optional[str] = None) -> Optional[go.Figure]:
         try:
             return self.visualization.create_commit_activity_dashboard(save_path)
         except Exception as e:
-            logger.error(f"Error creating commit activity dashboard: {e}")
+            logger.warning("Commit activity dashboard failed: %s", e)
             return self._create_error_figure("Error creating commit activity dashboard")
 
-    def create_contributor_analysis_charts(self, save_path: Optional[str] = None) -> go.Figure:
-        """
-        Create charts analyzing contributor patterns.
-
-        Args:
-            save_path (str, optional): Path to save the HTML file
-
-        Returns:
-            plotly.graph_objects.Figure: Contributor analysis charts
-        """
+    def create_contributor_analysis_charts(self, save_path: Optional[str] = None) -> Optional[go.Figure]:
         try:
             return self.visualization.create_contributor_analysis_charts(save_path)
         except Exception as e:
-            logger.error(f"Error creating contributor analysis charts: {e}")
+            logger.warning("Contributor analysis charts failed: %s", e)
             return self._create_error_figure("Error creating contributor analysis charts")
 
-    def create_file_analysis_visualization(self, save_path: Optional[str] = None) -> go.Figure:
-        """
-        Create visualizations for file analysis.
-
-        Args:
-            save_path (str, optional): Path to save the HTML file
-
-        Returns:
-            plotly.graph_objects.Figure: File analysis visualizations
-        """
+    def create_file_analysis_visualization(self, save_path: Optional[str] = None) -> Optional[go.Figure]:
         try:
-            # Get data
-            extensions_dist = self.file_analyzer.get_file_extensions_distribution()
-            most_changed = self.file_analyzer.get_most_changed_files(15)
-            directory_analysis = self.file_analyzer.get_directory_analysis()
-
-            # Create subplots
-            fig = make_subplots(
-                rows=2,
-                cols=2,
-                subplot_titles=[
-                    "File Extensions Distribution",
-                    "Most Changed Files",
-                    "Directory Activity",
-                    "File Change Patterns",
-                ],
-                specs=[
-                    [{"type": "pie"}, {"secondary_y": False}],
-                    [{"secondary_y": False}, {"secondary_y": False}],
-                ],
-            )
-
-            # File extensions pie chart
-            if not extensions_dist.empty:
-                fig.add_trace(
-                    go.Pie(
-                        labels=extensions_dist["extension"],
-                        values=extensions_dist["count"],
-                        name="File Extensions",
-                    ),
-                    row=1,
-                    col=1,
-                )
-
-            # Most changed files bar chart
-            if not most_changed.empty:
-                fig.add_trace(
-                    go.Bar(
-                        x=most_changed["file_path"][:25],  # Top 25
-                        y=most_changed["change_count"],
-                        name="Changes",
-                        marker_color="lightblue",
-                    ),
-                    row=1,
-                    col=2,
-                )
-
-            # Directory activity
-            if not directory_analysis.empty:
-                dir_stats = directory_analysis
-                fig.add_trace(
-                    go.Bar(
-                        x=dir_stats["directory"][:25],
-                        y=dir_stats["unique_files"][:25],
-                        name="File Count",
-                        marker_color="lightgreen",
-                    ),
-                    row=2,
-                    col=1,
-                )
-
-            # File change patterns (timeline)
-            try:
-                file_timeline = self.file_analyzer.get_file_change_frequency_analysis()
-                if not file_timeline.empty:
-                    fig.add_trace(
-                        go.Scatter(
-                            x=(
-                                file_timeline["file_path"][:25]
-                                if "file_path" in file_timeline.columns
-                                else file_timeline.index[:25]
-                            ),
-                            y=(
-                                file_timeline["change_intensity"][:25]
-                                if "change_intensity" in file_timeline.columns
-                                else file_timeline["commit_count"][:25]
-                            ),
-                            mode="lines+markers",
-                            name="Files Changed",
-                            line=dict(color="orange"),
-                        ),
-                        row=2,
-                        col=2,
-                    )
-            except Exception as e:
-                logger.warning(f"Could not add file change timeline: {e}")
-
-            # Update layout
-            fig.update_layout(
-                title="File Analysis Dashboard",
-                showlegend=True,
-                height=800,
-                template="plotly_white",
-            )
-
-            if save_path:
-                # Generate HTML with custom description
-                html_content = self._generate_file_analysis_html(fig)
-                with open(save_path, "w", encoding="utf-8") as f:
-                    f.write(html_content)
-                logger.info(f"File analysis visualization saved to {save_path}")
-
-            return fig
-
+            return self.visualization.create_file_analysis_visualization(save_path)
         except Exception as e:
-            logger.error(f"Error creating file analysis visualization: {e}")
+            logger.warning("File analysis visualization failed: %s", e)
             return self._create_error_figure("Error creating file analysis visualization")
 
+    def _generate_enhanced_file_analysis_html(self, fig: go.Figure) -> str:
+        """Generate HTML content for enhanced file analysis report with 6 tabs (one per subplot)."""
+        html_content = f"""<!DOCTYPE html>
+<html lang=\"en\">
+<head>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <title>Enhanced File Analysis Dashboard</title>
+    <script src=\"https://cdn.plot.ly/plotly-latest.min.js\"></script>
+    <style>
+        body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
+        .container {{ max-width: 1400px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
+        .header {{ background: linear-gradient(135deg, #28a745 0%, #20c997 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
+        .content {{ padding: 20px 30px 30px; }}
+        .tabs {{ display: flex; flex-wrap: wrap; border-bottom: 1px solid #e9ecef; margin-bottom: 15px; gap: 8px; }}
+        .tab-btn {{ background: #e9f7ef; color: #155724; border: 1px solid #c3e6cb; padding: 10px 14px; border-radius: 6px 6px 0 0; cursor: pointer; font-weight: 600; }}
+        .tab-btn.active {{ background: #28a745; color: white; border-color: #28a745; }}
+        .tab-content {{ display: none; }}
+        .tab-content.active {{ display: block; }}
+        .chart-box {{ background: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 10px; min-height: 420px; }}
+        .desc-box {{ background: #f8f9fa; border-left: 4px solid #28a745; padding: 16px; border-radius: 6px; margin-top: 16px; }}
+        .section-title {{ color: #28a745; font-weight: 600; margin: 10px 0; }}
+        .metric-formula {{ font-family: 'Courier New', monospace; background: #f1f3f4; padding: 6px 8px; border-radius: 4px; display: inline-block; }}
+        .nav-link {{ display: inline-block; margin: 5px 10px; padding: 8px 16px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-size: 14px; }}
+        .nav-link:hover {{ background: #1e7e34; color: white; text-decoration: none; }}
+    </style>
+</head>
+<body>
+    <div class=\"container\">
+        <div class=\"header\">
+            <h1>Enhanced File Analysis Dashboard</h1>
+            <p>Advanced file metrics with risk assessment and hotspot analysis</p>
+        </div>
+        <div class=\"content\">
+            <div class=\"tabs\">
+                <button class=\"tab-btn active\" data-tab=\"1\">File Hotspots</button>
+                <button class=\"tab-btn\" data-tab=\"2\">Code Churn Rate</button>
+                <button class=\"tab-btn\" data-tab=\"3\">Commit Size Distribution</button>
+                <button class=\"tab-btn\" data-tab=\"4\">Documentation Coverage</button>
+                <button class=\"tab-btn\" data-tab=\"5\">File Change Frequency</button>
+                <button class=\"tab-btn\" data-tab=\"6\">Directory Health</button>
+            </div>
+
+            <div id=\"tab1\" class=\"tab-content active\">
+                <div id=\"tab1-chart\" class=\"chart-box\"></div>
+                <div class=\"desc-box\">
+                    <h3 class=\"section-title\">File Hotspots</h3>
+                    <p>Bubble chart showing files by lines changed vs hotspot score. Bubble size indicates number of commits and color intensity shows change frequency. Identifies files requiring immediate attention.</p>
+                    <div><strong>Hotspot Score Calculation:</strong> <span class=\"metric-formula\">Score = (Change Frequency × 0.3) + (Lines Changed × 0.4) + (Contributors × 0.3)</span></div>
+                </div>
+            </div>
+
+            <div id=\"tab2\" class=\"tab-content\">
+                <div id=\"tab2-chart\" class=\"chart-box\"></div>
+                <div class=\"desc-box\">
+                    <h3 class=\"section-title\">Code Churn Rate</h3>
+                    <p>Files with highest churn (lines added + deleted). Indicates unstable or actively developed areas. High churn may suggest design issues.</p>
+                    <div><strong>Churn Formula:</strong> <span class=\"metric-formula\">Churn = (Lines Added + Lines Deleted) / Total Commits</span></div>
+                </div>
+            </div>
+
+            <div id=\"tab3\" class=\"tab-content\">
+                <div id=\"tab3-chart\" class=\"chart-box\"></div>
+                <div class=\"desc-box\">
+                    <h3 class=\"section-title\">Commit Size Distribution</h3>
+                    <p>Histogram of commit sizes (XS, S, M, L, XL). Helps identify development patterns. Large commits may indicate poor practices.</p>
+                </div>
+            </div>
+
+            <div id=\"tab4\" class=\"tab-content\">
+                <div id=\"tab4-chart\" class=\"chart-box\"></div>
+                <div class=\"desc-box\">
+                    <h3 class=\"section-title\">Documentation Coverage</h3>
+                    <p>Ratio of documentation vs code files. Shows project maintainability level and helps identify documentation gaps.</p>
+                </div>
+            </div>
+
+            <div id=\"tab5\" class=\"tab-content\">
+                <div id=\"tab5-chart\" class=\"chart-box\"></div>
+                <div class=\"desc-box\">
+                    <h3 class=\"section-title\">File Change Frequency</h3>
+                    <p>Files by change intensity over time. Identifies maintenance hotspots and helps prioritize refactoring efforts.</p>
+                </div>
+            </div>
+
+            <div id=\"tab6\" class=\"tab-content\">
+                <div id=\"tab6-chart\" class=\"chart-box\"></div>
+                <div class=\"desc-box\">
+                    <h3 class=\"section-title\">Directory Health</h3>
+                    <p>Scatter plot of files vs average changes per file. Shows module stability and organization and identifies problematic directories.</p>
+                </div>
+            </div>
+
+            <div class=\"nav-links\" style=\"text-align: center; margin: 20px 0;\">
+                <a href=\"expanded_hotspots.html\" class=\"nav-link\">View All Hotspots</a>
+                <a href=\"expanded_most_changed_files.html\" class=\"nav-link\">View All Changed Files</a>
+                <a href=\"comprehensive_file_analysis.html\" class=\"nav-link\">Comprehensive View</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Full chart data from Python
+        var chartData = {fig.to_json()};
+
+        // Titles per tab
+        var tabTitles = {{
+            1: 'File Hotspots',
+            2: 'Code Churn Rate',
+            3: 'Commit Size Distribution',
+            4: 'Documentation Coverage',
+            5: 'File Change Frequency',
+            6: 'Directory Health'
+        }};
+
+        // Track which tabs have been rendered
+        var renderedTabs = new Set();
+
+        function getTabData(index) {{
+            // Filter traces by subplot axis or type
+            return chartData.data.filter(function(t) {{
+                if (index === 4) {{
+                    return (t.type && t.type === 'pie');
+                }}
+                var ax = t.xaxis || 'x'; // default first subplot
+                if (index === 1) return (ax === 'x');
+                if (index === 2) return (ax === 'x2');
+                if (index === 3) return (ax === 'x3');
+                if (index === 5) return (ax === 'x5');
+                if (index === 6) return (ax === 'x6');
+                return false;
+            }});
+        }}
+
+        function getTabLayout(index) {{
+            // Shallow copy layout and customize title; set reasonable height
+            var layout = Object.assign({{}}, chartData.layout);
+            layout.title = tabTitles[index];
+            layout.showlegend = true;
+            layout.height = 500;
+            // Remove annotations grid titles to avoid overlap
+            layout.annotations = [];
+            // Ensure margin is friendly for single plots
+            layout.margin = {{l: 60, r: 20, t: 60, b: 60}};
+            return layout;
+        }}
+
+        function renderTab(index) {{
+            var elId = 'tab' + index + '-chart';
+            var data = getTabData(index);
+            var layout = getTabLayout(index);
+            if (!data || data.length === 0) {{
+                var el = document.getElementById(elId);
+                if (el) {{
+                    el.innerHTML = '<div style=\"padding:12px;color:#6c757d;\">No data available for this section.</div>';
+                }}
+                return;
+            }}
+            Plotly.newPlot(elId, data, layout, {{responsive: true}});
+            renderedTabs.add(index);
+        }}
+
+        function switchTab(index) {{
+            // Toggle active tab button
+            document.querySelectorAll('.tab-btn').forEach(function(btn){{
+                btn.classList.toggle('active', btn.getAttribute('data-tab') == index);
+            }});
+            // Toggle content visibility
+            document.querySelectorAll('.tab-content').forEach(function(tc){{
+                tc.classList.remove('active');
+            }});
+            var active = document.getElementById('tab' + index);
+            if (active) active.classList.add('active');
+            if (!renderedTabs.has(index)) {{
+                renderTab(index);
+            }}
+        }}
+
+        // Wire up tab buttons
+        document.addEventListener('DOMContentLoaded', function() {{
+            document.querySelectorAll('.tab-btn').forEach(function(btn){{
+                btn.addEventListener('click', function(){{
+                    var idx = parseInt(this.getAttribute('data-tab'));
+                    switchTab(idx);
+                }});
+            }});
+            // Render the first tab initially
+            switchTab(1);
+        }});
+    </script>
+</body>
+</html>"""
+        return html_content
     def create_enhanced_file_analysis_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
         """
         Create an enhanced file analysis dashboard with advanced metrics.
@@ -358,7 +407,7 @@ class DashboardGenerator:
             )
 
             if save_path:
-                # Generate HTML with custom description
+                # Generate HTML with custom 6-tab layout
                 html_content = self._generate_enhanced_file_analysis_html(fig)
                 with open(save_path, "w", encoding="utf-8") as f:
                     f.write(html_content)
@@ -370,12 +419,12 @@ class DashboardGenerator:
             logger.error(f"Error creating enhanced file analysis dashboard: {e}")
             return self._create_error_figure("Error creating enhanced file analysis dashboard")
 
-    def _generate_enhanced_file_analysis_html(self, fig: go.Figure) -> str:
-        """Generate HTML content for enhanced file analysis report with description."""
+    def _generate_enhanced_file_analysis_html_legacy(self, fig: go.Figure) -> str:
+        """Legacy single-canvas HTML (kept for reference)."""
         html_content = f"""<!DOCTYPE html>
-<html lang="en">
+<html lang=\"en\">
 <head>
-    <meta charset="UTF-8">
+    <meta charset=\"UTF-8\">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enhanced File Analysis Dashboard</title>
     <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -546,7 +595,7 @@ class DashboardGenerator:
     </div>
     
     <script>
-        var chartData = {fig.to_json()};
+    var chartData = {fig.to_json()};
         Plotly.newPlot('chart', chartData.data, chartData.layout);
     </script>
 </body>

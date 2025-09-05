@@ -63,45 +63,34 @@ class FilePlotter(BasePlotter):
             ],
         )
 
-        if file_extensions:
-            fig.add_trace(
-                go.Pie(
-                    labels=list(file_extensions.keys()),
-                    values=list(file_extensions.values()),
-                    name="Extensions",
-                ),
-                row=1,
-                col=1,
-            )
+        # File extensions: DataFrame columns ['extension','count']
+        if file_extensions is not None and hasattr(file_extensions, "empty") and not file_extensions.empty:
+            labels = list(file_extensions["extension"].astype(str))
+            values = list(file_extensions["count"].astype(int))
+            fig.add_trace(go.Pie(labels=labels, values=values, name="Extensions"), row=1, col=1)
 
-        if most_changed:
-            top_files = most_changed[:15]
-            files = [f["file"] for f in top_files]
-            changes = [f["changes"] for f in top_files]
+        # Most changed files: DataFrame ['file_path','change_count']
+        if most_changed is not None and hasattr(most_changed, "empty") and not most_changed.empty:
+            top_df = most_changed.head(15)
+            files = list(top_df["file_path"].astype(str))
+            changes = list(top_df["change_count"].astype(int))
             fig.add_trace(
-                go.Bar(
-                    x=changes,
-                    y=files,
-                    orientation="h",
-                    name="Changes",
-                    marker=dict(color="lightcoral"),
-                ),
+                go.Bar(x=changes, y=files, orientation="h", name="Changes", marker=dict(color="lightcoral")),
                 row=1,
                 col=2,
             )
-
-            change_counts = [f["changes"] for f in most_changed]
+            change_counts = list(most_changed["change_count"].astype(int))
             fig.add_trace(go.Histogram(x=change_counts, name="Change Frequency", nbinsx=15), row=2, col=2)
 
-        if file_churn and "churn_over_time" in file_churn:
-            churn_data = file_churn["churn_over_time"]
+        # File churn: DataFrame ['file_path','changes_in_period','churn_rate']
+        if file_churn is not None and hasattr(file_churn, "empty") and not file_churn.empty:
+            top_churn = file_churn.sort_values("changes_in_period", ascending=False).head(15)
             fig.add_trace(
-                go.Scatter(
-                    x=list(churn_data.keys()),
-                    y=list(churn_data.values()),
-                    mode="lines+markers",
-                    name="Churn",
-                    line=dict(color="green", width=2),
+                go.Bar(
+                    x=list(top_churn["file_path"].astype(str)),
+                    y=list(top_churn["changes_in_period"].astype(int)),
+                    name="Churn (recent)",
+                    marker=dict(color="green"),
                 ),
                 row=2,
                 col=1,
@@ -148,11 +137,11 @@ class FilePlotter(BasePlotter):
         )
 
         # File types distribution
-        if file_extensions:
+        if file_extensions is not None and hasattr(file_extensions, "empty") and not file_extensions.empty:
             fig.add_trace(
                 go.Pie(
-                    labels=list(file_extensions.keys()),
-                    values=list(file_extensions.values()),
+                    labels=list(file_extensions["extension"].astype(str)),
+                    values=list(file_extensions["count"].astype(int)),
                     name="File Types",
                     hole=0.3,
                     marker=dict(colors=["#FF6B6B", "#4ECDC4", "#45B7D1", "#96CEB4", "#FFEAA7"]),
@@ -162,100 +151,70 @@ class FilePlotter(BasePlotter):
             )
 
         # File activity analysis
-        if most_changed:
-            top_files = most_changed[:20]
-            for i, f in enumerate(top_files):
-                changes = f["changes"]
-                authors = f.get("unique_authors", 1)
-
-                # Simulate file activity data
-                import random
-
-                activity_data = [random.randint(0, changes) for _ in range(12)]
-                months = [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec",
-                ]
-
-                if i < 5:  # Only show top 5 files to avoid clutter
+        if most_changed is not None and hasattr(most_changed, "empty") and not most_changed.empty:
+            top_files = most_changed.head(10).copy()
+            # Simulate monthly activity lines for top files using their change_count as scale
+            import random
+            months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            for i, row in top_files.iterrows():
+                changes = int(row.get("change_count", 0)) or 1
+                if i < 5:
+                    activity_data = [random.randint(0, max(1, changes)) for _ in range(12)]
                     fig.add_trace(
-                        go.Scatter(
-                            x=months,
-                            y=activity_data,
-                            mode="lines+markers",
-                            name=f["file"][-20:],
-                            line=dict(width=2),
-                        ),
+                        go.Scatter(x=months, y=activity_data, mode="lines+markers", name=str(row.get("file_path", "file"))[-30:]),
                         row=1,
                         col=2,
                     )
 
-            # Directory activity
-            directory_stats = {}
-            for f in most_changed[:30]:
-                file_path = f["file"]
-                directory = "/".join(file_path.split("/")[:-1]) if "/" in file_path else "root"
-                if directory not in directory_stats:
-                    directory_stats[directory] = 0
-                directory_stats[directory] += f["changes"]
-
-            if directory_stats:
-                dirs = list(directory_stats.keys())[:10]
-                dir_changes = [directory_stats[d] for d in dirs]
-
+            # Directory activity (aggregate changes by directory from most_changed)
+            if most_changed is not None and hasattr(most_changed, "empty") and not most_changed.empty:
+                tmp = most_changed.copy()
+                tmp["directory"] = tmp["file_path"].astype(str).apply(lambda p: "/".join(p.split("/")[:-1]) if "/" in p else "<root>")
+                dir_stats = tmp.groupby("directory")["change_count"].sum().sort_values(ascending=False).head(10)
                 fig.add_trace(
-                    go.Bar(
-                        x=dirs,
-                        y=dir_changes,
-                        name="Directory Changes",
-                        marker=dict(color="lightgreen"),
-                    ),
+                    go.Bar(x=list(dir_stats.index), y=list(dir_stats.values), name="Directory Changes", marker=dict(color="lightgreen")),
                     row=2,
                     col=2,
                 )
 
-        # Churn analysis
-        if file_churn and "churn_over_time" in file_churn:
-            churn_data = file_churn["churn_over_time"]
-            fig.add_trace(
-                go.Scatter(
-                    x=list(churn_data.keys()),
-                    y=list(churn_data.values()),
-                    mode="lines+markers",
-                    name="Code Churn",
-                    line=dict(color="red", width=3, dash="dot"),
-                ),
-                row=2,
-                col=1,
-            )
+        # Churn vs Changes (scatter using DataFrame columns if available)
+        if file_churn is not None and hasattr(file_churn, "empty") and not file_churn.empty:
+            scatter_df = file_churn.copy()
+            # Ensure required columns exist
+            if "changes_in_period" in scatter_df.columns and "churn_rate" in scatter_df.columns:
+                fig.add_trace(
+                    go.Scatter(
+                        x=list(scatter_df["changes_in_period"].astype(float)),
+                        y=list(scatter_df["churn_rate"].astype(float)),
+                        text=list(scatter_df["file_path"].astype(str).str[-40:]),
+                        mode="markers",
+                        name="Churn vs Changes",
+                        marker=dict(color="#D7263D", size=8, opacity=0.7),
+                    ),
+                    row=2,
+                    col=1,
+                )
 
         # Documentation coverage
-        if doc_coverage and "coverage_by_type" in doc_coverage:
-            coverage_data = doc_coverage["coverage_by_type"]
+        if isinstance(doc_coverage, dict) and "doc_file_types" in doc_coverage:
+            coverage_data = doc_coverage["doc_file_types"]
             fig.add_trace(
-                go.Bar(
-                    x=list(coverage_data.keys()),
-                    y=list(coverage_data.values()),
-                    name="Doc Coverage",
-                    marker=dict(color="skyblue"),
-                ),
+                go.Bar(x=list(coverage_data.keys()), y=list(coverage_data.values()), name="Doc Coverage", marker=dict(color="skyblue")),
+                row=3,
+                col=1,
+            )
+        elif isinstance(doc_coverage, dict) and "documentation_ratio" in doc_coverage:
+            doc_ratio = float(doc_coverage.get("documentation_ratio", 0))
+            code_ratio = max(0.0, 100.0 - doc_ratio)
+            fig.add_trace(
+                go.Pie(labels=["Documentation", "Code"], values=[doc_ratio, code_ratio], name="Doc vs Code"),
                 row=3,
                 col=1,
             )
 
         # Change frequency distribution
-        if most_changed:
-            change_counts = [f["changes"] for f in most_changed]
+        if most_changed is not None and hasattr(most_changed, "empty") and not most_changed.empty:
+            change_counts = list(most_changed["change_count"].astype(int))
             fig.add_trace(
                 go.Histogram(
                     x=change_counts,

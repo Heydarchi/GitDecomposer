@@ -118,13 +118,6 @@ for metric_name in metrics:
     print(f"{metric_name}: {result}")
 ```
 
-### Using the Demo Script
-
-Run the included demo script to see all metrics in action:
-
-```bash
-python examples/advanced_metrics_demo.py /path/to/your/repo
-```
 
 ## Metric Details
 
