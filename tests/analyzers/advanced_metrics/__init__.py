@@ -130,13 +130,10 @@ class TestMetricRegistry(unittest.TestCase):
         metrics = get_available_metrics()
         expected_metrics = [
             "bus_factor",
-            "knowledge_distribution",
             "critical_files",
             "single_point_failure",
             "flow_efficiency",
             "branch_lifecycle",
-            "velocity_trend",
-            "cycle_time",
         ]
 
         for metric in expected_metrics:

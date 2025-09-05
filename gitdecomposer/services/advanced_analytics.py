@@ -8,6 +8,8 @@ including technical debt, repository health, and predictive analytics.
 import logging
 from typing import Dict, Optional
 
+import pandas as pd
+
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
@@ -57,12 +59,82 @@ class AdvancedAnalytics:
             plotly.graph_objects.Figure: Technical debt dashboard
         """
         try:
-            # Get technical debt data
-            debt_analysis = {} #self.advanced_metrics.calculate_technical_debt_accumulation()
-            maintainability = {} #self.advanced_metrics.calculate_maintainability_index()
-            test_ratio = {} #self.advanced_metrics.calculate_test_to_code_ratio()
-
+            # Gather available inputs
             churn_analysis = self.file_analyzer.get_code_churn_analysis()
+            bug_fix_analysis = self.commit_analyzer.get_bug_fix_ratio_analysis()
+            velocity_analysis = self.commit_analyzer.get_commit_velocity_analysis()
+            doc_coverage = self.file_analyzer.get_documentation_coverage_analysis()
+
+            # --- Derive predictive debt metrics from available data ---
+            # Create a monthly debt trend by combining churn rate and bug-fix ratio
+            debt_trend = None
+            if (
+                isinstance(churn_analysis.get("churn_trend"), type(pd.DataFrame()))
+                and not churn_analysis["churn_trend"].empty
+            ) or (
+                isinstance(bug_fix_analysis.get("bug_fix_trend"), type(pd.DataFrame()))
+                and not bug_fix_analysis["bug_fix_trend"].empty
+            ):
+                churn_trend = churn_analysis.get("churn_trend", pd.DataFrame())
+                bug_trend = bug_fix_analysis.get("bug_fix_trend", pd.DataFrame())
+
+                # Prepare series
+                if not churn_trend.empty:
+                    churn_trend = churn_trend.copy()
+                    churn_trend["month"] = pd.to_datetime(churn_trend["month"]) if "month" in churn_trend.columns else churn_trend.index
+                    churn_trend = churn_trend[["month", "churn_rate"]]
+                if not bug_trend.empty:
+                    bug_trend = bug_trend.copy()
+                    bug_trend["month"] = pd.to_datetime(bug_trend["month"]) if "month" in bug_trend.columns else bug_trend.index
+                    bug_trend = bug_trend[["month", "bug_fix_ratio"]]
+
+                # Join on month
+                if churn_trend.empty and not bug_trend.empty:
+                    debt_trend = bug_trend.rename(columns={"bug_fix_ratio": "debt_score"})
+                    debt_trend["debt_score"] = debt_trend["debt_score"].fillna(0)
+                elif bug_trend.empty and not churn_trend.empty:
+                    debt_trend = churn_trend.rename(columns={"churn_rate": "debt_score"})
+                    debt_trend["debt_score"] = debt_trend["debt_score"].fillna(0)
+                else:
+                    merged = pd.merge(churn_trend, bug_trend, on="month", how="outer").sort_values("month")
+                    # Normalize to 0..1 before combining
+                    def _normalize(series: pd.Series) -> pd.Series:
+                        s = series.fillna(0).astype(float)
+                        min_v, max_v = s.min(), s.max()
+                        if max_v - min_v == 0:
+                            return pd.Series([0.0] * len(s), index=s.index)
+                        return (s - min_v) / (max_v - min_v)
+
+                    churn_n = _normalize(merged.get("churn_rate", pd.Series(dtype=float)))
+                    bug_n = _normalize(merged.get("bug_fix_ratio", pd.Series(dtype=float)))
+                    # Weighted: churn 60%, bug-fix 40%
+                    debt_score = (0.6 * churn_n + 0.4 * bug_n) * 100.0
+                    debt_trend = pd.DataFrame({"month": merged["month"], "debt_score": debt_score})
+
+            # Estimate debt accumulation rate as slope over the last 3 points
+            debt_accumulation_rate = 0.0
+            current_debt_score = 0.0
+            if isinstance(debt_trend, pd.DataFrame) and not debt_trend.empty:
+                dt = debt_trend.dropna(subset=["debt_score"]).tail(3)
+                if len(dt) >= 2:
+                    first = float(dt["debt_score"].iloc[0])
+                    last = float(dt["debt_score"].iloc[-1])
+                    n = max(1, len(dt) - 1)
+                    debt_accumulation_rate = (last - first) / n
+                current_debt_score = float(debt_trend["debt_score"].iloc[-1])
+
+            debt_analysis = {
+                "debt_trend": debt_trend if isinstance(debt_trend, pd.DataFrame) else pd.DataFrame(),
+                "debt_accumulation_rate": debt_accumulation_rate,
+                "current_debt_score": current_debt_score,
+            }
+
+            # Maintainability proxy (100 - current debt, bounded)
+            overall_maintainability = max(0, min(100, 100 - current_debt_score))
+            maintainability = {"overall_maintainability_score": overall_maintainability}
+
+            # Use documentation coverage as a quality proxy
+            test_ratio = {"test_coverage_percentage": 0}  # Placeholder retained
 
             # Create subplots for technical debt dashboard
             fig = make_subplots(
@@ -124,7 +196,7 @@ class AdvancedAnalytics:
                 col=2,
             )
 
-            # Test coverage pie chart
+            # Test coverage pie chart (placeholder) and Documentation indicator
             test_coverage = test_ratio.get("test_coverage_percentage", 0)
             untested_percentage = 100 - test_coverage
             fig.add_trace(
@@ -152,23 +224,26 @@ class AdvancedAnalytics:
                     col=2,
                 )
 
-            # Debt distribution by file type
-            debt_by_type = debt_analysis.get("debt_by_file_type", {})
-            if debt_by_type:
+            # Debt distribution by file type - approximate from churn by extension
+            debt_by_type_df = churn_analysis.get("churn_by_extension", pd.DataFrame())
+            if isinstance(debt_by_type_df, pd.DataFrame) and not debt_by_type_df.empty:
+                df_ext = debt_by_type_df.nlargest(10, "avg_churn_rate")
                 fig.add_trace(
                     go.Bar(
-                        x=list(debt_by_type.keys())[:10],
-                        y=list(debt_by_type.values())[:10],
-                        name="Debt by Type",
+                        x=df_ext["extension"],
+                        y=df_ext["avg_churn_rate"],
+                        name="Debt by Type (via churn)",
                         marker_color="purple",
                     ),
                     row=3,
                     col=1,
                 )
 
-            # Overall risk indicator
+            # Overall risk indicator based on accumulation rate and current debt
             debt_rate = debt_analysis.get("debt_accumulation_rate", 0)
-            risk_score = min(100, debt_rate * 5)  # Convert to 0-100 scale
+            base_risk = max(0.0, min(100.0, current_debt_score))
+            rate_component = max(0.0, min(100.0, debt_rate * 2))
+            risk_score = max(0.0, min(100.0, 0.7 * base_risk + 0.3 * rate_component))
             fig.add_trace(
                 go.Indicator(
                     mode="gauge+number",
@@ -191,7 +266,7 @@ class AdvancedAnalytics:
 
             # Update layout
             fig.update_layout(
-                title="Technical Debt Dashboard",
+                title="Technical Debt Dashboard (with Predictive Signals)",
                 showlegend=True,
                 height=1200,
                 template="plotly_white",

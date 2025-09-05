@@ -175,17 +175,9 @@ class CLI:
                 self.metrics.report_generator.advanced_report_generator.create_bus_factor_report,
                 "bus_factor.html",
             ),
-            "Critical Files": (
-                self.metrics.report_generator.advanced_report_generator.create_critical_files_report,
-                "critical_files.html",
-            ),
-            "Velocity Trends": (
-                self.metrics.report_generator.advanced_report_generator.create_velocity_trend_report,
-                "velocity_trends.html",
-            ),
-            "Single Point Failure": (
-                self.metrics.report_generator.advanced_report_generator.create_single_point_failure_report,
-                "single_point_failure.html",
+            "File Insights": (
+                self.metrics.report_generator.risk_analysis.create_file_insights_dashboard,
+                "file_insights.html",
             ),
         }
 

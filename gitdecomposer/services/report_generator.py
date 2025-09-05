@@ -22,6 +22,7 @@ from ..analyzers import (
 from ..core import GitRepository
 from ..viz import VisualizationEngine
 from .advanced_report_generator import AdvancedReportGenerator
+from .risk_analysis import RiskAnalysis
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class ReportGenerator:
         # Advanced metrics can be accessed via advanced_metrics.create_metric_analyzer()
         # Initialize visualization engine with self as metrics coordinator
         self.visualization = VisualizationEngine(git_repo, self)
+        self.risk_analysis = RiskAnalysis(git_repo)
 
         logger.info("ReportGenerator initialized with all analyzers and visualization engine")
 
@@ -80,12 +82,8 @@ class ReportGenerator:
                     self._create_enhanced_file_analysis_dashboard,
                 ),
                 ("executive_summary", "executive_summary.html", self._create_executive_summary_report),
-                (
-                    "knowledge_distribution",
-                    "knowledge_distribution.html",
-                    self.advanced_report_generator.create_knowledge_distribution_report,
-                ),
                 ("bus_factor", "bus_factor.html", self.advanced_report_generator.create_bus_factor_report),
+                ("file_insights", "file_insights.html", self.risk_analysis.create_file_insights_dashboard),
             ]
 
             print(f"DEBUG: Total reports to generate: {len(reports)}")  # Debug output
@@ -109,6 +107,12 @@ class ReportGenerator:
             index_path = os.path.join(output_dir, "index.html")
             self.create_index_page_only(output_dir)
             generated_files["index"] = index_path
+
+            # Inject navigation tabs into all report HTML files
+            try:
+                self._inject_navbar_into_all_reports(output_dir)
+            except Exception as e:
+                logger.warning(f"Could not inject navbar into reports: {e}")
 
             logger.info(f"Generated {len(generated_files)} visualization reports in {output_dir}")
             return generated_files
@@ -135,17 +139,7 @@ class ReportGenerator:
                 ("repository_health.html", "Repository Health", "Overall repository health indicators"),
                 ("predictive_maintenance.html", "Predictive Maintenance", "Predictive analytics for code maintenance"),
                 ("bus_factor.html", "Bus Factor", "Analysis of project risk from key person dependencies"),
-                (
-                    "critical_files.html",
-                    "Critical Files",
-                    "Identification of high-risk files based on complexity and change frequency",
-                ),
-                ("velocity_trends.html", "Velocity Trends", "Development velocity trend analysis over time"),
-                (
-                    "single_point_failure.html",
-                    "Single Point Failure",
-                    "Files with dangerously low contributor diversity",
-                ),
+                ("file_insights.html", "File Insights", "Hotspots, critical files, and knowledge silos"),
             ]
 
             # Generate index HTML
@@ -372,6 +366,131 @@ class ReportGenerator:
 </html>"""
 
         return html_content
+
+    def _inject_navbar_into_all_reports(self, output_dir: str) -> None:
+        """Inject a global navigation tab bar into every HTML report under output_dir/HTML.
+
+        This creates a simple tab-style navigation across all generated reports for easy switching.
+        """
+        html_dir = os.path.join(output_dir, "HTML")
+        if not os.path.isdir(html_dir):
+            return
+
+        # Collect report files present
+        files = [f for f in os.listdir(html_dir) if f.lower().endswith(".html")]
+        if not files:
+            return
+
+        for fname in files:
+            fpath = os.path.join(html_dir, fname)
+            try:
+                self._inject_navbar_into_file(fpath, html_dir, files)
+            except Exception as e:
+                logger.debug(f"Navbar injection skipped for {fname}: {e}")
+
+    def _inject_navbar_into_file(self, file_path: str, html_dir: str, files: list) -> None:
+        """Inject the navbar markup into a single HTML file, after the <body> tag.
+
+        Args:
+            file_path: Path to the HTML file to modify
+            html_dir: Directory containing all report HTML files
+            files: List of all report HTML filenames to include in the nav
+        """
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+        except Exception as e:
+            logger.debug(f"Failed to read {file_path}: {e}")
+            return
+
+        current = os.path.basename(file_path)
+        nav_html = self._build_nav_html(current, files)
+
+        # Only inject if not already present
+        if "gd-global-nav" in content:
+            return
+
+        injected = False
+        if "<body" in content:
+            # Insert right after the opening <body ...>
+            # Find end of opening body tag
+            import re
+
+            match = re.search(r"<body[^>]*>", content, re.IGNORECASE)
+            if match:
+                insert_pos = match.end()
+                content = content[:insert_pos] + "\n" + nav_html + "\n" + content[insert_pos:]
+                injected = True
+
+        if not injected:
+            # Fallback: prepend nav at top
+            content = nav_html + "\n" + content
+
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(content)
+        except Exception as e:
+            logger.debug(f"Failed to write {file_path}: {e}")
+
+    def _build_nav_html(self, current_filename: str, files: list) -> str:
+        """Build the HTML for the global nav tabs.
+
+        Args:
+            current_filename: The filename of the current report to mark active
+            files: List of available report HTML filenames
+        """
+        # Human-friendly titles for known reports
+        title_map = {
+            "commit_activity.html": "Commit Activity",
+            "contributor_analysis.html": "Contributors",
+            "file_analysis.html": "File Analysis",
+            "enhanced_file_analysis.html": "Enhanced File Analysis",
+            "executive_summary.html": "Executive Summary",
+            "technical_debt.html": "Technical Debt",
+            "repository_health.html": "Repository Health",
+            "predictive_maintenance.html": "Predictive Maintenance",
+            "bus_factor.html": "Bus Factor",
+            "file_insights.html": "File Insights",
+        }
+
+        def display_name(name: str) -> str:
+            return title_map.get(name, name.replace("_", " ").replace(".html", "").title())
+
+        # Sort consistently by title
+        files_sorted = sorted(files, key=lambda n: display_name(n).lower())
+
+        # Build tabs
+        tabs = []
+        for name in files_sorted:
+            title = display_name(name)
+            cls = "active" if name == current_filename else ""
+            tabs.append(f'<a class="tab {cls}" href="{name}">{title}</a>')
+
+        # Also include links back to Index and CSV page (one level up)
+        extra = (
+            '<span class="spacer"></span>'
+            '<a class="tab util" href="../index.html">Index</a>'
+            '<a class="tab util" href="../csv_data.html">CSV</a>'
+        )
+
+        style = (
+            "<style>\n"
+            ".gd-global-nav{position:sticky;top:0;z-index:999;background:#fff;border-bottom:1px solid #e5e7eb;"
+            "padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;font-family:Segoe UI,Arial,sans-serif;}\n"
+            ".gd-global-nav .tab{padding:8px 12px;border-radius:6px;text-decoration:none;color:#374151;"
+            "background:#f3f4f6;transition:all .15s ease;font-size:14px;}\n"
+            ".gd-global-nav .tab:hover{background:#e5e7eb;color:#111827;}\n"
+            ".gd-global-nav .tab.active{background:#4f46e5;color:#fff;}\n"
+            ".gd-global-nav .tab.util{background:#eef2ff;color:#3730a3;}\n"
+            ".gd-global-nav .spacer{flex:1 1 auto;}\n"
+            "</style>"
+        )
+
+        html = (
+            f"<div class=\"gd-global-nav\">{''.join(tabs)}{extra}</div>"
+        )
+
+        return style + "\n" + html
 
     def create_executive_summary_report(self, save_path: Optional[str] = None) -> go.Figure:
         """

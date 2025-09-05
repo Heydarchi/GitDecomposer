@@ -6,7 +6,7 @@ A comprehensive Python toolkit for analyzing Git repositories. GitDecomposer pro
 ## Features
 
 - **Comprehensive Analysis**: Analyze commits, contributors, files, and branches
-- **Advanced Metrics**: Knowledge distribution analysis, bus factor calculation, critical file identification, and more
+- **Advanced Metrics**: Bus factor, file-level risk insights (hotspots, criticality, knowledge silos), and more
 - **Interactive Visualizations**: Generate HTML dashboards with interactive charts using Plotly
 - **Multiple Output Formats**: Export data as CSV files or HTML reports
 - **Modular Design**: Use individual analyzers or the complete metrics suite
@@ -19,16 +19,13 @@ GitDecomposer includes sophisticated advanced metrics for deeper repository insi
 
 ### Risk Analysis
 - **Bus Factor Analysis**: Identifies key person dependencies and project risk
-- **Critical Files Identification**: Finds high-risk files based on complexity and change frequency
-- **Single Point of Failure Detection**: Locates files with dangerously low contributor diversity
+- **File Insights (Consolidated)**: A single dashboard with Hotspots, Critical Files, and Knowledge Silos
 
-### Knowledge & Velocity Metrics
-- **Knowledge Distribution (Gini Coefficient)**: Measures how knowledge is distributed across the team
-- **Velocity Trend Analysis**: Tracks development velocity patterns over time
-- **Cycle Time Analysis**: Measures feature delivery time from start to completion
+### Velocity & Health Metrics
+- **Commit Velocity & Activity**: Patterns and trends for commits over time
+- (Consolidated) Removed standalone Velocity Trends and Cycle Time reports in favor of cleaner dashboards
 
 ### Predictive Analytics
-- **Development Velocity Forecasting**: Predicts future development trends
 - **Predictive Maintenance**: Identifies files likely to need maintenance
 - **Repository Health Assessment**: Overall health indicators and recommendations
 
@@ -85,16 +82,11 @@ enhanced_summary = data_aggregator.get_enhanced_repository_summary()
 dashboard_generator.create_commit_activity_dashboard("commit_analysis.html")
 dashboard_generator.create_contributor_analysis_charts("contributor_analysis.html")
 
-# Generate comprehensive reports with navigation (includes all advanced metrics)
-report_generator.generate_all_reports("./reports")
+# Generate visualizations and index
+metrics.generate_all_visualizations("./reports")
 
 # Access advanced metrics directly
 from gitdecomposer.analyzers.advanced_metrics import create_metric_analyzer
-
-# Knowledge distribution analysis
-knowledge_analyzer = create_metric_analyzer('knowledge_distribution', repo)
-knowledge_data = knowledge_analyzer.calculate()
-print(f"Gini Coefficient: {knowledge_data['gini_coefficient']}")
 
 # Bus factor analysis
 bus_factor_analyzer = create_metric_analyzer('bus_factor', repo)
@@ -105,6 +97,9 @@ print(f"Bus Factor: {bus_factor_data['bus_factor']}")
 critical_files_analyzer = create_metric_analyzer('critical_files', repo)
 critical_data = critical_files_analyzer.calculate()
 print(f"Critical Files: {len(critical_data['critical_files'])}")
+
+# File Insights (consolidated dashboard)
+metrics.report_generator.risk_analysis.create_file_insights_dashboard("./reports/HTML/file_insights.html")
 
 # Export data to CSV with organized structure
 export_service.export_metrics_to_csv("./csv_data")
@@ -136,10 +131,9 @@ gitdecomposer /path/to/repository --verbose
 - Executive Summary & Repository Health
 - Commit Activity & Contributor Analysis  
 - File Analysis & Technical Debt
-- Knowledge Distribution & Bus Factor
-- Critical Files & Single Point Failure Detection
-- Velocity Trends & Cycle Time Analysis
-- Predictive Maintenance & Velocity Forecasting
+- Bus Factor
+- File Insights (Hotspots, Critical Files, Knowledge Silos)
+- Predictive Maintenance
 
 **Alternative: Direct script execution:**
 
@@ -161,18 +155,13 @@ GitDecomposer generates comprehensive HTML reports with interactive visualizatio
 ### Advanced Risk & Quality Reports
 - **Technical Debt Analysis**: Code quality metrics and technical debt indicators
 - **Repository Health**: Overall health indicators and recommendations
-- **Critical Files**: High-risk files based on complexity and change frequency
-- **Single Point Failure**: Files with dangerous contributor concentration
+- **File Insights**: Hotspots, Critical Files, and Knowledge Silos in one place
 
 ### Knowledge & Team Analytics
-- **Knowledge Distribution**: Gini coefficient analysis of knowledge spread
 - **Bus Factor Analysis**: Key person dependencies and project risk assessment
 
 ### Velocity & Performance Reports
-- **Velocity Trends**: Development velocity analysis over time
-- **Cycle Time Analysis**: Feature delivery time patterns
 - **Predictive Maintenance**: Files likely to need future maintenance
-- **Velocity Forecasting**: Development trend predictions
 
 All reports are accessible through an integrated dashboard with navigation between different analysis views.
 
