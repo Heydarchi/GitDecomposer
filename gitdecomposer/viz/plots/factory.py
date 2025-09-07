@@ -6,7 +6,6 @@ from .base import BasePlotter
 from .commit import CommitPlotter
 from .contributor import ContributorPlotter
 from .file import FilePlotter
-from .technical_debt import TechnicalDebtPlotter
 
 
 class PlotterFactory:
@@ -29,7 +28,6 @@ class PlotterFactory:
             "commit": CommitPlotter(metrics_coordinator),
             "contributor": ContributorPlotter(metrics_coordinator),
             "file": FilePlotter(metrics_coordinator),
-            "technical_debt": TechnicalDebtPlotter(metrics_coordinator),
         }
 
     @staticmethod

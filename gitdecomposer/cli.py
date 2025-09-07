@@ -142,10 +142,6 @@ class CLI:
         html_dir.mkdir(parents=True, exist_ok=True)
 
         visualizations_to_create = {
-            "Executive Summary": (
-                self.metrics.create_executive_summary_report,
-                "executive_summary.html",
-            ),
             "Commit Activity": (
                 self.metrics.create_commit_activity_dashboard,
                 "commit_activity.html",
@@ -162,42 +158,17 @@ class CLI:
                 self.metrics.create_enhanced_file_analysis_dashboard,
                 "enhanced_file_analysis.html",
             ),
-            "Technical Debt": (self.metrics.create_technical_debt_dashboard, "technical_debt.html"),
             "Repository Health": (
                 self.metrics.create_repository_health_dashboard,
                 "repository_health.html",
-            ),
-            "Predictive Maintenance": (
-                self.metrics.create_predictive_maintenance_report,
-                "predictive_maintenance.html",
-            ),
-            "Velocity Forecasting": (
-                self.metrics.create_velocity_forecasting_dashboard,
-                "velocity_forecasting.html",
-            ),
-            "Knowledge Distribution": (
-                self.metrics.report_generator.advanced_report_generator.create_knowledge_distribution_report,
-                "knowledge_distribution.html",
             ),
             "Bus Factor": (
                 self.metrics.report_generator.advanced_report_generator.create_bus_factor_report,
                 "bus_factor.html",
             ),
-            "Critical Files": (
-                self.metrics.report_generator.advanced_report_generator.create_critical_files_report,
-                "critical_files.html",
-            ),
-            "Velocity Trends": (
-                self.metrics.report_generator.advanced_report_generator.create_velocity_trend_report,
-                "velocity_trends.html",
-            ),
-            "Cycle Time": (
-                self.metrics.report_generator.advanced_report_generator.create_cycle_time_report,
-                "cycle_time.html",
-            ),
-            "Single Point Failure": (
-                self.metrics.report_generator.advanced_report_generator.create_single_point_failure_report,
-                "single_point_failure.html",
+            "File Insights": (
+                self.metrics.report_generator.risk_analysis.create_file_insights_dashboard,
+                "file_insights.html",
             ),
         }
 

@@ -9,7 +9,7 @@ set -e
 # --- Configuration ---
 # Define the directories to fix.
 # Add or remove directories as needed.
-TARGET_DIRS="gitdecomposer tests examples"
+TARGET_DIRS="gitdecomposer tests"
 echo "Targeting directories for fixing: $TARGET_DIRS"
 echo ""
 

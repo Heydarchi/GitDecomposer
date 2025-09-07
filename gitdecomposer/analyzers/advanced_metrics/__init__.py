@@ -15,22 +15,16 @@ from .branch_lifecycle_analyzer import BranchLifecycleAnalyzer
 # Import all metric analyzers
 from .bus_factor_analyzer import BusFactorAnalyzer
 from .critical_file_analyzer import CriticalFileAnalyzer
-from .cycle_time_analyzer import CycleTimeAnalyzer
 from .flow_efficiency_analyzer import FlowEfficiencyAnalyzer
-from .knowledge_distribution_analyzer import KnowledgeDistributionAnalyzer
 from .single_point_failure_analyzer import SinglePointFailureAnalyzer
-from .velocity_trend_analyzer import VelocityTrendAnalyzer
 
 # Registry of all available metric analyzers
 METRIC_ANALYZERS = {
     "bus_factor": BusFactorAnalyzer,
-    "knowledge_distribution": KnowledgeDistributionAnalyzer,
     "critical_files": CriticalFileAnalyzer,
     "single_point_failure": SinglePointFailureAnalyzer,
     "flow_efficiency": FlowEfficiencyAnalyzer,
     "branch_lifecycle": BranchLifecycleAnalyzer,
-    "velocity_trend": VelocityTrendAnalyzer,
-    "cycle_time": CycleTimeAnalyzer,
 }
 
 
@@ -64,13 +58,10 @@ def create_metric_analyzer(metric_name: str, repository):
 __all__ = [
     "BaseMetricAnalyzer",
     "BusFactorAnalyzer",
-    "KnowledgeDistributionAnalyzer",
     "CriticalFileAnalyzer",
     "SinglePointFailureAnalyzer",
     "FlowEfficiencyAnalyzer",
     "BranchLifecycleAnalyzer",
-    "VelocityTrendAnalyzer",
-    "CycleTimeAnalyzer",
     "METRIC_ANALYZERS",
     "get_available_metrics",
     "create_metric_analyzer",

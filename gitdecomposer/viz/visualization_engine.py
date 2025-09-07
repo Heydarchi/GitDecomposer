@@ -18,8 +18,6 @@ from .plots import (
     create_contributor_analysis_charts,
     create_enhanced_file_analysis_dashboard,
     create_file_analysis_visualization,
-    create_index_page,
-    create_technical_debt_dashboard,
 )
 
 logger = logging.getLogger(__name__)
@@ -96,35 +94,24 @@ class VisualizationEngine:
         """
         return create_enhanced_file_analysis_dashboard(self.metrics, save_path)
 
+    # Note: Technical Debt dashboards are provided by AdvancedAnalytics now.
+    # Backward-compatibility shim so existing callers/tests can still patch/call this method.
     def create_technical_debt_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
-        """
-        Create a comprehensive technical debt analysis dashboard.
+        """Delegate to AdvancedAnalytics for technical debt dashboard.
 
-        Args:
-            save_path (Optional[str]): Path to save the HTML file
-
-        Returns:
-            go.Figure: Technical debt dashboard
+        This method exists to maintain compatibility with older call sites
+        that expect VisualizationEngine to provide technical debt. Internally
+        we delegate to AdvancedAnalytics.
         """
-        return create_technical_debt_dashboard(self.metrics, save_path)
+        try:
+            # Lazy import to avoid any potential circular imports at module load time
+            from ..services.advanced_analytics import AdvancedAnalytics  # type: ignore
 
-    def create_index_page(
-        self,
-        output_path: str,
-        report_links: Dict[str, str],
-        csv_links: Dict[str, str],
-        summary: Dict,
-    ):
-        """
-        Creates a main index.html page with links to all reports and CSVs.
-
-        Args:
-            output_path (str): The path to save the index.html file.
-            report_links (dict): A dictionary of report names to their file paths.
-            csv_links (dict): A dictionary of CSV file names to their paths.
-            summary (dict): The repository summary data.
-        """
-        return create_index_page(output_path, report_links, csv_links, summary)
+            analytics = AdvancedAnalytics(self.git_repo)
+            return analytics.create_technical_debt_dashboard(save_path)
+        except Exception as e:
+            logger.error("Failed to delegate technical debt dashboard to AdvancedAnalytics: %s", e)
+            raise
 
     def generate_all_visualizations(self, output_dir: str = "visualizations") -> Dict[str, str]:
         """
@@ -146,7 +133,6 @@ class VisualizationEngine:
             "contributor_analysis_charts": self.create_contributor_analysis_charts,
             "file_analysis_visualization": self.create_file_analysis_visualization,
             "enhanced_file_analysis_dashboard": self.create_enhanced_file_analysis_dashboard,
-            "technical_debt_dashboard": self.create_technical_debt_dashboard,
         }
 
         for viz_name, viz_function in visualizations.items():

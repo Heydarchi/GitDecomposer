@@ -270,15 +270,6 @@ class TestAdvancedMetrics(TestAnalyzersBase):
         self.assertIsNotNone(analyzer)
         self.assertEqual(analyzer.repository, self.mock_repo)
 
-    def test_calculate_commit_velocity(self):
-        """Test velocity trend calculation."""
-        analyzer = self.create_analyzer("velocity_trend", self.mock_repo)
-        result = analyzer.calculate()
-
-        self.assertIsInstance(result, dict)
-        self.assertIn("weekly_data", result)
-        self.assertIn("trends", result)
-
     def test_calculate_code_churn(self):
         """Test critical files analysis."""
         analyzer = self.create_analyzer("critical_files", self.mock_repo)
@@ -294,14 +285,6 @@ class TestAdvancedMetrics(TestAnalyzersBase):
 
         self.assertIsInstance(result, dict)
         self.assertIn("bus_factor", result)
-
-    def test_calculate_test_to_code_ratio(self):
-        """Test knowledge distribution analysis."""
-        analyzer = self.create_analyzer("knowledge_distribution", self.mock_repo)
-        result = analyzer.calculate()
-
-        self.assertIsInstance(result, dict)
-        self.assertIn("gini_coefficient", result)
 
 
 class TestAnalyzerIntegration(TestAnalyzersBase):

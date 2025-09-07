@@ -111,13 +111,10 @@ def run_all_tests():
     # Test each analyzer individually
     analyzers_to_test = [
         "bus_factor",
-        "knowledge_distribution",
         "critical_files",
         "single_point_failure",
         "flow_efficiency",
         "branch_lifecycle",
-        "velocity_trend",
-        "cycle_time",
     ]
 
     for analyzer_name in analyzers_to_test:
@@ -229,23 +226,7 @@ def test_specific_calculations():
     except Exception as e:
         print(f"   Bus factor calculation test failed: {e}")
 
-    try:
-        from gitdecomposer.analyzers.advanced_metrics.knowledge_distribution_analyzer import (
-            KnowledgeDistributionAnalyzer,
-        )
-
-        mock_repo = MockRepository()
-        analyzer = KnowledgeDistributionAnalyzer(mock_repo)
-
-        # Test Gini coefficient calculation
-        knowledge_weights = {"Alice": {"file1.py": 10.0}, "Bob": {"file2.py": 10.0}, "Charlie": {"file3.py": 10.0}}
-
-        gini = analyzer._calculate_gini_coefficient(knowledge_weights)
-        assert 0 <= gini <= 1, "Gini coefficient should be between 0 and 1"
-        print("   Gini coefficient calculation works")
-
-    except Exception as e:
-        print(f"   Gini coefficient calculation test failed: {e}")
+    # Knowledge distribution analyzer removed in this configuration
 
 
 if __name__ == "__main__":

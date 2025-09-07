@@ -77,7 +77,7 @@ class FileAnalyzer:
         logger.info(f"Analyzed {len(df)} file extensions")
         return df
 
-    def get_most_changed_files(self, top_n: int = 20) -> pd.DataFrame:
+    def get_most_changed_files(self, top_n: int = 50) -> pd.DataFrame:
         """
         Get files that have been modified most frequently.
 
@@ -141,7 +141,7 @@ class FileAnalyzer:
                 "total_size_bytes": df["size"].sum(),
                 "average_file_size": df["size"].mean(),
                 "median_file_size": df["size"].median(),
-                "largest_files": df.nlargest(10, "size")[["path", "size"]].to_dict("records"),
+                "largest_files": df.nlargest(25, "size")[["path", "size"]].to_dict("records"),
                 "size_by_extension": df.groupby("extension")["size"].agg(["count", "sum", "mean"]).to_dict("index"),
             }
 
@@ -848,8 +848,8 @@ class FileAnalyzer:
                 "doc_files_count": doc_files_count,
                 "total_files_count": total_files_count,
                 "doc_file_types": dict(doc_file_types),
-                "missing_doc_dirs": missing_doc_dirs[:10],  # Top 10
-                "doc_files_list": list(doc_files)[:20],  # Sample of doc files
+                "missing_doc_dirs": missing_doc_dirs[:25],  # Top 25
+                "doc_files_list": list(doc_files)[:50],  # Sample of doc files
                 "recommendations": self._generate_doc_recommendations(
                     documentation_ratio, missing_doc_dirs, dict(doc_file_types)
                 ),
@@ -1072,7 +1072,7 @@ class FileAnalyzer:
                 current_lines=0,
             )
 
-    def get_hotspot_files_analysis(self, limit: int = 20) -> List[HotspotFile]:
+    def get_hotspot_files_analysis(self, limit: int = 50) -> List[HotspotFile]:
         """Get hotspot files analysis."""
         try:
             commits = self.git_repo.get_all_commits()

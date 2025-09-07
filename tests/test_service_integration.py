@@ -68,7 +68,7 @@ class TestServiceIntegration:
                 hasattr(dashboard_generator, "create_commit_activity_dashboard"),
                 hasattr(export_service, "export_metrics_to_csv"),
                 hasattr(report_generator, "generate_all_visualizations"),
-                hasattr(advanced_analytics, "create_technical_debt_dashboard"),
+                hasattr(advanced_analytics, "create_repository_health_dashboard"),
             ]
         )
 
@@ -173,7 +173,6 @@ class TestServiceIntegration:
                 report_generator.visualization,
                 create_commit_activity_dashboard=Mock(return_value=Mock()),
                 create_enhanced_file_analysis_dashboard=Mock(return_value=Mock()),
-                create_technical_debt_dashboard=Mock(return_value=Mock()),
             ):
                 reports = report_generator.generate_all_visualizations(temp_output_dir)
 

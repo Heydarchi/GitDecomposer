@@ -22,6 +22,7 @@ from ..analyzers import (
 from ..core import GitRepository
 from ..viz import VisualizationEngine
 from .advanced_report_generator import AdvancedReportGenerator
+from .risk_analysis import RiskAnalysis
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,7 @@ class ReportGenerator:
         # Advanced metrics can be accessed via advanced_metrics.create_metric_analyzer()
         # Initialize visualization engine with self as metrics coordinator
         self.visualization = VisualizationEngine(git_repo, self)
+        self.risk_analysis = RiskAnalysis(git_repo)
 
         logger.info("ReportGenerator initialized with all analyzers and visualization engine")
 
@@ -79,13 +81,8 @@ class ReportGenerator:
                     "enhanced_file_analysis.html",
                     self._create_enhanced_file_analysis_dashboard,
                 ),
-                ("executive_summary", "executive_summary.html", self._create_executive_summary_report),
-                (
-                    "knowledge_distribution",
-                    "knowledge_distribution.html",
-                    self.advanced_report_generator.create_knowledge_distribution_report,
-                ),
                 ("bus_factor", "bus_factor.html", self.advanced_report_generator.create_bus_factor_report),
+                ("file_insights", "file_insights.html", self.risk_analysis.create_file_insights_dashboard),
             ]
 
             print(f"DEBUG: Total reports to generate: {len(reports)}")  # Debug output
@@ -110,6 +107,12 @@ class ReportGenerator:
             self.create_index_page_only(output_dir)
             generated_files["index"] = index_path
 
+            # Inject navigation tabs into all report HTML files
+            try:
+                self._inject_navbar_into_all_reports(output_dir)
+            except Exception as e:
+                logger.warning(f"Could not inject navbar into reports: {e}")
+
             logger.info(f"Generated {len(generated_files)} visualization reports in {output_dir}")
             return generated_files
 
@@ -129,27 +132,10 @@ class ReportGenerator:
             report_files = [
                 ("commit_activity.html", "Commit Activity Analysis", "Analysis of commit patterns over time"),
                 ("contributor_analysis.html", "Contributor Analysis", "Insights into contributor behavior"),
-                ("file_analysis.html", "File Analysis", "File change patterns and statistics"),
                 ("enhanced_file_analysis.html", "Enhanced File Analysis", "Advanced file metrics and hotspots"),
-                ("executive_summary.html", "Executive Summary", "High-level repository overview"),
-                ("technical_debt.html", "Technical Debt Analysis", "Code quality and technical debt metrics"),
                 ("repository_health.html", "Repository Health", "Overall repository health indicators"),
-                ("predictive_maintenance.html", "Predictive Maintenance", "Predictive analytics for code maintenance"),
-                ("velocity_forecasting.html", "Velocity Forecasting", "Development velocity predictions and trends"),
-                ("knowledge_distribution.html", "Knowledge Distribution", "Gini coefficient and knowledge breakdown"),
                 ("bus_factor.html", "Bus Factor", "Analysis of project risk from key person dependencies"),
-                (
-                    "critical_files.html",
-                    "Critical Files",
-                    "Identification of high-risk files based on complexity and change frequency",
-                ),
-                ("velocity_trends.html", "Velocity Trends", "Development velocity trend analysis over time"),
-                ("cycle_time.html", "Cycle Time", "Feature delivery cycle time analysis"),
-                (
-                    "single_point_failure.html",
-                    "Single Point Failure",
-                    "Files with dangerously low contributor diversity",
-                ),
+                ("file_insights.html", "File Insights", "Hotspots, critical files, and knowledge silos"),
             ]
 
             # Generate index HTML
@@ -188,7 +174,6 @@ class ReportGenerator:
                 ("file_hotspots.csv", "File Hotspots", "Most frequently changed files"),
                 ("maintainability_analysis.csv", "Maintainability Analysis", "Code maintainability metrics"),
                 ("most_changed_files.csv", "Most Changed Files", "Files with most modifications"),
-                ("technical_debt_analysis.csv", "Technical Debt Analysis", "Technical debt indicators"),
                 ("test_coverage_analysis.csv", "Test Coverage Analysis", "Test coverage metrics"),
             ]
 
@@ -377,39 +362,125 @@ class ReportGenerator:
 
         return html_content
 
-    def create_executive_summary_report(self, save_path: Optional[str] = None) -> go.Figure:
+    def _inject_navbar_into_all_reports(self, output_dir: str) -> None:
+        """Inject a global navigation tab bar into every HTML report under output_dir/HTML.
+
+        This creates a simple tab-style navigation across all generated reports for easy switching.
         """
-        Create an executive summary report with key metrics.
+        html_dir = os.path.join(output_dir, "HTML")
+        if not os.path.isdir(html_dir):
+            return
+
+        # Collect report files present
+        files = [f for f in os.listdir(html_dir) if f.lower().endswith(".html")]
+        if not files:
+            return
+
+        for fname in files:
+            fpath = os.path.join(html_dir, fname)
+            try:
+                self._inject_navbar_into_file(fpath, html_dir, files)
+            except Exception as e:
+                logger.debug(f"Navbar injection skipped for {fname}: {e}")
+
+    def _inject_navbar_into_file(self, file_path: str, html_dir: str, files: list) -> None:
+        """Inject the navbar markup into a single HTML file, after the <body> tag.
 
         Args:
-            save_path (str, optional): Path to save the HTML file
-
-        Returns:
-            plotly.graph_objects.Figure: Executive summary visualization
+            file_path: Path to the HTML file to modify
+            html_dir: Directory containing all report HTML files
+            files: List of all report HTML filenames to include in the nav
         """
         try:
-            # Get summary data
-            from .data_aggregator import DataAggregator
-
-            aggregator = DataAggregator(self.git_repo)
-            enhanced_summary = aggregator.get_enhanced_repository_summary()
-            basic_summary = aggregator.generate_repository_summary()
-
-            # Create executive summary visualization
-            fig = self._create_executive_summary_figure(enhanced_summary, basic_summary)
-
-            if save_path:
-                # Generate full HTML report
-                html_content = self._generate_executive_summary_html(enhanced_summary, basic_summary, fig)
-                with open(save_path, "w", encoding="utf-8") as f:
-                    f.write(html_content)
-                logger.info(f"Executive summary report saved to {save_path}")
-
-            return fig
-
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
         except Exception as e:
-            logger.error(f"Error creating executive summary report: {e}")
-            return self._create_error_figure("Error creating executive summary")
+            logger.debug(f"Failed to read {file_path}: {e}")
+            return
+
+        current = os.path.basename(file_path)
+        nav_html = self._build_nav_html(current, files)
+
+        # Only inject if not already present
+        if "gd-global-nav" in content:
+            return
+
+        injected = False
+        if "<body" in content:
+            # Insert right after the opening <body ...>
+            # Find end of opening body tag
+            import re
+
+            match = re.search(r"<body[^>]*>", content, re.IGNORECASE)
+            if match:
+                insert_pos = match.end()
+                content = content[:insert_pos] + "\n" + nav_html + "\n" + content[insert_pos:]
+                injected = True
+
+        if not injected:
+            # Fallback: prepend nav at top
+            content = nav_html + "\n" + content
+
+        try:
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(content)
+        except Exception as e:
+            logger.debug(f"Failed to write {file_path}: {e}")
+
+    def _build_nav_html(self, current_filename: str, files: list) -> str:
+        """Build the HTML for the global nav tabs.
+
+        Args:
+            current_filename: The filename of the current report to mark active
+            files: List of available report HTML filenames
+        """
+        # Human-friendly titles for known reports
+        title_map = {
+            "commit_activity.html": "Commit Activity",
+            "contributor_analysis.html": "Contributors",
+            "file_analysis.html": "File Analysis",
+            "enhanced_file_analysis.html": "Enhanced File Analysis",
+            "repository_health.html": "Repository Health",
+            "bus_factor.html": "Bus Factor",
+            "file_insights.html": "File Insights",
+        }
+
+        def display_name(name: str) -> str:
+            return title_map.get(name, name.replace("_", " ").replace(".html", "").title())
+
+        # Sort consistently by title
+        files_sorted = sorted(files, key=lambda n: display_name(n).lower())
+
+        # Build tabs
+        tabs = []
+        for name in files_sorted:
+            title = display_name(name)
+            cls = "active" if name == current_filename else ""
+            tabs.append(f'<a class="tab {cls}" href="{name}">{title}</a>')
+
+        # Also include links back to Index and CSV page (one level up)
+        extra = (
+            '<span class="spacer"></span>'
+            '<a class="tab util" href="../index.html">Index</a>'
+            '<a class="tab util" href="../csv_data.html">CSV</a>'
+        )
+
+        style = (
+            "<style>\n"
+            ".gd-global-nav{position:sticky;top:0;z-index:999;background:#fff;border-bottom:1px solid #e5e7eb;"
+            "padding:10px 12px;display:flex;flex-wrap:wrap;gap:8px;font-family:Segoe UI,Arial,sans-serif;}\n"
+            ".gd-global-nav .tab{padding:8px 12px;border-radius:6px;text-decoration:none;color:#374151;"
+            "background:#f3f4f6;transition:all .15s ease;font-size:14px;}\n"
+            ".gd-global-nav .tab:hover{background:#e5e7eb;color:#111827;}\n"
+            ".gd-global-nav .tab.active{background:#4f46e5;color:#fff;}\n"
+            ".gd-global-nav .tab.util{background:#eef2ff;color:#3730a3;}\n"
+            ".gd-global-nav .spacer{flex:1 1 auto;}\n"
+            "</style>"
+        )
+
+        html = f"<div class=\"gd-global-nav\">{''.join(tabs)}{extra}</div>"
+
+        return style + "\n" + html
 
     def create_comprehensive_report(self, output_path: str) -> bool:
         """
@@ -472,10 +543,6 @@ class ReportGenerator:
 
         dashboard = DashboardGenerator(self.git_repo)
         dashboard.create_enhanced_file_analysis_dashboard(save_path)
-
-    def _create_executive_summary_report(self, save_path: str) -> None:
-        """Create executive summary report."""
-        self.create_executive_summary_report(save_path)
 
     def _generate_index_html(self, output_dir: str, report_files: list) -> str:
         """Generate HTML content for index page."""
@@ -550,108 +617,65 @@ class ReportGenerator:
 
         return html_content
 
-    def _create_executive_summary_figure(self, enhanced_summary: dict, basic_summary: dict) -> go.Figure:
-        """Create executive summary figure."""
-        # Create a simple metrics figure
-        fig = go.Figure()
+    def _generate_comprehensive_html(self, enhanced_summary: dict, basic_summary: dict) -> str:
+        """Generate comprehensive report HTML content without the former Executive Summary.
 
-        # Add key metrics as annotations
-        health_score = enhanced_summary.get("repository_health_score", 0)
+        This page provides a compact overview of core repository metrics and links to
+        the detailed dashboards now available under the HTML/ directory.
+        """
         total_commits = basic_summary.get("commits", {}).get("total_commits", 0)
         total_contributors = basic_summary.get("contributors", {}).get("total_contributors", 0)
-
-        fig.add_annotation(
-            text=f"Repository Health Score: {health_score:.1f}/100<br>"
-            f"Total Commits: {total_commits:,}<br>"
-            f"Total Contributors: {total_contributors}",
-            xref="paper",
-            yref="paper",
-            x=0.5,
-            y=0.5,
-            showarrow=False,
-            font=dict(size=16),
-        )
-
-        fig.update_layout(
-            title="Executive Summary",
-            template="plotly_white",
-        )
-
-        return fig
-
-    def _generate_executive_summary_html(self, enhanced_summary: dict, basic_summary: dict, fig: go.Figure) -> str:
-        """Generate executive summary HTML content."""
-        health_score = enhanced_summary.get("repository_health_score", 0)
-        health_category = enhanced_summary.get("repository_health_category", "Unknown")
+        total_files = basic_summary.get("files", {}).get("total_files", 0)
+        total_branches = basic_summary.get("branches", {}).get("total_branches", 0)
 
         html_content = f"""<!DOCTYPE html>
-<html lang="en">
+<html lang=\"en\">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Summary</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <title>Comprehensive Report</title>
     <style>
         body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
         .container {{ max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
         .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
         .header h1 {{ margin: 0; font-size: 2em; }}
-        .health-score {{ font-size: 3em; font-weight: bold; margin: 10px 0; }}
         .content {{ padding: 30px; }}
-        .metrics-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }}
-        .metric {{ background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; }}
-        .metric-value {{ font-size: 2em; font-weight: bold; color: #667eea; }}
-        .metric-label {{ color: #666; margin-top: 5px; }}
+        .metrics-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }}
+        .metric {{ background: #f8f9fa; padding: 18px; border-radius: 8px; text-align: center; }}
+        .metric-value {{ font-size: 1.8em; font-weight: bold; color: #4f46e5; }}
+        .metric-label {{ color: #666; margin-top: 6px; }}
+        .links {{ margin-top: 28px; }}
+        .links a {{ display: inline-block; margin: 6px 8px 0 0; padding: 10px 14px; background: #eef2ff; color: #3730a3; text-decoration: none; border-radius: 6px; }}
     </style>
+    
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Executive Summary</h1>
-            <div class="health-score">{health_score:.1f}/100</div>
-            <div>Repository Health: {health_category}</div>
+    <div class=\"container\">
+        <div class=\"header\">
+            <h1>Comprehensive Analysis Overview</h1>
         </div>
-        
-        <div class="content">
-            <div class="metrics-grid">
-                <div class="metric">
-                    <div class="metric-value">{basic_summary.get('commits', {}).get('total_commits', 0):,}</div>
-                    <div class="metric-label">Total Commits</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value">{basic_summary.get('contributors', {}).get('total_contributors', 0)}</div>
-                    <div class="metric-label">Contributors</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value">{basic_summary.get('files', {}).get('total_files', 0):,}</div>
-                    <div class="metric-label">Total Files</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value">{basic_summary.get('branches', {}).get('total_branches', 0)}</div>
-                    <div class="metric-label">Branches</div>
-                </div>
+        <div class=\"content\">
+            <div class=\"metrics-grid\">
+                <div class=\"metric\"><div class=\"metric-value\">{total_commits:,}</div><div class=\"metric-label\">Total Commits</div></div>
+                <div class=\"metric\"><div class=\"metric-value\">{total_contributors}</div><div class=\"metric-label\">Contributors</div></div>
+                <div class=\"metric\"><div class=\"metric-value\">{total_files:,}</div><div class=\"metric-label\">Total Files</div></div>
+                <div class=\"metric\"><div class=\"metric-value\">{total_branches}</div><div class=\"metric-label\">Branches</div></div>
             </div>
-            
-            <div id="chart"></div>
+            <div class=\"links\">
+                <strong>Dive deeper:</strong><br>
+                <a href=\"HTML/commit_activity.html\">Commit Activity</a>
+                <a href=\"HTML/contributor_analysis.html\">Contributor Analysis</a>
+                <a href=\"HTML/file_analysis.html\">File Analysis</a>
+                <a href=\"HTML/enhanced_file_analysis.html\">Enhanced File Analysis</a>
+                <a href=\"HTML/bus_factor.html\">Bus Factor</a>
+                <a href=\"HTML/file_insights.html\">File Insights</a>
+            </div>
         </div>
     </div>
-    
-    <script>
-        var chartData = {fig.to_json()};
-        Plotly.newPlot('chart', chartData.data, chartData.layout);
-    </script>
 </body>
 </html>"""
 
         return html_content
-
-    def _generate_comprehensive_html(self, enhanced_summary: dict, basic_summary: dict) -> str:
-        """Generate comprehensive report HTML content."""
-        # This would be a much more detailed HTML report
-        # For now, return a simplified version
-        return self._generate_executive_summary_html(
-            enhanced_summary, basic_summary, self._create_executive_summary_figure(enhanced_summary, basic_summary)
-        )
 
     def _create_error_figure(self, error_message: str) -> go.Figure:
         """Create a simple error figure when visualization fails."""
