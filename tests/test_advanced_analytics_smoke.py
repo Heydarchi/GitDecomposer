@@ -16,33 +16,6 @@ def _df(data: dict) -> pd.DataFrame:
     return pd.DataFrame(data)
 
 
-def test_technical_debt_dashboard_smoke(tmp_path):
-    mock_repo = Mock(spec=GitRepository)
-    aa = AdvancedAnalytics(mock_repo)
-
-    # Patch analyzers with minimal data
-    aa.file_analyzer.get_code_churn_analysis = Mock(
-        return_value={
-            "file_churn_rates": _df({"file_path": ["a.py"], "churn_rate": [0.3]}),
-            "churn_trend": _df({"month": ["2024-01"], "churn_rate": [0.5]}),
-            "churn_by_extension": _df({"extension": [".py"], "avg_churn_rate": [0.3]}),
-        }
-    )
-    aa.commit_analyzer.get_bug_fix_ratio_analysis = Mock(
-        return_value={"bug_fix_ratio": 10, "bug_fix_trend": _df({"month": ["2024-01"], "bug_fix_ratio": [5]})}
-    )
-    aa.commit_analyzer.get_commit_velocity_analysis = Mock(
-        return_value={"weekly_velocity": _df({"week_start": [], "commit_count": []})}
-    )
-    aa.file_analyzer.get_documentation_coverage_analysis = Mock(return_value={"documentation_ratio": 25})
-
-    path = str(tmp_path / "technical_debt.html")
-    fig = aa.create_technical_debt_dashboard(path)
-
-    assert isinstance(fig, go.Figure)
-    assert Path(path).exists()
-
-
 def test_repository_health_dashboard_smoke(tmp_path):
     mock_repo = Mock(spec=GitRepository)
     aa = AdvancedAnalytics(mock_repo)
@@ -55,24 +28,6 @@ def test_repository_health_dashboard_smoke(tmp_path):
 
     path = str(tmp_path / "repository_health.html")
     fig = aa.create_repository_health_dashboard(path)
-
-    assert isinstance(fig, go.Figure)
-    assert Path(path).exists()
-
-
-def test_predictive_maintenance_report_smoke(tmp_path):
-    mock_repo = Mock(spec=GitRepository)
-    aa = AdvancedAnalytics(mock_repo)
-
-    aa.commit_analyzer.get_commit_velocity_analysis = Mock(
-        return_value={"weekly_velocity": _df({"week_start": ["2024-01"], "commit_count": [10]})}
-    )
-    aa.file_analyzer.get_code_churn_analysis = Mock(
-        return_value={"file_churn_rates": _df({"file_path": ["a.py"], "churn_rate": [0.3]})}
-    )
-
-    path = str(tmp_path / "predictive_maintenance.html")
-    fig = aa.create_predictive_maintenance_report(path)
 
     assert isinstance(fig, go.Figure)
     assert Path(path).exists()

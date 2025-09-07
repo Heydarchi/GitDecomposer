@@ -17,7 +17,7 @@ def test_navbar_injected_into_reports(tmp_path):
     # Create sample HTML files
     html_dir = tmp_path / "HTML"
     html_dir.mkdir(parents=True, exist_ok=True)
-    files = ["executive_summary.html", "commit_activity.html", "file_insights.html"]
+    files = ["commit_activity.html", "file_insights.html"]
     for f in files:
         (html_dir / f).write_text("<html><body><h1>Test</h1></body></html>", encoding="utf-8")
 

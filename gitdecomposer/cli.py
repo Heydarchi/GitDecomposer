@@ -142,10 +142,6 @@ class CLI:
         html_dir.mkdir(parents=True, exist_ok=True)
 
         visualizations_to_create = {
-            "Executive Summary": (
-                self.metrics.create_executive_summary_report,
-                "executive_summary.html",
-            ),
             "Commit Activity": (
                 self.metrics.create_commit_activity_dashboard,
                 "commit_activity.html",
@@ -162,14 +158,9 @@ class CLI:
                 self.metrics.create_enhanced_file_analysis_dashboard,
                 "enhanced_file_analysis.html",
             ),
-            "Technical Debt": (self.metrics.create_technical_debt_dashboard, "technical_debt.html"),
             "Repository Health": (
                 self.metrics.create_repository_health_dashboard,
                 "repository_health.html",
-            ),
-            "Predictive Maintenance": (
-                self.metrics.create_predictive_maintenance_report,
-                "predictive_maintenance.html",
             ),
             "Bus Factor": (
                 self.metrics.report_generator.advanced_report_generator.create_bus_factor_report,

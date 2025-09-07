@@ -25,8 +25,7 @@ GitDecomposer includes sophisticated advanced metrics for deeper repository insi
 - **Commit Velocity & Activity**: Patterns and trends for commits over time
 - (Consolidated) Removed standalone Velocity Trends and Cycle Time reports in favor of cleaner dashboards
 
-### Predictive Analytics
-- **Predictive Maintenance**: Identifies files likely to need maintenance
+### Health & Overview
 - **Repository Health Assessment**: Overall health indicators and recommendations
 
 ## Quick Start
@@ -128,12 +127,11 @@ gitdecomposer /path/to/repository --verbose
 ```
 
 **Generated Reports Include:**
-- Executive Summary & Repository Health
 - Commit Activity & Contributor Analysis  
-- File Analysis & Technical Debt
+- File Analysis & Enhanced File Analysis
+- Repository Health
 - Bus Factor
 - File Insights (Hotspots, Critical Files, Knowledge Silos)
-- Predictive Maintenance
 
 **Alternative: Direct script execution:**
 
@@ -147,23 +145,23 @@ python gitdecomposer/cli.py /path/to/repository --output ./analysis_output
 GitDecomposer generates comprehensive HTML reports with interactive visualizations:
 
 ### Core Analysis Reports
-- **Executive Summary**: High-level repository overview and key metrics
 - **Commit Activity Analysis**: Commit patterns, frequency, and timing analysis
 - **Contributor Analysis**: Developer activity, contribution patterns, and collaboration metrics
 - **File Analysis**: File change patterns, hotspots, and complexity metrics
+- **Enhanced File Analysis**: Deeper file metrics and hotspots
 
 ### Advanced Risk & Quality Reports
-- **Technical Debt Analysis**: Code quality metrics and technical debt indicators
 - **Repository Health**: Overall health indicators and recommendations
 - **File Insights**: Hotspots, Critical Files, and Knowledge Silos in one place
 
 ### Knowledge & Team Analytics
 - **Bus Factor Analysis**: Key person dependencies and project risk assessment
 
-### Velocity & Performance Reports
-- **Predictive Maintenance**: Files likely to need future maintenance
+<!-- Predictive Maintenance and Technical Debt were removed in favor of consolidated dashboards. -->
 
 All reports are accessible through an integrated dashboard with navigation between different analysis views.
+
+Note: Legacy reports (Executive Summary, Technical Debt, Predictive Maintenance) were removed or consolidated.
 
 ## Architecture
 

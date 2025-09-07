@@ -3,6 +3,7 @@
 Adds the repository root to sys.path so tests can import `gitdecomposer`
 without requiring an installed wheel in the active environment.
 """
+
 from __future__ import annotations
 
 import sys

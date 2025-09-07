@@ -155,13 +155,19 @@ class FilePlotter(BasePlotter):
             top_files = most_changed.head(10).copy()
             # Simulate monthly activity lines for top files using their change_count as scale
             import random
+
             months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
             for i, row in top_files.iterrows():
                 changes = int(row.get("change_count", 0)) or 1
                 if i < 5:
                     activity_data = [random.randint(0, max(1, changes)) for _ in range(12)]
                     fig.add_trace(
-                        go.Scatter(x=months, y=activity_data, mode="lines+markers", name=str(row.get("file_path", "file"))[-30:]),
+                        go.Scatter(
+                            x=months,
+                            y=activity_data,
+                            mode="lines+markers",
+                            name=str(row.get("file_path", "file"))[-30:],
+                        ),
                         row=1,
                         col=2,
                     )
@@ -169,10 +175,17 @@ class FilePlotter(BasePlotter):
             # Directory activity (aggregate changes by directory from most_changed)
             if most_changed is not None and hasattr(most_changed, "empty") and not most_changed.empty:
                 tmp = most_changed.copy()
-                tmp["directory"] = tmp["file_path"].astype(str).apply(lambda p: "/".join(p.split("/")[:-1]) if "/" in p else "<root>")
+                tmp["directory"] = (
+                    tmp["file_path"].astype(str).apply(lambda p: "/".join(p.split("/")[:-1]) if "/" in p else "<root>")
+                )
                 dir_stats = tmp.groupby("directory")["change_count"].sum().sort_values(ascending=False).head(10)
                 fig.add_trace(
-                    go.Bar(x=list(dir_stats.index), y=list(dir_stats.values), name="Directory Changes", marker=dict(color="lightgreen")),
+                    go.Bar(
+                        x=list(dir_stats.index),
+                        y=list(dir_stats.values),
+                        name="Directory Changes",
+                        marker=dict(color="lightgreen"),
+                    ),
                     row=2,
                     col=2,
                 )
@@ -199,7 +212,12 @@ class FilePlotter(BasePlotter):
         if isinstance(doc_coverage, dict) and "doc_file_types" in doc_coverage:
             coverage_data = doc_coverage["doc_file_types"]
             fig.add_trace(
-                go.Bar(x=list(coverage_data.keys()), y=list(coverage_data.values()), name="Doc Coverage", marker=dict(color="skyblue")),
+                go.Bar(
+                    x=list(coverage_data.keys()),
+                    y=list(coverage_data.values()),
+                    name="Doc Coverage",
+                    marker=dict(color="skyblue"),
+                ),
                 row=3,
                 col=1,
             )

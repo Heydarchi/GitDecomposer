@@ -100,8 +100,8 @@ class GitMetrics:
         return None
 
     def create_executive_summary_report(self, save_path: Optional[str] = None) -> go.Figure:
-        """Create executive summary report."""
-        return self.report_generator.create_executive_summary_report(save_path)
+        """Deprecated: Executive summary report removed."""
+        raise NotImplementedError("Executive Summary report has been removed.")
 
     def create_comprehensive_report(self, output_path: str) -> bool:
         """Create comprehensive HTML report."""

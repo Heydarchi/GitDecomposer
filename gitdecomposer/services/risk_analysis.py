@@ -48,7 +48,14 @@ class RiskAnalysis:
         Returns:
             plotly.graph_objects.Figure: The file insights dashboard.
         """
-        fig = go.Figure()
+        # Use subplots to avoid overlay and ensure tables don’t cover charts
+        fig = make_subplots(
+            rows=2,
+            cols=1,
+            row_heights=[0.6, 0.4],
+            vertical_spacing=0.08,
+            specs=[[{"type": "xy"}], [{"type": "table"}]],
+        )
 
         # Data Acquisition
         hotspots_data = self.file_analyzer.get_code_churn_analysis()
@@ -83,7 +90,19 @@ class RiskAnalysis:
             ),
         ]
         fig.update_layout(
-            updatemenus=[dict(type="buttons", direction="right", x=1, y=1.1, showactive=True, buttons=buttons)]
+            updatemenus=[
+                dict(
+                    type="buttons",
+                    direction="right",
+                    x=0,
+                    xanchor="left",
+                    y=1.18,
+                    yanchor="bottom",
+                    showactive=True,
+                    buttons=buttons,
+                )
+            ],
+            margin=dict(t=110, r=20, b=40, l=40),
         )
 
         # Tab 1: File Hotspots
@@ -97,7 +116,9 @@ class RiskAnalysis:
                     name="Churn Rate",
                     marker_color="blue",
                     visible=True,
-                )
+                ),
+                row=1,
+                col=1,
             )
             # Use total_changes instead of non-existent commit_count
             fig.add_trace(
@@ -107,7 +128,9 @@ class RiskAnalysis:
                     name="Total Changes",
                     marker_color="lightblue",
                     visible=True,
-                )
+                ),
+                row=1,
+                col=1,
             )
 
         # Tab 2: Critical Files
@@ -134,7 +157,9 @@ class RiskAnalysis:
                     name="Critical Files",
                     marker=dict(size=10, color="red"),
                     visible=False,
-                )
+                ),
+                row=1,
+                col=1,
             )
             fig.add_trace(
                 go.Table(
@@ -148,7 +173,9 @@ class RiskAnalysis:
                         ]
                     ),
                     visible=False,
-                )
+                ),
+                row=2,
+                col=1,
             )
 
         # Tab 3: Knowledge Silos
@@ -171,17 +198,22 @@ class RiskAnalysis:
                     name="Dominance % by Single Owner",
                     marker_color="purple",
                     visible=False,
-                )
+                ),
+                row=1,
+                col=1,
             )
             fig.add_trace(
                 go.Table(
                     header=dict(values=["File", "Owner", "Dominance %"]),
                     cells=dict(values=[spof_df["file_path"], spof_df["owner"], spof_df["dominance_%"]]),
                     visible=False,
-                )
+                ),
+                row=2,
+                col=1,
             )
 
-        fig.update_layout(title="File Insights: Hotspots & Churn", template="plotly_white", height=700, barmode="stack")
+        # Increase height so Knowledge Silos table shows enough rows
+        fig.update_layout(title="File Insights: Hotspots & Churn", template="plotly_white", height=900, barmode="stack")
 
         if save_path:
             fig.write_html(save_path)

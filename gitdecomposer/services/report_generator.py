@@ -81,7 +81,6 @@ class ReportGenerator:
                     "enhanced_file_analysis.html",
                     self._create_enhanced_file_analysis_dashboard,
                 ),
-                ("executive_summary", "executive_summary.html", self._create_executive_summary_report),
                 ("bus_factor", "bus_factor.html", self.advanced_report_generator.create_bus_factor_report),
                 ("file_insights", "file_insights.html", self.risk_analysis.create_file_insights_dashboard),
             ]
@@ -134,10 +133,7 @@ class ReportGenerator:
                 ("commit_activity.html", "Commit Activity Analysis", "Analysis of commit patterns over time"),
                 ("contributor_analysis.html", "Contributor Analysis", "Insights into contributor behavior"),
                 ("enhanced_file_analysis.html", "Enhanced File Analysis", "Advanced file metrics and hotspots"),
-                ("executive_summary.html", "Executive Summary", "High-level repository overview"),
-                ("technical_debt.html", "Technical Debt Analysis", "Code quality and technical debt metrics"),
                 ("repository_health.html", "Repository Health", "Overall repository health indicators"),
-                ("predictive_maintenance.html", "Predictive Maintenance", "Predictive analytics for code maintenance"),
                 ("bus_factor.html", "Bus Factor", "Analysis of project risk from key person dependencies"),
                 ("file_insights.html", "File Insights", "Hotspots, critical files, and knowledge silos"),
             ]
@@ -178,7 +174,6 @@ class ReportGenerator:
                 ("file_hotspots.csv", "File Hotspots", "Most frequently changed files"),
                 ("maintainability_analysis.csv", "Maintainability Analysis", "Code maintainability metrics"),
                 ("most_changed_files.csv", "Most Changed Files", "Files with most modifications"),
-                ("technical_debt_analysis.csv", "Technical Debt Analysis", "Technical debt indicators"),
                 ("test_coverage_analysis.csv", "Test Coverage Analysis", "Test coverage metrics"),
             ]
 
@@ -445,10 +440,7 @@ class ReportGenerator:
             "contributor_analysis.html": "Contributors",
             "file_analysis.html": "File Analysis",
             "enhanced_file_analysis.html": "Enhanced File Analysis",
-            "executive_summary.html": "Executive Summary",
-            "technical_debt.html": "Technical Debt",
             "repository_health.html": "Repository Health",
-            "predictive_maintenance.html": "Predictive Maintenance",
             "bus_factor.html": "Bus Factor",
             "file_insights.html": "File Insights",
         }
@@ -489,40 +481,6 @@ class ReportGenerator:
         html = f"<div class=\"gd-global-nav\">{''.join(tabs)}{extra}</div>"
 
         return style + "\n" + html
-
-    def create_executive_summary_report(self, save_path: Optional[str] = None) -> go.Figure:
-        """
-        Create an executive summary report with key metrics.
-
-        Args:
-            save_path (str, optional): Path to save the HTML file
-
-        Returns:
-            plotly.graph_objects.Figure: Executive summary visualization
-        """
-        try:
-            # Get summary data
-            from .data_aggregator import DataAggregator
-
-            aggregator = DataAggregator(self.git_repo)
-            enhanced_summary = aggregator.get_enhanced_repository_summary()
-            basic_summary = aggregator.generate_repository_summary()
-
-            # Create executive summary visualization
-            fig = self._create_executive_summary_figure(enhanced_summary, basic_summary)
-
-            if save_path:
-                # Generate full HTML report
-                html_content = self._generate_executive_summary_html(enhanced_summary, basic_summary, fig)
-                with open(save_path, "w", encoding="utf-8") as f:
-                    f.write(html_content)
-                logger.info(f"Executive summary report saved to {save_path}")
-
-            return fig
-
-        except Exception as e:
-            logger.error(f"Error creating executive summary report: {e}")
-            return self._create_error_figure("Error creating executive summary")
 
     def create_comprehensive_report(self, output_path: str) -> bool:
         """
@@ -585,10 +543,6 @@ class ReportGenerator:
 
         dashboard = DashboardGenerator(self.git_repo)
         dashboard.create_enhanced_file_analysis_dashboard(save_path)
-
-    def _create_executive_summary_report(self, save_path: str) -> None:
-        """Create executive summary report."""
-        self.create_executive_summary_report(save_path)
 
     def _generate_index_html(self, output_dir: str, report_files: list) -> str:
         """Generate HTML content for index page."""
@@ -663,108 +617,65 @@ class ReportGenerator:
 
         return html_content
 
-    def _create_executive_summary_figure(self, enhanced_summary: dict, basic_summary: dict) -> go.Figure:
-        """Create executive summary figure."""
-        # Create a simple metrics figure
-        fig = go.Figure()
+    def _generate_comprehensive_html(self, enhanced_summary: dict, basic_summary: dict) -> str:
+        """Generate comprehensive report HTML content without the former Executive Summary.
 
-        # Add key metrics as annotations
-        health_score = enhanced_summary.get("repository_health_score", 0)
+        This page provides a compact overview of core repository metrics and links to
+        the detailed dashboards now available under the HTML/ directory.
+        """
         total_commits = basic_summary.get("commits", {}).get("total_commits", 0)
         total_contributors = basic_summary.get("contributors", {}).get("total_contributors", 0)
-
-        fig.add_annotation(
-            text=f"Repository Health Score: {health_score:.1f}/100<br>"
-            f"Total Commits: {total_commits:,}<br>"
-            f"Total Contributors: {total_contributors}",
-            xref="paper",
-            yref="paper",
-            x=0.5,
-            y=0.5,
-            showarrow=False,
-            font=dict(size=16),
-        )
-
-        fig.update_layout(
-            title="Executive Summary",
-            template="plotly_white",
-        )
-
-        return fig
-
-    def _generate_executive_summary_html(self, enhanced_summary: dict, basic_summary: dict, fig: go.Figure) -> str:
-        """Generate executive summary HTML content."""
-        health_score = enhanced_summary.get("repository_health_score", 0)
-        health_category = enhanced_summary.get("repository_health_category", "Unknown")
+        total_files = basic_summary.get("files", {}).get("total_files", 0)
+        total_branches = basic_summary.get("branches", {}).get("total_branches", 0)
 
         html_content = f"""<!DOCTYPE html>
-<html lang="en">
+<html lang=\"en\">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Executive Summary</title>
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <meta charset=\"UTF-8\">
+    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+    <title>Comprehensive Report</title>
     <style>
         body {{ font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }}
         .container {{ max-width: 1200px; margin: 0 auto; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }}
         .header {{ background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px 10px 0 0; text-align: center; }}
         .header h1 {{ margin: 0; font-size: 2em; }}
-        .health-score {{ font-size: 3em; font-weight: bold; margin: 10px 0; }}
         .content {{ padding: 30px; }}
-        .metrics-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin: 20px 0; }}
-        .metric {{ background: #f8f9fa; padding: 20px; border-radius: 8px; text-align: center; }}
-        .metric-value {{ font-size: 2em; font-weight: bold; color: #667eea; }}
-        .metric-label {{ color: #666; margin-top: 5px; }}
+        .metrics-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }}
+        .metric {{ background: #f8f9fa; padding: 18px; border-radius: 8px; text-align: center; }}
+        .metric-value {{ font-size: 1.8em; font-weight: bold; color: #4f46e5; }}
+        .metric-label {{ color: #666; margin-top: 6px; }}
+        .links {{ margin-top: 28px; }}
+        .links a {{ display: inline-block; margin: 6px 8px 0 0; padding: 10px 14px; background: #eef2ff; color: #3730a3; text-decoration: none; border-radius: 6px; }}
     </style>
+    
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Executive Summary</h1>
-            <div class="health-score">{health_score:.1f}/100</div>
-            <div>Repository Health: {health_category}</div>
+    <div class=\"container\">
+        <div class=\"header\">
+            <h1>Comprehensive Analysis Overview</h1>
         </div>
-        
-        <div class="content">
-            <div class="metrics-grid">
-                <div class="metric">
-                    <div class="metric-value">{basic_summary.get('commits', {}).get('total_commits', 0):,}</div>
-                    <div class="metric-label">Total Commits</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value">{basic_summary.get('contributors', {}).get('total_contributors', 0)}</div>
-                    <div class="metric-label">Contributors</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value">{basic_summary.get('files', {}).get('total_files', 0):,}</div>
-                    <div class="metric-label">Total Files</div>
-                </div>
-                <div class="metric">
-                    <div class="metric-value">{basic_summary.get('branches', {}).get('total_branches', 0)}</div>
-                    <div class="metric-label">Branches</div>
-                </div>
+        <div class=\"content\">
+            <div class=\"metrics-grid\">
+                <div class=\"metric\"><div class=\"metric-value\">{total_commits:,}</div><div class=\"metric-label\">Total Commits</div></div>
+                <div class=\"metric\"><div class=\"metric-value\">{total_contributors}</div><div class=\"metric-label\">Contributors</div></div>
+                <div class=\"metric\"><div class=\"metric-value\">{total_files:,}</div><div class=\"metric-label\">Total Files</div></div>
+                <div class=\"metric\"><div class=\"metric-value\">{total_branches}</div><div class=\"metric-label\">Branches</div></div>
             </div>
-            
-            <div id="chart"></div>
+            <div class=\"links\">
+                <strong>Dive deeper:</strong><br>
+                <a href=\"HTML/commit_activity.html\">Commit Activity</a>
+                <a href=\"HTML/contributor_analysis.html\">Contributor Analysis</a>
+                <a href=\"HTML/file_analysis.html\">File Analysis</a>
+                <a href=\"HTML/enhanced_file_analysis.html\">Enhanced File Analysis</a>
+                <a href=\"HTML/bus_factor.html\">Bus Factor</a>
+                <a href=\"HTML/file_insights.html\">File Insights</a>
+            </div>
         </div>
     </div>
-    
-    <script>
-        var chartData = {fig.to_json()};
-        Plotly.newPlot('chart', chartData.data, chartData.layout);
-    </script>
 </body>
 </html>"""
 
         return html_content
-
-    def _generate_comprehensive_html(self, enhanced_summary: dict, basic_summary: dict) -> str:
-        """Generate comprehensive report HTML content."""
-        # This would be a much more detailed HTML report
-        # For now, return a simplified version
-        return self._generate_executive_summary_html(
-            enhanced_summary, basic_summary, self._create_executive_summary_figure(enhanced_summary, basic_summary)
-        )
 
     def _create_error_figure(self, error_message: str) -> go.Figure:
         """Create a simple error figure when visualization fails."""

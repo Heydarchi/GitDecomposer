@@ -251,6 +251,7 @@ class DashboardGenerator:
 </body>
 </html>"""
         return html_content
+
     def create_enhanced_file_analysis_dashboard(self, save_path: Optional[str] = None) -> go.Figure:
         """
         Create an enhanced file analysis dashboard with advanced metrics.
